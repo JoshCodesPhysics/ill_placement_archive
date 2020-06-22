@@ -91,10 +91,10 @@ def frag_basis(new_file,sew0_file,psd_file,lib):
                    frag_dict[atom].append(data_list)
        for i in range(len(atom_list)):
            sew_in.write("Basis set\n")
-           if lib[atom_list[i]]["bool"] == True:
-               sew_in.write(" %s    / %s\n"%(lib[atom_list[i]]["key"],lib[atom_list[i]]["loc"]))
-           else:
+           if lib[atom_list[i]]["loc"] == "":
                sew_in.write(" %s\n"%lib[atom_list[i]]["key"])
+           else:
+               sew_in.write(" %s    / %s\n"%(lib[atom_list[i]]["key"],lib[atom_list[i]]["loc"]))
            sew_in.write("  spherical\n")
            sew_in.writelines(frag_dict[atom_list[i]])
            sew_in.write("End of basis\n")
@@ -171,10 +171,10 @@ def pseudos(new_file,sew0_file,psd_file,lib):
         sew_in.write("*** Pseudos ***************************************************\n")
         for i in range(len(atom_list)):
             sew_in.write("Basis Set\n")
-            if lib[atom_list[i]]["bool"] == True:
-                sew_in.write(" %s    / %s\n"%(lib[atom_list[i]]["key"],lib[atom_list[i]]["loc"]))
-            else:
+            if lib[atom_list[i]]["loc"] == "":
                 sew_in.write(" %s\n"%lib[atom_list[i]]["key"])
+            else:
+                sew_in.write(" %s    / %s\n"%(lib[atom_list[i]]["key"],lib[atom_list[i]]["loc"]))
             sew_in.write("  pseudocharge\n")
             data_list = pseudo_dict[atom_list[i]]
             sew_in.writelines(data_list)
@@ -194,7 +194,7 @@ def xfield(new_file,sew0_file):
                 print("Xfield not found")
         xfield = open(sew0_file).readlines()[start:num_lines]
         xfield.append("End of input\n")
-        xfield.append("")
+        xfield.append("\n")
         sew_in.writelines(xfield)
 
 def finalwrite(new_file,title_input,sew0_file,psd_file,lib_frag,lib_pseud):
@@ -221,7 +221,7 @@ def ask_user(question):
 
 def finalprompt():
     title = str(input('Please enter TITLE line (Maximum 80 characters):   '))
-    prefix = str(input('Please enter files PREFIX:   '))
+    prefix = str(input('Please enter files PREFIX (must match input file prefixes):   '))
     sew0name = "%s.env.sew0"%prefix
     psdname = "%s.env.psd"%prefix
     filename = "%s.sew.in"%prefix
@@ -233,19 +233,13 @@ def finalprompt():
     for i in range(len(atoms[0])):
         input_atom = atoms[0][i]
         lib_frag[input_atom]["key"] = input("Please enter the basis set for %s:   "%input_atom)
-        lib_frag[input_atom]["bool"] = ask_user("Is there a specified library for this basis set?:   ")
-        lib_answer = lib_frag[input_atom]["bool"]
-        if lib_answer == True:
-            lib_frag[input_atom]["loc"] = input("LIBRARY location:  ")
+        lib_frag[input_atom]["loc"] = input("LIBRARY LOCATION - Please enter specified library location, or leave blank if default:  ")
     print("")
     print("TIPS ATOMS BASIS:")
     for i in range(len(atoms[1])):
         input_atom = atoms[1][i]
         lib_pseudo[input_atom]["key"] = input("Please enter the TIPS for %s:   "%input_atom)
-        lib_pseudo[input_atom]["bool"] = ask_user("Is there a specified library for this basis set?:   ")
-        lib_answer = lib_pseudo[input_atom]["bool"]
-        if lib_answer == True:
-            lib_pseudo[input_atom]["loc"] = input("LIBRARY location:   ")
+        lib_pseudo[input_atom]["loc"] = input("LIBRARY LOCATION - Please enter specified library location, or leave blank if default:  ")
     print("Inputs complete")
     finalwrite(filename,title,sew0name,psdname,lib_frag,lib_pseudo)
 
