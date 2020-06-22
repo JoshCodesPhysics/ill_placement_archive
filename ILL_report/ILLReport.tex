@@ -1,0 +1,108 @@
+\documentclass[10pt]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{verbatim}
+\usepackage{courier}
+
+\author{Joshua Horswill}
+\title{ILL internship report}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
+
+In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$). These responses are of course linear.
+
+The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of the electronic structure.
+
+\section{Relation of the $\bar{\bar{\alpha}}$ tensor to the exchange integral $J$}
+
+Lev Landau introduced a physical theory that attempted to create a general model of continuous and therefore second-order phase transitions. It is versatile in that it can be used in systems that are subject to external fields. Landau proposed that the free energy of any system should be analytic, and obey the same symmetry of the Hamiltonian. This allows the generation of a phenomenological expression for the free energy as a Taylor expansion in the order parameter.
+
+Using this theory it is possible to write an expression for $\bar{\bar{\alpha}}$ in terms of the second derivative of the free energy with respect to the electric and magnetic fields ($\vec{\mathcal{E}}$ and $\vec{\mathcal{H}}$ respectively):
+
+\begin{equation*}
+\bar{\bar{\alpha}} = -\frac{\partial^2 \mathcal{F}}{\partial \vec{\mathcal{E}}\partial\vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}, \vec{\mathcal{H}} = \vec{0}}
+\end{equation*}
+
+For multiferroic systems, low-energy excitations are of a magnetic nature due to the material being a magnetic insulator. This means it is possible to describe this property by implementing an effective Hamiltonian that only takes into account the magnetic degrees of freedom. One of the models that fits these requirements particularly well is the Heisenberg Hamiltonian. For example, let us suppose that a system can be described by this Hamiltonian for the Fermi level (magnetic) properties:
+
+\begin{equation*}
+\hat{H} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\hat{\vec{S_i}}\cdot \hat{\vec{S_j}}
+\end{equation*}
+
+where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local). By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
+
+\begin{equation*}
+\mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \hat{\vec{S_i}}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
+\end{equation*}
+
+where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth electron. It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly different from the critical temperature $T_c$ of the transition. In the paramagnetic phase ($T > T_c$, where for all $I$, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$. N is the number of magnetic eigenstates and Z is the partition function for the system (classically $Z = \sum_{i}^{N} \exp(-\beta E_i)$ but quantum mechanically $Z =$ tr$(\exp(-\beta \hat{H}))$). Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
+
+To first order, $\bar{\bar{\alpha}}$ can resultantly be written as:
+
+\begin{equation*}
+	\bar{\bar{\alpha}} = \sum_{\langle i,j \rangle} \frac{\partial J_{i,j}}{\partial \vec{\mathcal{E}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}}\otimes\biggr(\frac{\partial \langle \vec{S_i}\rangle}{\partial \vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}} = \vec{0}}\cdot\langle\vec{S_j}\rangle + \langle\vec{S_i}\rangle\cdot\frac{\partial \langle \vec{S_j}\rangle}{\partial\vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}}=\vec{0}}\biggr)
+\end{equation*}
+
+This means that the derivative of the exchange integrals with respect to the electric field and the derivative of the local magnetic moments with respect to the magnetic field will need to be calculated. The former will require accurate ab-initio evaluation of the $J_{i,j}$ integrals and the latter can be obtained using standard spin wave calculations (see \cite{anderson1951limits,kubo1952spin,oguchi1960theory}).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Elise's section created initially:
+
+\section{Computing the magnetic exchange term from nuclei displacement}
+
+This coupling is computed from the first derivation of the exchange integral $J$
+as a function of an applied electric field $\mathcal{E}$. The main effect of an electric field on an ionic insulator is to displace the
+ions (nuclei). This displacement can be computed from:
+\begin{itemize}
+\item The Hessian matrix of the
+energy $\mathcal{H} = \frac{\partial^2 E}{\partial \mathbf{d} ^2} $ obtained
+from a mean-field DFT calculation
+\item The Born dynamical effective charges $q^*$ which corresponds to the second
+  derivative of the energy with respect to the field and displacement
+\item Newton's 2nd law
+\end{itemize}
+
+$$ q^* \mathcal{E} = \mathcal{H} d $$
+
+which implies that the displacement induced by an electric field is
+
+$$ d = \mathcal{H}^{-1} q^* \mathcal{E} $$
+
+The magneto-electric coupling is then obtained as
+  $$ \dfrac{\partial J}{\partial E} = \dfrac{\partial J}{\partial
+    d}\dfrac{\partial d}{\partial E} $$
+
+The first step is, for a range of $\mathcal{E}$, to compute the associated displacements $d$. The second step is to compute the value of $J$ for each value of the displacement.
+
+
+\subsection{Calculation of the displacement}
+From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|. 
+
+
+\subsection{Calculation of the J}
+
+From a set of inputs for the software suite used for a point of the calculation
+\begin{itemize}
+	\item env15
+	\item seward
+	\item rasscf
+	\item localisation
+	\item matrec
+	\item kinorb
+	\item rasscf - ci only
+	\item motra
+	\item sass
+	\item prop
+\end{itemize}
+
+\subsection{Env2seward}
+Env2seward is a driver script that I wrote to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the atom types and ordering the data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file. They are organised into quantum fragment, pseudopotential and Madelung potential sections in a way that is readable by the SEWARD input algorithm.
+
+\bibliographystyle{unsrt}
+\bibliography{reportbib}
+\end{document}
