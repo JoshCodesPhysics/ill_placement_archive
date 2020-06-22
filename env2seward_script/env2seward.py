@@ -194,7 +194,7 @@ def xfield(new_file,sew0_file):
                 print("Xfield not found")
         xfield = open(sew0_file).readlines()[start:num_lines]
         xfield.append("End of input\n")
-        xfield.append("\n")
+        xfield.append("")
         sew_in.writelines(xfield)
 
 def finalwrite(new_file,title_input,sew0_file,psd_file,lib_frag,lib_pseud):
@@ -250,8 +250,6 @@ def finalprompt():
     finalwrite(filename,title,sew0name,psdname,lib_frag,lib_pseudo)
 
 "For testing:"
-#frag_input = Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g. O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f
-#pseudo_input = Gd.ECP.Marie.0s.0s.0e-$-GdMn2O5. Mn.ECP.Marie.0s.0s.0e-$-GdMn2O5. O.ECP.Marie.0s.0s.0e-$-GdMn2O5.
 """
 opening_lines("yes","GdMn2O5_J1.sew.in 2")
 lib1 = {'Mn':{'bool': False,'loc': '','key':'Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.'},'O':{'bool': False,'loc': '','key':'O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f'}}
@@ -260,4 +258,10 @@ lib2 = {'Gd1':{'bool': True,'loc': 'PSEUDO','key':'Gd.ECP.Marie.0s.0s.0e-Gd1-GdM
 pseudos("yes","GdMn2O5_J1.env.sew0","GdMn2O5_J1.env.psd",lib2)
 xfield("yes","GdMn2O5_J1.env.sew0")
 """
-finalprompt()
+
+def jupyter_or_prompt():
+   if ask_user("Are you running this on the Jupyter notebook?") == False:
+      finalprompt()
+   else:
+      pass
+jupyter_or_prompt()
