@@ -5,6 +5,7 @@ Created on Fri Jun 12 15:33:04 2020
 
 @author: joshhorswill10
 """
+import sys
 
 def opening_lines(new_file,title_input):
     """This function writes initial opening commands before the basis section and
@@ -142,18 +143,22 @@ def pseudos(new_file,sew0_file,psd_file,lib):
                     pseudo_dict[atom].append(pseudo_sew0[j])
             #It has two characters, oh dear
             else:
-                psd = open(psd_file).readlines()
-                #Need to round coords to be the same 
+                psd_whole = open(psd_file).readlines()
+                psd = []
+                for i in range(1,len(psd_whole)):
+                    if psd_whole[i].split()[0][1].isdigit() == False:
+                        psd.append(psd_whole[i])
+                elem = pseudo_sew0[j].split()[0][0:2]
                 coords = []
                 for i in range(1,4):
-                    coords.append(round(float(pseudo_sew0[j].split()[i]),6))
+                    coords.append(float(pseudo_sew0[j].split()[i]))
                 #scan psd for corresponding coords
-                for i in range(1,len(psd)):
+                for i in range(len(psd)):
                     psd_coords = []
                     for k in range(1,4):
                         psd_coords.append(float(psd[i].split()[k]))
-                    separation = abs(((psd_coords[0]-coords[0])**2+(psd_coords[1]-coords[1])**2+(psd_coords[2]-coords[2])**2)**0.5)
-                    if separation <= 1e-3:
+                    separation = ((psd_coords[0]-coords[0])**2+(psd_coords[1]-coords[1])**2+(psd_coords[2]-coords[2])**2)**0.5
+                    if separation <= 1e-1 and elem == psd[i].split()[0][0:2]:
                         atom = psd[i].split()[0][0:3]
                         break
                 #Is it new?
@@ -168,6 +173,14 @@ def pseudos(new_file,sew0_file,psd_file,lib):
                     pseudo_dict[atom].append(pseudo_sew0[j])
                 else:
                     pseudo_dict[atom].append(pseudo_sew0[j])
+        for i in range(len(atom_list)):
+            for k in range(len(pseudo_dict[atom_list[i]])):
+                if pseudo_dict[atom_list[i]][k].split()[0][1].isdigit():
+                    if pseudo_dict[atom_list[i]][k].split()[0][0:2] != atom_list[i]:
+                        sys.exit("Atoms have been grouped incorrectly. Check that .sew0 and .psd match properly.")
+                else:
+                    if pseudo_dict[atom_list[i]][k].split()[0][:2] != atom_list[i][:2]:
+                        sys.exit("Atoms have been grouped incorrectly. Check that .sew0 and .psd match properly.")
         sew_in.write("*** Pseudos ***************************************************\n")
         for i in range(len(atom_list)):
             sew_in.write("Basis Set\n")
