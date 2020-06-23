@@ -5,6 +5,7 @@
 \usepackage{amssymb}
 \usepackage{hyperref}
 \usepackage{courier}
+\usepackage{graphicx}
 %\usepackage{verbatim}
 %\usepackage{\usepackage{epciso}}
 
@@ -51,11 +52,11 @@ Prefix.env.sew0 is a help file that contains the input data for SEWARD of the MO
 
 In summary the files and data required for this program are:
 \begin{itemize}
-	\item Prefix.env.sew0
-	\item Prefix.env.psd
-	\item Fragment basis sets and library locations
-	\item Pseudopotential basis sets and library locations
-	\item Name of the prefix
+	\item \texttt{prefix.env.sew0}
+	\item \texttt{prefix.env.psd}
+	\item Fragment basis sets and library locations.
+	\item Pseudopotential basis sets and library locations.
+	\item Name of the prefix.
 \end{itemize}
 The input files must be in the same directory as the env2seward script for the program to run successfully.
 
@@ -68,9 +69,53 @@ Basis sets for the fragment potential are unique to the system being evaluated a
 It is almost the same for the pseudopotential, but the pseudo basis sets depend upon the charge of the atom. For example, for GdMn2O5 there are three elements but eight basis sets, since there are two types of gadolinium and manganese and four types of oxygen. This results in more prompts for the corresponding basis sets and libraries. The command line will distinguish between the inputs between the fragment and the TIPs. Continue until all basis sets have been entered and the file will be written.
 
 \subsection{Jupyter Notebook Version}
-To install Jupyter Notebook, follow this guide: \url{https://jupyter.org/install}. For the creation of this notebook, the Anaconda distribution was used to install it with the \texttt{conda} command. Once you have installed it, and downloaded \texttt{env2seward.py}, \texttt{env2seward\_notebook.ipynb} and the ENV input files, run Jupyter Notebook by opening up a terminal in the directory where these files are stored together. Input the relevant commands (\texttt{conda init} and \texttt{jupyter notebook} if you are using Anaconda) to open the web dashboard and open the \texttt{env2seward\_notebook.ipynb} file.
+To install Jupyter Notebook, follow this guide: \url{https://jupyter.org/install}. For the creation of the \texttt{env2seward\_notebook.ipynb} file, the Anaconda distribution was used to install Jupyter Notebook with the \texttt{conda} command. This is the recommended method (see \url{https://www.anaconda.com/products/individual} for distribution download). 
+\\
+Once you have installed Jupyter notebook you need to download and localise the following files into the same directory/folder:
 
-You will see a page of cells, some in markdown (a text formatting language) and some to run code. Follow the instructions to enter the correct inputs. If you would like to see the atoms that require basis sets, follow the instructions under the subtitle `Basis atoms'. Once the filenames and dictionaries have been entered, select `restart the kernel and re-run the whole notebook', answer the prompt in the first code cell and read the output at the bottom that says `\texttt{File has been created}'. A new output file will have been created in the web dashboard that you can download and input into SEWARD.
+\begin{itemize}
+	\item \texttt{env2seward.py}
+	\item \texttt{env2seward\_notebook.ipynb}
+	\item \texttt{prefix.env.sew0}
+	\item \texttt{prefix.env.psd}
+\end{itemize}
+Next we need to open the Jupyter Notebook web app. We can do this by:
+
+\begin{itemize}
+	\item Opening up a terminal in the directory containing the four files mentioned above.
+	\item Entering `\texttt{jupyter notebook}' to initialise the web app.
+	\item Your browser should open it in a new tab and you should see these four files in your notebook directory.
+	\item Now open the \texttt{env2seward\_notebook.ipynb} file from the web app dashboard menu.
+\end{itemize}
+
+You should see the menu in figure (1) and the notebook in figure (2).
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.3\linewidth]{"../../../../Pictures/Screenshot from 2020-06-23 12-26-13"}
+	\caption{Web app dashboard menu}
+	\label{fig:screenshot-from-2020-06-23-12-26-13}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1.3\linewidth]{"../../../../Pictures/Screenshot from 2020-06-23 12-26-25"}
+	\caption{env2seward\_notebook when opened}
+	\label{fig:screenshot-from-2020-06-23-12-26-25}
+\end{figure}
+
+In the notebook you will see a page of Jupyter cells, some in markdown (a text formatting language) and some to run python3 code. If you want to learn more about how these work, see \url{https://www.dataquest.io/blog/jupyter-notebook-tutorial/}. In order to run these cells individually, click on them and hit \texttt{Ctrl+Enter} or press the run button (below the cell tab in the toolbar). Please follow the instructions in between the code cells to enter the correct inputs.
+If you would like to see the atom-types that require basis set entry, follow the instructions under the subtitle `Basis atoms (see instructions below on how to run this cell):'. The next steps are:
+
+\begin{itemize}
+	\item Make sure the inputs have all been entered according to the instructions (filename, title, sew0name, psdname, lib\_frag, lib\_pseudo)
+	\item Select the button that says `restart the kernel and re-run the whole notebook' that looks like a fast-forward icon.
+	\item If you cannot find this, click the kernel icon (in English, it may be different in other languages), next to cell and widgets, and select `Restart and Run All'.
+	\item You will see a prompt in the first code cell (\texttt{import env2seward as e2s}). Please enter `Y'.
+	\item After this the last code cell (\texttt{e2s.finalwrite(filename,...}) will output `File has been created' which means you now have a seward input file ready in the webapp directory. You can download this to a specific directory by going back to the dashboard menu, ticking the box next to `\texttt{chosen filename}' and clicking `Download'.
+	\item The output file will also naturally appear in the same directory as your \texttt{env2seward\_notebook.ipynb} file.
+\end{itemize}
+
 %The section below was throwing up errors so I commented it for later
 
 %&SEWARD
