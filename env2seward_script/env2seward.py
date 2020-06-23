@@ -233,13 +233,13 @@ def finalprompt():
     for i in range(len(atoms[0])):
         input_atom = atoms[0][i]
         lib_frag[input_atom]["key"] = input("Please enter the basis set for %s:   "%input_atom)
-        lib_frag[input_atom]["loc"] = input("LIBRARY LOCATION - Please enter specified library location, or leave blank if default:  ")
+        lib_frag[input_atom]["loc"] = input("LIBRARY LOCATION (leave blank if default):  ")
     print("")
     print("TIPS ATOMS BASIS:")
     for i in range(len(atoms[1])):
         input_atom = atoms[1][i]
         lib_pseudo[input_atom]["key"] = input("Please enter the TIPS for %s:   "%input_atom)
-        lib_pseudo[input_atom]["loc"] = input("LIBRARY LOCATION - Please enter specified library location, or leave blank if default:  ")
+        lib_pseudo[input_atom]["loc"] = input("LIBRARY LOCATION (leave blank if default):  ")
     print("Inputs complete")
     finalwrite(filename,title,sew0name,psdname,lib_frag,lib_pseudo)
 
