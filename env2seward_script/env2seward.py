@@ -6,6 +6,7 @@ Created on Fri Jun 12 15:33:04 2020
 @author: joshhorswill10
 """
 import sys
+import json
 
 def opening_lines(new_file,title_input):
     """This function writes initial opening commands before the basis section and
@@ -256,19 +257,33 @@ def finalprompt():
     print("Inputs complete")
     finalwrite(filename,title,sew0name,psdname,lib_frag,lib_pseudo)
 
-"For testing:"
-"""
-opening_lines("yes","GdMn2O5_J1.sew.in 2")
-lib1 = {'Mn':{'bool': False,'loc': '','key':'Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.'},'O':{'bool': False,'loc': '','key':'O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f'}}
-frag_basis("yes","GdMn2O5_J1.env.sew0","GdMn2O5_J1.env.psd",lib1)
-lib2 = {'Gd1':{'bool': True,'loc': 'PSEUDO','key':'Gd.ECP.Marie.0s.0s.0e-Gd1-GdMn2O5.'},'Gd2':{'bool': True,'loc': 'PSEUDO','key':'Gd.ECP.Marie.0s.0s.0e-Gd2-GdMn2O5.'},'Mn1':{'bool':True,'loc':'PSEUDO','key':'Mn.ECP.Marie.0s.0s.0e-Mn1-GdMn2O5.'},'Mn2':{'bool':True,'loc':'PSEUDO','key':'Mn.ECP.Marie.0s.0s.0e-Mn2-GdMn2O5.'},'O1':{'bool':True,'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O1-GdMn2O5.'},'O2':{'bool':True,'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O2-GdMn2O5.'},'O3':{'bool':True,'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O3-GdMn2O5.'},'O4':{'bool':True,'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O4-GdMn2O5.'}}
-pseudos("yes","GdMn2O5_J1.env.sew0","GdMn2O5_J1.env.psd",lib2)
-xfield("yes","GdMn2O5_J1.env.sew0")
-"""
+def fileinput(input_file):
+    file = open(input_file).readlines()
+    for i in range(len(file)):
+        file_line = file[i].split()
+        if file_line[0] == "filename":
+            filename = file_line[2]
+        elif file_line[0] == "title":
+            title = file_line[2]
+        elif file_line[0] == "sew0_file":
+            sew0_file = file_line[2]
+        elif file_line[0] == "psd_file":
+            psd_file = file_line[2]
+        elif file_line[0] == "lib_frag":
+            lib_frag = "".join(file_line[2:])
+            lib_frag = lib_frag.replace("'",'"')
+            lib_frag = json.loads(lib_frag)
+        elif file_line[0] == "lib_pseudo":
+            lib_pseudo = "".join(file_line[2:])
+            lib_pseudo = lib_pseudo.replace("'",'"')
+            lib_pseudo = json.loads(lib_pseudo)
+    finalwrite(filename,title,sew0_file,psd_file,lib_frag,lib_pseudo)
 
-def jupyter_or_prompt():
-   if ask_user("Are you running this on the Jupyter notebook?") == False:
-      finalprompt()
+def input_jupyter_or_prompt():
+   if len(sys.argv) >= 2:
+       fileinput(sys.argv[1])
    else:
-      pass
-jupyter_or_prompt()
+       if ask_user("Are you running this on the Jupyter notebook?") == False:
+          finalprompt()
+input_jupyter_or_prompt()
+
