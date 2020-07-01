@@ -5,12 +5,14 @@
 \usepackage{verbatim}
 \usepackage{courier}
 
+
 \author{Joshua Horswill}
 \title{ILL internship report}
 
 \begin{document}
 \maketitle
 \tableofcontents
+\newpage
 \section{Introduction}
 The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
 
@@ -103,7 +105,7 @@ This method has successfully been applied to YMnO$_3$ using SAS+S to calculate t
 The embedded fragments are designed to include the configuration states that describe the prioritised physical processes. It has been argued that in wide-gap magnetic insulators, $J$ is determined from strongly local electronic interactions involving two magnetic centers \cite{de1999local}. These fragments were embedded in an environment reproducing the main effects as the rest of the crystal, as discussed towards the end of section 5.1. To achieve this we must include the Pauli exclusion effects of surrounding electrons and the influence of a non-local Madelung potential (nuclei-electron interactions simplified through ions being approximated as a set of point charges). The exclusion effect can be modelled through a surrounding total ionic pseudopotential (TIP, see \cite{winter1987theoretical} for example usage of this method). The Madelung potential can be recreated through an array of renormalised point charges assigned to atomic positions \cite{gelle2008fast}.
 
 \section{Density Functional Theory (DFT)}
-\subsection{Many Body Schrödinger equation}
+\subsection{Many-Body Schrödinger equation}
 The nonrelativistic time-dependent Schrödinger equation is given by:
 
 \begin{equation}
@@ -136,21 +138,21 @@ The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same f
 	n_0(\mathbf{r})=\langle\Psi_0|\hat{n}|\Psi_0\rangle = \int\prod_{n=2}^{N}d\mathbf{r}_n|\Psi_0(\mathbf{r},\mathbf{r}_2,...\mathbf{r}_N)|^2
 \end{equation*}
 
-Where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential . DFT, introduced by Hohenburg and Kohn in 1964, asserts two statements:
+where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential . DFT, introduced by Hohenburg and Kohn in 1964, asserts two statements:
 
 \begin{itemize}
 	\item The ionic potential is determined uniquely by the ground-state electronic density functional, up to a constant.
 	\item For all densities in an external potential (e.g the nucleic electrostatic potential) $n(\mathbf{r})$, their energy $E_V[n]\geq E_0$ ($E_0$ being the ground state energy), for N electrons in an external potential $V(\mathbf{r})$ \cite{haynes}. 
 \end{itemize}
 
-This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
+This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V_{ext}$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
 
 We can define $E_V[n]$ as:
 \begin{equation}
 	E_v[n] = F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = \langle\Psi_n|(\hat{F}+\hat{V}_{ext})|\Psi_n\rangle
 \end{equation}
 
-Using the variational principle to obtain the inequality of statement (2) made in DFT \cite{haynes} we can assert that the ground-state density $n_0(\mathbf{r})$ minimises the functional $E_V[n]$, and the minimum value is the ground-state electronic energy $E_0$. Through this principle we can consider $N$-representable densities, the requirements of which are much weaker and satisfied by any well-behaved density. These are densities where the domain of the density is larger than the external potential. We do not know at face value if this density $n(\mathbf{r})$ arises from an antisymmetric N-body wavefunction, but it has been proven that any non-negative function can be written in terms of some $\Psi(\mathbf{r}_1,\mathbf{r}_2,...\mathbf{r}_n)$ \cite{gilbert1975hohenberg} The only condition for these densities is that: $$\int dr \biggr|\nabla n^{1/2}(\mathbf{r})\biggr|^2$$ is real and finite, or in other words the density is properly differentiable.
+Using the variational principle to obtain the inequality in statement (2) made in DFT \cite{haynes} we can assert that the ground-state density $n_0(\mathbf{r})$ minimises the functional $E_V[n]$, and the minimum value is the ground-state electronic energy $E_0$. Through this principle we can consider $N$-representable densities, the requirements of which are much weaker and satisfied by any well-behaved density. These are densities where the domain of the density is larger than the external potential. We do not know at face value if this density $n(\mathbf{r})$ arises from an antisymmetric N-body wavefunction, but it has been proven that any non-negative function can be written in terms of some $\Psi(\mathbf{r}_1,\mathbf{r}_2,...\mathbf{r}_n)$ \cite{gilbert1975hohenberg} The only condition for these densities is that: $$\int dr \biggr|\nabla n^{1/2}(\mathbf{r})\biggr|^2$$ is real and finite, or in other words the density is properly differentiable.
 
 \subsection{Reduction of degrees of freedom}
 
@@ -169,40 +171,60 @@ So that we can utilise DFT without sacrificing precision, we follow approach of 
 The functional $F[n]$ can be separated into three categories:
 
 \begin{equation*}
-	F[n] = T_s[n]+\frac{1}{2}\int d\mathbf{r}\mathbf{r}'\frac{n(\mathbf{r})n(\mathbf{r})}{|\mathbf{r}\mathbf{r}'|}+E_{exch}
+	F[n] = T[n]+\frac{1}{2}\int d\mathbf{r} \ d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+E_{exch}
 \end{equation*}
 
-where $T_s[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same as that of the interacting system.
+where $T[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same density as that of the interacting system, the second term is the continuous classical Coulomb energy, and the final term represents the exchange-correlation interaction energy. The separation of these terms is to demonstrate that the first two parts can be tackled in a relatively easy way, whereas dealing with the last term proves to be more complicated, but actually only represents a small fraction of the system's total energy. Now equation (6) can be rewritten as:
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% to be changed below
+\begin{equation}
+	\frac{\delta T[n]}{\delta n(\mathbf{r})} + V_{KS}(\mathbf{r}) = \mu
+\end{equation}
 
-Hohenburg-Kohn theorem asserts that the density of any system determines all ground-state properties of the system \cite{hohenberg1964density}. In our case the ground state energy of a many-electron system is now a functional of the density. If we obtain this functional, we consequently know the total energy of our system. It is now possible to write the energy in terms of:
+where the Kohn-Sham potential is given by:
 
-\begin{itemize}
-	\item Ion-electron potential energy
-	\item Ion-Ion potential energy
-	\item Electron-electron potential energy
-	\item Kinetic energy
-	\item Exchange-correlation energy
-\end{itemize}
+\begin{equation*}
+	V_{KS}(\mathbf{r}) = \int d\mathbf{r}' \ \frac{n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+V_{exch}+V_{ext}(\mathbf{r})
+\end{equation*}
 
-Kinetic energy is calculated using the orthonormal Kohn-Sham orbitals. The system of interacting electrons is transformed into a system of non-interacting electrons moving in an effective potential. For the ground state, this approximation for an inhomogeneous system of electrons generates self-consistent equations similar to the Hartree-Fock equations. These equations show the exchange and correlation portions of the chemical potential of the system as the aforementioned effective potentials \cite{kohn1965self}. This non-interacting problem is supposed to have the same spin-density as the real correlated problem.
+and the exchange-correlation potential is given by:
 
-The calculation of the exchange-correlation energy will be discussed later on. They are treated using correlation functionals. DFT has been proved reliable in many cases, as long as the electron-electron interaction energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
+$$V_{exch}(\mathbf{r}) = \frac{\delta E_{exch}[n]}{\delta n(\mathbf{r})}$$
+
+Equation (7) can be obtained from evaluating a non-interacting system of particles moving in an external potential ($V_{KS}(\mathbf{r})$). To find The ground state density we solve the N/2 (N must be even in this case) one-electron Schrödinger equations featuring the Kohn-Sham potential, constructing the density from the solutions via the twice sum of N/2 wavefunction probability amplitudes:
+
+$$n(\mathbf{r}) = 2\sum_{i=1}^{N/2}|\Psi_i(\mathbf{r})|^2$$
+
+where the factor of 2 comes from spin degeneracy, and kinetic energy from:
+
+$$T[n] = -\sum_{i=1}^{N/2}\int d\mathbf{r} \ \Psi_i^*(\mathbf{r})\nabla^2\Psi_i(\mathbf{r})$$
+
+as you would expect.
+
+The energy of the non-interacting system is given by the twice sum of the one electron eigenvalues from their Schrödinger equations:
+
+$$2\sum_{i=1}^{N/2} = T[n]+\int d\mathbf{r}d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|} +\int d\mathbf{r} \ n(\mathbf{r})V_{exch}(\mathbf{r}) + \int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r})$$
+
+but when we look at an interacting system and compare, we must account for the fact that we have double counted the classical Coulomb energy and over-counted the exchange-correlation energy. This interacting energy includes the corrections to reverse this, as well as $E_{exch}$.
+
+The calculation of the exchange-correlation energy will be discussed later on. It is treated using correlation functionals. DFT has been proved reliable in many cases, as long as the electron-electron interaction energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
 
 The domination of these interaction energies result in charge, spin or orbital occupation fluctuations that come from the competition between the different configurations in the electronic structure. The multi-configurational nature of the ground state system means that the ab-initio single-determinant method encounters accuracy issues. A different model must therefore be used to describe the effects that are dominated by these electrons \cite{gelle2009accurate}. However, for most cases, lattice geometry, dynamics and many other properties are still approximated effectively by DFT.
 
 \section{Accurately Employing Wavefunction Correlated Methods (WCMs)}
 
-Correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants. Each determinant has equivalent weight, and differs only by the spin or occupation of the Fermi level orbitals. Since all of the orbital configurations are strongly coupled, we need a model that doesn't represent the electron density as a free electron Hartree-Fock model if we want to accurately calculate effects that result from the Fermi level electrons. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
+Correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants; an antisymmetric superposition of states that each represent a given configuration. Since all of the orbital configurations are strongly coupled, we need a model that doesn't represent the electron density as a free electron Hartree-Fock model if we want to accurately calculate effects that result from the Fermi level electrons. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
 
-One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments. In general, these extended models are very effective at accurately approximating these energies, but some discrepancies appear. An example is the CC3 cluster method which generates excellent agreement with FCI results when the excited states are dominated by a single excitation, but displays considerable error when faced with a large double-excitation character. Another example is the multi-reference method CASPT2, which gives very good results for a large number of systems, but significant errors appear when there is a mixture of states with different characteristics (e.g valence and Rydberg) i.e. when the reference and outer space are not sharply separated.
+One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments.
 
-DDCI solves these problems by building a configuration interaction with a small reference space, in the subspace of singles and doubles which contributes to the energy difference on the grounds of second-order perturbation considerations, i.e. a subspace defined by the `complete active space' (CAS) for all singles, and the doubles which involved at least one active orbital \cite{garcia1997application}. If faced with a system with numerous open-shells per atom (e.g high-spin manganese, cobalt, iron oxides), the computational cost of using CAS+DDCI or related methods becomes prohibitive since the size of the space to diagonalise scales exponentially with the number of magnetic electrons. We can establish a simple physical criterion to select important reference configurations, and derive from it a novel method with a strongly reduced computational cost. This is because configurations involved in the usual methods, such as the `large complete active space + single' (LCAS+S) approach, are far too numerous compared to the necessary methods for a good quality modelling of low-lying energy state physics. Something needed to change.
+In general, these extended models are very effective at accurately approximating these energies, but some discrepancies appear. An example is the CC3 cluster method which generates excellent agreement with FCI results when the excited states are dominated by a single excitation, but displays considerable error when faced with a large double-excitation character. Another example is the multi-reference method CASPT2, which gives very good results for a large number of systems, but significant errors appear when the reference and outer space are not sharply separated.
+
+DDCI solves these problems by building a configuration interaction with a small reference space, in the subspace of singles and doubles which contributes to the energy difference on the grounds of second-order perturbation considerations, i.e. a subspace defined by the `complete active space' (CAS) for all singles, and the doubles which involved at least one active orbital \cite{garcia1997application}. If faced with a system with numerous open-shells per atom (e.g high-spin manganese, cobalt, iron oxides), the computational cost of using CAS+DDCI or the LCAS+S (`large complete active space + single excitation' method) becomes prohibitive since the size of the space to diagonalise scales exponentially with the number of magnetic electrons. We can establish a simple physical criterion to select important reference configurations, and derive from it a novel method with a strongly reduced computational cost. This is because configurations involved LCAS+S for example, are far too numerous compared to the necessary methods for a good quality modelling of low-lying energy state physics. Something needs to change when approaching this type of problem.
 
 \subsection{Modifications of the standard WCMs and Effective Hamiltonian Criteria}
 
-Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal (a ligand is a core electron; the charge being transferred are electrons between ions) charge transfer configurations were removed from the reference part of the wavefunction. When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn(III) ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion  to 20 million respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
+Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge transfer configurations were removed from the reference part of the wavefunction (a ligand is a core electron; the charges being transferred are electrons between ions). When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn III ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion, to 20 million, respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
+
+%%%%%%% Here is wherre my understanding starts to become less than 100%
 
 With both methods a dynamical correlation correction on each reference determinant is included, independent of whether they are based on either the CAS or a zeroth-order multi-reference space retaining the dominant configurations for low-lying states. Highly accurate spectra are consequently obtained, from which effective-exchange integrals can be extracted using an effective Hamiltonian method. This is a Hamiltonian that acts in a reduced space and only describes a part of the eigenvalue spectrum of the true Hamiltonian. The Heisenberg Hamiltonian of Equation (1) works on fictitious electron spin variables of magnetic subsystems, describing only low-lying energy states. However, these evaluations yield energy values within the error bar of experimental inelastic neutron scattering results.
 
