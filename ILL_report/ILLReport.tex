@@ -14,13 +14,13 @@
 \section{Introduction}
 The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
 
-In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$). These responses are of course linear.
+In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$) where $\vec{\mu}_j$ is the magnetic moment for the jth electron. These responses are of course linear.
 
 The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of the electronic structure.
 
 \section{Relation of the $\bar{\bar{\alpha}}$ tensor to the exchange integral $J$}
 
-Lev Landau introduced a physical theory that attempted to create a general model of continuous and therefore second-order phase transitions. It is versatile in that it can be used in systems that are subject to external fields. Landau proposed that the free energy of any system should be analytic, and obey the same symmetry of the Hamiltonian. This allows the generation of a phenomenological expression for the free energy as a Taylor expansion in the order parameter \cite{landau1936theory}.
+Lev Landau introduced a physical theory that attempted to create a general model of continuous and therefore second-order phase transitions. It is versatile in that it can be used in systems that are subject to external fields. Landau proposed that the free energy of any system should be analytic (continuous and therefore differentiable), and obey the same symmetry of the Hamiltonian. This allows the generation of a phenomenological expression for the free energy as a Taylor expansion in the order parameters - electric field and magnetic field \cite{landau1936theory}.
 
 Using this theory it is possible to write an expression for $\bar{\bar{\alpha}}$ in terms of the second derivative of the free energy with respect to the electric and magnetic fields ($\vec{\mathcal{E}}$ and $\vec{\mathcal{H}}$ respectively):
 
@@ -34,7 +34,7 @@ For multiferroic systems, low-energy excitations are of a magnetic nature due to
 \hat{H} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\hat{\vec{S_i}}\cdot \hat{\vec{S_j}}
 \end{equation}
 
-where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local). By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
+where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local), $J_{i,j}$ is the magnetic exchange integral between atoms i and j, with atomic spin $\hat{\vec{S_i}}$ and $\hat{\vec{S_j}}$ respectively. By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
 
 \begin{equation*}
 \mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \hat{\vec{S_i}}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
@@ -48,12 +48,133 @@ To first order, $\bar{\bar{\alpha}}$ can resultantly be written as:
 	\bar{\bar{\alpha}} = \sum_{\langle i,j \rangle} \frac{\partial J_{i,j}}{\partial \vec{\mathcal{E}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}}\otimes\biggr(\frac{\partial \langle \vec{S_i}\rangle}{\partial \vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}} = \vec{0}}\cdot\langle\vec{S_j}\rangle + \langle\vec{S_i}\rangle\cdot\frac{\partial \langle \vec{S_j}\rangle}{\partial\vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}}=\vec{0}}\biggr)
 \end{equation}
 
-This means that the derivative of the exchange integrals with respect to the electric field and the derivative of the local magnetic moments with respect to the magnetic field will need to be calculated. The former will require accurate ab-initio evaluation of the $J_{i,j}$ integrals and the latter can be obtained using standard spin wave calculations (see \cite{anderson1951limits,kubo1952spin,oguchi1960theory}).
+This means that the derivative of the exchange integrals with respect to the electric field and the derivative of the local magnetic moments with respect to the magnetic field will need to be calculated. The former will require accurate ab-initio evaluation of the $J_{i,j}$ integrals and the latter can be obtained using standard spin wave calculations (see \cite{anderson1951limits,kubo1952spin,oguchi1960theory}). In section 3 we will discuss the details of how these goals will be achieved.
 
-Recall $\bar\bar{\alpha}$ can be written as the derivative of the polarisation as a function of the magnetic field $\frac{\partial\vec{P}}{\partial\vec{H}}$ or the derivative of the magnetic order parameter as a function of the electric field $\frac{\partial M}{\partial\vec{\mathcal{E}}}$. If $\vec{P}$ and $M$ belong to the same irreducible (symmetric) representation, $\bar{\bar{\alpha}}$ is non-zero. If this is not the case, the tensor is null. This is because $\vec{P}$ has the same symmetry as the electron density and the nuclei, and therefore always belongs to the irreducible representation of the system's symmetry group, but this is not always the case for $M$. $M$ has the same symmetry as the spin part of the ground state wave function, and could belong to any of the symmetry groups. Third-order derivative tensors could be null, since $\mathcal{F}$ must be a totally symmetric scalar quantity, but in all instances the fourth order derivative tensor is symmetrically allowed: $-\partial^4\mathcal{F}/(\partial\vec{\mathcal{E}})^2(\partial\vec{H})^2\biggr\vert_{\mathcal{E}=\vec{0}, \mathcal{H}=\vec{0}}$
+\section{Computing the magnetic exchange term from nuclei displacement}
 
-\section{DFT}
-Density functional theory is used because it is impossible to solve a many-body Schrödinger equation analytically. Approximations must be made to allow for a solution. Therefore a rough description of DFT is: a method of acquiring an approximate solution to the Schrödinger equation for multiple entities. First we need to reduce the number of degrees of freedom of the system using the Born-Oppenheimer approximation. Another way to reduce the degrees of freedom is to model the electron density as a density functional rather than an electronic wavefunction containing $3N$ variables (the number of coordinates of all $N$ atoms in the system). This means that the electron density becomes a function of only three variables: $x,y,z$.
+Iniguez argues that the lattice-mediated part of the linear magnetoelectric response of magnetic insulators is dominant in materials displaying strong magnetoelectric couplings \cite{iniguez2008first}. These insulators allow control of their magnetic properties through the manipulation of an external electric field. The magnetization induced by the application of an electric field is given by:
+
+\begin{equation*}
+\mathcal{M}_j(\mathcal{E}) = \sum_i \bar{\bar{\alpha_{ij}}}\mathcal{E}_i
+\end{equation*}
+
+Where $\alpha$ is the linear magnetoelectric tensor, i and j label spatial directions and $\mathcal{E}$ is the electric field. The magnitude of this response is limited by the magnetic and dielectric susceptibilities as $\alpha^2_{ij} < \chi^m_{jj}\chi^d_{ii}$, suggesting that strong ME coupling occur in materials that demonstrate large dielectric and magnetic responses. Therefore large magnetoelectric effects will correlate to significant electronic hybridizations or orbital rearrangements induced by applied electric fields. This is because it will lead to a magnetic response via spin-orbit or exchange-strictive effects. Strong dielectric responses are never purely electric - they are driven by the structural changes induced by the applied field. We can deduce that large ME effects will be based on lattice-mediated mechanisms in systems where the spin-orbit coupling is relatively large. 
+
+The associated magnetoelectric coupling is computed from the first derivative of the exchange integral $J$ as a function of an applied electric field $\mathcal{E}$, as seen in equation (2). The main effect of an electric field on an ionic insulator is to displace the ions (nuclei). This displacement can be computed from:
+\begin{itemize}
+	\item The Hessian matrix of the
+	energy $\mathcal{H} = \frac{\partial^2 E}{\partial \mathbf{d} ^2} $ obtained
+	from a mean-field DFT calculation (see section 4 for details)
+	\item The Born dynamical effective charges $q^*$ which corresponds to the second
+	derivative of the energy with respect to the field and displacement
+	\item Newton's 2nd law
+\end{itemize}
+
+\begin{equation}
+	q^* \mathcal{E} = \mathcal{H} d
+\end{equation}
+
+which implies that the displacement induced by an electric field is
+
+$$ d = \mathcal{H}^{-1} q^* \mathcal{E} $$
+
+This equation also suggests that the main response of a ferroelectric compound to an applied electric field will be a geometry modification that can be evaluated by the displacement of the system ions from their equilibrium position. 
+
+We can evaluate the Hessian and the Born charges with DFT calculations as they both depend on the whole electron density functionals. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with functionals that account for the ferroelectric band gap and energetic distortions.
+
+In summary our approach is as follows:
+
+\begin{enumerate}
+	\item Optimise the lattice geometry to minimise the total energy of the system using DFT
+	\item From this, obtain the associated optimal Hessian matrix and Born tensor
+	\item Solve the resultant linear system of equations in equation (3) for charge displacement
+	\item For a range of displacements calculate the magnetic integral $J$ use an embedded fragment, wavefunction-correlated method since DFT cannot generate accurate calculations for this part. An example of this would be the SAS+S method (see section 5 for more details). This allows us to generate $\frac{\partial J}{\partial d}$
+	\item Computing $\mathcal{E}$ for a range of displacements allows for the generation of $\frac{\partial d}{\partial E}$, and therefore the numerical evaluation of the derivative of the spin Hamiltonian parameters as a function of the applied electric field:
+	\begin{equation*}
+	\dfrac{\partial J}{\partial \mathcal{E}} = \dfrac{\partial J}{\partial d}\dfrac{\partial d}{\partial \mathcal{E}}
+	\end{equation*}
+	\item Use non ab-initio spin wave methods to determine $\frac{\partial\langle S_{i,j}\rangle}{\partial H}$ and $\langle S_{i,j}\rangle$.
+	\item Obtain $\bar{\bar{\alpha}}$
+\end{enumerate}
+
+This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when E was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When $\mathcal{E}$ was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
+
+\subsection{The Simulation Environment}
+The embedded fragments are designed to include the configuration states that describe the prioritised physical processes. It has been argued that in wide-gap magnetic insulators, $J$ is determined from strongly local electronic interactions involving two magnetic centers \cite{de1999local}. These fragments were embedded in an environment reproducing the main effects as the rest of the crystal, as discussed towards the end of section 5.1. To achieve this we must include the Pauli exclusion effects of surrounding electrons and the influence of a non-local Madelung potential (nuclei-electron interactions simplified through ions being approximated as a set of point charges). The exclusion effect can be modelled through a surrounding total ionic pseudopotential (TIP, see \cite{winter1987theoretical} for example usage of this method). The Madelung potential can be recreated through an array of renormalised point charges assigned to atomic positions \cite{gelle2008fast}.
+
+\section{Density Functional Theory (DFT)}
+\subsection{Many Body Schrödinger equation}
+The nonrelativistic time-dependent Schrödinger equation is given by:
+
+\begin{equation}
+	\biggr[-\frac{\hbar^2}{2m}\nabla^2+\mathcal{U}(\textbf{r},t)\biggr]\Psi(\textbf{r},t) = i\hbar\frac{\partial}{\partial t}\Psi(\textbf{r},t)
+\end{equation}
+
+where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions of which are denoted by \textbf{$r_n$} and $M$ nuclei, whose positions are given by \textbf{$R_{I_n}$}. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (3) to:
+
+\begin{gather*}
+	\biggr(-\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)+\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
+	+\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}\biggr)\Psi = i\frac{\partial\Psi}{\partial t}
+\end{gather*}
+
+where the term $$\hat{T} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)$$ is the kinetic contribution and $$\hat{V}=\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
++\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}$$ is the potential contribution, taking into account interactions between electrons and other electrons, electrons and nuclei, and nuclei and other nuclei.  $i\frac{\partial}{\partial t}$ is the energy operator, giving energy eigenvalues from the total wavefunction.\\
+
+For most systems this equation cannot be solved exactly and so we must include firstly the Born Oppenheimer approximation. This uses the fact that an electron is almost 2000 times less massive than the nucleus, and so the positions of the nuclei can be treated as fixed when trying to generate the electron wavefunction, and therefore the source of the Coulomb interaction is always static. The total electron wavefunction becomes separable, with an electronic part $\Psi_e$ and a nuclear part $\Psi_{nu}$ where $R_n$ are treated only as parameters:
+
+\begin{equation*}
+	\Psi_{electron}(\textbf{r}_n,\textbf{R}_n) =  \Psi_e(\textbf{r}_n;\textbf{R}_n)\Psi_{nu}(\textbf{r}_{n})
+\end{equation*}
+
+This allows us to generate two energy eigenvalue equations for each wavefunction and try to solve for $\Psi(\mathbf{r_1},\mathbf{r}_2,...\mathbf{r_n})$ \cite{rebolini2014range}. 
+
+\subsection{Hohenburg-Kohn theorems}
+
+The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
+
+\begin{equation*}
+	n_0(\mathbf{r})=\langle\Psi_0|\hat{n}|\Psi_0\rangle = \int\prod_{n=2}^{N}d\mathbf{r}_n|\Psi_0(\mathbf{r},\mathbf{r}_2,...\mathbf{r}_N)|^2
+\end{equation*}
+
+Where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential . DFT, introduced by Hohenburg and Kohn in 1964, asserts two statements:
+
+\begin{itemize}
+	\item The ionic potential is determined uniquely by the ground-state electronic density functional, up to a constant.
+	\item For all densities in an external potential (e.g the nucleic electrostatic potential) $n(\mathbf{r})$, their energy $E_V[n]\geq E_0$ ($E_0$ being the ground state energy), for N electrons in an external potential $V(\mathbf{r})$ \cite{haynes}. 
+\end{itemize}
+
+This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
+
+We can define $E_V[n]$ as:
+\begin{equation}
+	E_v[n] = F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = \langle\Psi_n|(\hat{F}+\hat{V}_{ext})|\Psi_n\rangle
+\end{equation}
+
+Using the variational principle to obtain the inequality of statement (2) made in DFT \cite{haynes} we can assert that the ground-state density $n_0(\mathbf{r})$ minimises the functional $E_V[n]$, and the minimum value is the ground-state electronic energy $E_0$. Through this principle we can consider $N$-representable densities, the requirements of which are much weaker and satisfied by any well-behaved density. These are densities where the domain of the density is larger than the external potential. We do not know at face value if this density $n(\mathbf{r})$ arises from an antisymmetric N-body wavefunction, but it has been proven that any non-negative function can be written in terms of some $\Psi(\mathbf{r}_1,\mathbf{r}_2,...\mathbf{r}_n)$ \cite{gilbert1975hohenberg} The only condition for these densities is that: $$\int dr \biggr|\nabla n^{1/2}(\mathbf{r})\biggr|^2$$ is real and finite, or in other words the density is properly differentiable.
+
+\subsection{Reduction of degrees of freedom}
+
+Introducing the universal functional $F[n] = \min_{|\Psi\rangle\rightarrow n}\langle\Psi|\hat{F}|\Psi\rangle$, where $\hat{F}$ is the electronic part of the Hamiltonian:
+
+we can reduce the number of function variables needed from 3N (N sets of cartesian coordinates) to 3 in the density. The complexity of the problem has been reduced drastically. However the exact form of the universal functional is not currently known, and so must be approximated. For a system of free-moving electrons, exchange-correlation effects must be accounted for, since it is inaccurate to simply model a literal solid where the electrons are non-interacting. This is where the Kohn-Sham equations come in.
+
+\subsection{Kohn-Sham Equations}
+
+So that we can utilise DFT without sacrificing precision, we follow approach of Kohn and Sham \cite{kohn1965self} to transform the system of interacting electrons into a fictitious system of non-interacting pseudo-electrons. We can write the variational problem for the HK density-functional in equation (5), introducing a Lagrange multiplier $\mu$ to constrain the number of electrons to population N:
+
+\begin{equation}
+	\delta\biggr[F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) - \mu\biggr(\int d\mathbf{r} \ n(\mathbf{r}) - N\biggr)\biggr]
+\end{equation}
+
+The functional $F[n]$ can be separated into three categories:
+
+\begin{equation*}
+	F[n] = T_s[n]+\frac{1}{2}\int d\mathbf{r}\mathbf{r}'\frac{n(\mathbf{r})n(\mathbf{r})}{|\mathbf{r}\mathbf{r}'|}+E_{exch}
+\end{equation*}
+
+where $T_s[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same as that of the interacting system.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% to be changed below
 
 Hohenburg-Kohn theorem asserts that the density of any system determines all ground-state properties of the system \cite{hohenberg1964density}. In our case the ground state energy of a many-electron system is now a functional of the density. If we obtain this functional, we consequently know the total energy of our system. It is now possible to write the energy in terms of:
 
@@ -97,49 +218,10 @@ where $|\psi^0_m\rangle = \sum_{I}C^0_{I,m}|\Phi^0_I\rangle$, and $|\Phi^0_I\ran
 	\min_{J_{ij}} \mathcal{L}(J_{ij}) = \min_{J_{ij}} \sum_I ||\hat{H}(J_{ij})\hat{P}|\Psi_I\rangle-E_I\hat{P}|\Psi_I\rangle||^2
 \end{equation*}
 
-$\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments.
-
-\section{Computing the magnetic exchange term from nuclei displacement}
-
-Iniguez argues that the lattice-mediated part of the linear magnetoelectric response of magnetic insulators is dominant in materials displaying strong magnetoelectric couplings \cite{iniguez2008first}. These insulators allow control of their magnetic properties through the manipulation of an external electric field. The magnetization induced by the application of an electric field is given by:
-
-\begin{equation*}
-	\mathcal{M}_j(\mathcal{E}) = \sum_i \bar{\bar{\alpha_{ij}}}\mathcal{E}_i
-\end{equation*}
-
-Where $\alpha$ is the linear magnetoelectric tensor, i and j label spatial directions and $\mathcal{E}$ is the electric field. The magnitude of this response is limited by the magnetic and dielectric susceptibilities as $\alpha^2_{ij} < \chi^m_{jj}\chi^d_{ii}$, suggesting that strong ME coupling occur in materials that demonstrate large dielectric and magnetic responses. Therefore large magnetoelectric effects will correlate to significant electronic hybridizations or orbital rearrangements induced by applied electric fields. This is because it will lead to a magnetic response via spin-orbit or exchange-strictive effects. Strong dielectric responses are never purely electric - they are driven by the structural changes induced by the applied field. We can deduce that large ME effects will be based on lattice-mediated mechanisms in systems where the spin-orbit coupling is relatively large. 
-
-The magnetoelectric coupling is computed from the first derivative of the exchange integral $J$ as a function of an applied electric field $\mathcal{E}$, as seen in equation (2). The main effect of an electric field on an ionic insulator is to displace the ions (nuclei). This displacement can be computed from:
-\begin{itemize}
-\item The Hessian matrix of the
-energy $\mathcal{H} = \frac{\partial^2 E}{\partial \mathbf{d} ^2} $ obtained
-from a mean-field DFT calculation
-\item The Born dynamical effective charges $q^*$ which corresponds to the second
-  derivative of the energy with respect to the field and displacement
-\item Newton's 2nd law
-\end{itemize}
-
-$$ q^* \mathcal{E} = \mathcal{H} d $$
-
-which implies that the displacement induced by an electric field is
-
-$$ d = \mathcal{H}^{-1} q^* \mathcal{E} $$
-
-This equation also suggests that the main response of a ferroelectric compound to an applied electric field will be a geometry modification that can be evaluated by the displacement of the system ions from their equilibrium position. Computing $\mathcal{E}$ for a range of displacements allows for the numerical evaluation of the derivative of the spin Hamiltonian parameters as a function of the applied electric field:
-\begin{equation*}
-	\dfrac{\partial J}{\partial \mathcal{E}} = \dfrac{\partial J}{\partial d}\dfrac{\partial d}{\partial \mathcal{E}}
-\end{equation*}
-
-Practically speaking, the first step is: for a range of $\mathcal{E}$, compute the associated displacements $d$. The second step is to compute the value of $J$ for each value of the displacement. We can evaluate the Hessian and the Born charges with DFT calculations as they both depend on the whole electron density functionals. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with functionals that account for the ferroelectric gap and distortions, such as a hybrid functional.
-
-This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when E was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When $\mathcal{E}$ was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
-
-\subsection{The Simulation Environment}
-The embedded fragments are designed to include the configuration states that describe the prioritised physical processes. It has been argued that in wide-gap magnetic insulators, $J$ is determined from strongly local electronic interactions involving two magnetic centers \cite{de1999local}. These fragments were embedded in an environment reproducing the main effects as the rest of the crystal (as discussed towards the end of section 4.1). To achieve this we must include the Pauli exclusion effects of surrounding electrons and the influence of a non-local Madelung potential (nuclei-electron interactions simplified through ions being approximated as a set of point charges). The exclusion effect can be modelled through a surrounding total ionic pseudopotential (TIP, see \cite{winter1987theoretical} for example usage of this method). The Madelung potential can be recreated through an array of renormalised point charges assigned to atomic positions \cite{gelle2008fast}. 
-
+$\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments. 
 
 \subsection{Calculation of the displacement}
-From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|. 
+From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|.
 
 
 \subsection{Calculation of the J}
