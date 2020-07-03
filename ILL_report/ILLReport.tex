@@ -4,7 +4,8 @@
 \usepackage{amssymb}
 \usepackage{verbatim}
 \usepackage{courier}
-
+\usepackage{graphicx}
+\usepackage{subfig}
 
 \author{Joshua Horswill}
 \title{ILL internship report}
@@ -39,10 +40,10 @@ For multiferroic systems, low-energy excitations are of a magnetic nature due to
 where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local), $J_{i,j}$ is the magnetic exchange integral between atoms i and j, with atomic spin $\hat{\vec{S_i}}$ and $\hat{\vec{S_j}}$ respectively. By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
 
 \begin{equation*}
-\mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \hat{\vec{S_i}}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
+\mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \vec{S_i}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
 \end{equation*}
 
-where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth electron. It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly different from the critical temperature $T_c$ of the transition. In the paramagnetic phase ($T > T_c$, where for all $I$, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. Classically $Z = \sum_{i}^{N} \exp(-\beta E_i)$ but quantum mechanically $Z =$ tr$(\exp(-\beta \hat{H}))$. Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
+where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth magnetic ions. It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly different from the critical temperature $T_c$ of the transition. In the paramagnetic phase ($T > T_c$, where for all $I$, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. Classically $Z = \sum_{i}^{N} \exp(-\beta E_i)$ but quantum mechanically $Z =$ tr$(\exp(-\beta \hat{H}))$. Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
 
 To first order, $\bar{\bar{\alpha}}$ can resultantly be written as:
 
@@ -60,7 +61,7 @@ Iniguez argues that the lattice-mediated part of the linear magnetoelectric resp
 \mathcal{M}_j(\mathcal{E}) = \sum_i \bar{\bar{\alpha_{ij}}}\mathcal{E}_i
 \end{equation*}
 
-Where $\alpha$ is the linear magnetoelectric tensor, i and j label spatial directions and $\mathcal{E}$ is the electric field. The magnitude of this response is limited by the magnetic and dielectric susceptibilities as $\alpha^2_{ij} < \chi^m_{jj}\chi^d_{ii}$, suggesting that strong ME coupling occur in materials that demonstrate large dielectric and magnetic responses. Therefore large magnetoelectric effects will correlate to significant electronic hybridizations or orbital rearrangements induced by applied electric fields. This is because it will lead to a magnetic response via spin-orbit or exchange-strictive effects. Strong dielectric responses are never purely electric - they are driven by the structural changes induced by the applied field. We can deduce that large ME effects will be based on lattice-mediated mechanisms in systems where the spin-orbit coupling is relatively large. 
+Where $\alpha$ is the linear magnetoelectric tensor, i and j label spatial directions and $\mathcal{E}$ is the electric field. The magnitude of this response is limited by the magnetic and dielectric susceptibilities as $\alpha^2_{ij} < \chi^m_{jj}\chi^d_{ii}$, suggesting that strong ME coupling occur in materials that demonstrate large dielectric and magnetic responses. This means that large magnetoelectric effects will correlate to significant electronic hybridizations or orbital rearrangements induced by applied electric fields. This is caused by a magnetic response via spin-orbit or exchange-strictive effects. Strong dielectric responses are never purely electric - they are driven by the structural changes induced by the applied field. We can deduce that large ME effects will be based on lattice-mediated mechanisms in systems where the spin-orbit coupling is relatively large. 
 
 The associated magnetoelectric coupling is computed from the first derivative of the exchange integral $J$ as a function of an applied electric field $\mathcal{E}$, as seen in equation (2). The main effect of an electric field on an ionic insulator is to displace the ions (nuclei). This displacement can be computed from:
 \begin{itemize}
@@ -82,37 +83,37 @@ $$ d = \mathcal{H}^{-1} q^* \mathcal{E} $$
 
 This equation also suggests that the main response of a ferroelectric compound to an applied electric field will be a geometry modification that can be evaluated by the displacement of the system ions from their equilibrium position. 
 
-We can evaluate the Hessian and the Born charges with DFT calculations as they both depend on the whole electron density functionals. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with functionals that account for the ferroelectric band gap and energetic distortions.
+We can evaluate the Hessian and the Born charges with DFT calculations as they both depend on the whole electron density functionals. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with the suitable functionals.
 
 In summary our approach is as follows:
 
 \begin{enumerate}
-	\item Optimise the lattice geometry to minimise the total energy of the system using DFT
+	\item Optimise the structure's geometry to minimise the total energy of the system using DFT
 	\item From this, obtain the associated optimal Hessian matrix and Born tensor
 	\item Solve the resultant linear system of equations in equation (3) for charge displacement
-	\item For a range of displacements calculate the magnetic integral $J$ use an embedded fragment, wavefunction-correlated method since DFT cannot generate accurate calculations for this part. An example of this would be the SAS+S method (see section 5 for more details). This allows us to generate $\frac{\partial J}{\partial d}$
+	\item For a range of displacements calculate the magnetic exchange integral $J$ using an embedded fragment, wavefunction-correlated method since DFT cannot generate accurate calculations for this part. This involves the consideration of many Slater's determinants: the evaluation of many antisymmetric superposition of states that each represent a given system configuration. This is required because the properties of J (governed by the Fermi level electrons) rely on a strongly-correlated, configuration-sensitive system. An example of this would be the SAS+S method (see section 5 for more details). This allows us to generate $\frac{\partial J}{\partial d}$
 	\item Computing $\mathcal{E}$ for a range of displacements allows for the generation of $\frac{\partial d}{\partial E}$, and therefore the numerical evaluation of the derivative of the spin Hamiltonian parameters as a function of the applied electric field:
 	\begin{equation*}
 	\dfrac{\partial J}{\partial \mathcal{E}} = \dfrac{\partial J}{\partial d}\dfrac{\partial d}{\partial \mathcal{E}}
 	\end{equation*}
-	\item Use non ab-initio spin wave methods to determine $\frac{\partial\langle S_{i,j}\rangle}{\partial H}$ and $\langle S_{i,j}\rangle$.
+	\item Use non ab-initio spin wave methods to determine $\frac{\partial\langle S_{i,j}\rangle}{\partial H}$ and $\langle S_{i,j}\rangle$
 	\item Obtain $\bar{\bar{\alpha}}$
 \end{enumerate}
 
-This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when E was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When $\mathcal{E}$ was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
+This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when the electric field was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When the electric field was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
 
 \subsection{The Simulation Environment}
 The embedded fragments are designed to include the configuration states that describe the prioritised physical processes. It has been argued that in wide-gap magnetic insulators, $J$ is determined from strongly local electronic interactions involving two magnetic centers \cite{de1999local}. These fragments were embedded in an environment reproducing the main effects as the rest of the crystal, as discussed towards the end of section 5.1. To achieve this we must include the Pauli exclusion effects of surrounding electrons and the influence of a non-local Madelung potential (nuclei-electron interactions simplified through ions being approximated as a set of point charges). The exclusion effect can be modelled through a surrounding total ionic pseudopotential (TIP, see \cite{winter1987theoretical} for example usage of this method). The Madelung potential can be recreated through an array of renormalised point charges assigned to atomic positions \cite{gelle2008fast}.
 
 \section{Density Functional Theory (DFT)}
 \subsection{Many-Body Schrödinger equation}
-The nonrelativistic time-dependent Schrödinger equation is given by:
+The nonrelativistic time-dependent Schrödinger equation for an individual particle is given by:
 
 \begin{equation}
 	\biggr[-\frac{\hbar^2}{2m}\nabla^2+\mathcal{U}(\textbf{r},t)\biggr]\Psi(\textbf{r},t) = i\hbar\frac{\partial}{\partial t}\Psi(\textbf{r},t)
 \end{equation}
 
-where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions of which are denoted by \textbf{$r_n$} and $M$ nuclei, whose positions are given by \textbf{$R_{I_n}$}. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (4) to:
+where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions and mass of which are denoted by \textbf{$r_n$} and $m_e$ respectively, and $M$ nuclei, whose positions and mass are given by \textbf{$R_{I_n}$} and $m_{I_n}$ respectively. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (4) by adding the many-body terms:
 
 \begin{gather*}
 	\biggr(-\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)+\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
@@ -130,15 +131,15 @@ For most systems this equation cannot be solved exactly and so we must include f
 
 This allows us to generate two energy eigenvalue equations for each wavefunction and try to solve for $\Psi(\mathbf{r_1},\mathbf{r}_2,...\mathbf{r_n})$ \cite{rebolini2014range}. 
 
-\subsection{Hohenburg-Kohn theorems}
+\subsection{Hohenberg-Kohn theorems}
 
-The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
+The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state wavefunction $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state wavefunction for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
 
 \begin{equation*}
 	n_0(\mathbf{r})=\langle\Psi_0|\hat{n}|\Psi_0\rangle = \int\prod_{n=2}^{N}d\mathbf{r}_n|\Psi_0(\mathbf{r},\mathbf{r}_2,...\mathbf{r}_N)|^2
 \end{equation*}
 
-where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential . DFT, introduced by Hohenburg and Kohn in 1964, asserts two statements:
+where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential. DFT, introduced by Hohenberg and Kohn in 1964, asserts two statements:
 
 \begin{itemize}
 	\item The ionic potential is determined uniquely by the ground-state electronic density functional, up to a constant.
@@ -146,6 +147,10 @@ where $\hat{n}$ is the density operator. Therefore the ground state and associat
 \end{itemize}
 
 This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V_{ext}$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
+
+and defining the universal functional as:
+
+$$F[n] = \min_{|\Psi\rangle\rightarrow n}\langle\Psi|\hat{F}|\Psi\rangle$$
 
 We can define $E_V[n]$ as:
 \begin{equation}
@@ -156,9 +161,7 @@ Using the variational principle to obtain the inequality in statement (2) made i
 
 \subsection{Reduction of degrees of freedom}
 
-Introducing the universal functional $F[n] = \min_{|\Psi\rangle\rightarrow n}\langle\Psi|\hat{F}|\Psi\rangle$, where $\hat{F}$ is the electronic part of the Hamiltonian:
-
-we can reduce the number of function variables needed from 3N (N sets of cartesian coordinates) to 3 in the density. The complexity of the problem has been reduced drastically. However the exact form of the universal functional is not currently known, and so must be approximated. For a system of free-moving electrons, exchange-correlation effects must be accounted for, since it is inaccurate to simply model a literal solid where the electrons are non-interacting. This is where the Kohn-Sham equations come in.
+Recalling the universal functional $F[n]$, we can reduce the number of function variables needed from 3N (N sets of cartesian coordinates) to 3 ($x,y,z$) in the density function $n(\mathbf{r})$ and as a result the complexity of the problem reduces drastically. However, the exact form of the universal functional is not currently known, and so must be approximated. For a system of free-moving electrons the exchange-correlation effects must be accounted for, since it is inaccurate to simply model a literal solid where the electrons are non-interacting. This is where the Kohn-Sham equations come in.
 
 \subsection{Kohn-Sham Equations}
 
@@ -167,6 +170,8 @@ So that we can utilise DFT without sacrificing precision, we follow approach of 
 \begin{equation}
 	\delta\biggr[F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) - \mu\biggr(\int d\mathbf{r} \ n(\mathbf{r}) - N\biggr)\biggr]
 \end{equation}
+
+The Lagrange multiplier is introduced to convert a constrained problem into a form so that the critical points of the system can be found, which usually requires a system that is unconstrained. However, the reformulation of the problem generates a Lagrangian function that gives the relationship between the gradient of the sytem and the gradients of the constraints. This is important for what follows.
 
 The functional $F[n]$ can be separated into three categories:
 
@@ -212,10 +217,32 @@ The domination of these interaction energies result in charge, spin or orbital o
 
 \section{Accurately Employing Wavefunction Correlated Methods (WCMs)}
 
-Correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants; an antisymmetric superposition of states that each represent a given configuration. Since all of the orbital configurations are strongly coupled, we need a model that doesn't represent the electron density as a free electron Hartree-Fock model if we want to accurately calculate effects that result from the Fermi level electrons. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
+Strongly correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants. Since all of the orbital configurations are strongly coupled, we need a model that doesn't represent the electron distribution as a non-interacting, single-determinant density functional if we want to accurately calculate effects that result from the Fermi level electrons. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
 
-One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments.
+One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments. Look at figures (1) and (2) for examples of configuration + excitement diagrams of a 6 electron system, with 4 electrons in the ground state, 2 active atoms and 2 virtual orbitals.
 
+\begin{figure}
+	\centering
+	\label{figure}
+	\caption{All ground state configurations in the CAS for this system ($x,\bar{x}$ denote spin up and spin down electron occupying level $x$)}
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}3\bar{4}\rangle$]{\label{figure:1}\includegraphics[width=60mm]{figures/CAS1}}
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}3\bar{3}\rangle$]{\label{figure:2}\includegraphics[width=60mm]{figures/CAS2}}
+	\\
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}\bar{3}4\rangle$]{\label{figure:3}\includegraphics[width=60mm]{figures/CAS3}}
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}4\bar{4}\rangle$]{\label{figure:4}\includegraphics[width=60mm]{figures/CAS4}}
+	\label{fig:CAS}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\label{figure}
+	\caption{Ground state from figure (1) + single excitation examples (many more exist; number of configurations scale exponentionally with electron population N)}
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}3\bar{5}\rangle$]{\label{figure:5}\includegraphics[width=60mm]{figures/CAS+S1}}
+	\subfloat[Slater determinant $|1\bar{1}2\bar{2}\bar{4}6\rangle$]{\label{figure:6}\includegraphics[width=60mm]{figures/CAS+S2}}
+	\\
+	\subfloat[Slater determinant $|1\bar{1}\bar{2}3\bar{4}5\rangle$]{\label{figure:7}\includegraphics[width=60mm]{figures/CAS+S3}}
+	\subfloat[Slater determinant $|12\bar{2}3\bar{4}\bar{6}\rangle$]{\label{figure:8}\includegraphics[width=60mm]{figures/CAS+S4}}
+\end{figure}
 In general, these extended models are very effective at accurately approximating these energies, but some discrepancies appear. An example is the CC3 cluster method which generates excellent agreement with FCI results when the excited states are dominated by a single excitation, but displays considerable error when faced with a large double-excitation character. Another example is the multi-reference method CASPT2, which gives very good results for a large number of systems, but significant errors appear when the reference and outer space are not sharply separated.
 
 DDCI solves these problems by building a configuration interaction with a small reference space, in the subspace of singles and doubles which contributes to the energy difference on the grounds of second-order perturbation considerations, i.e. a subspace defined by the `complete active space' (CAS) for all singles, and the doubles which involved at least one active orbital \cite{garcia1997application}. If faced with a system with numerous open-shells per atom (e.g high-spin manganese, cobalt, iron oxides), the computational cost of using CAS+DDCI or the LCAS+S (`large complete active space + single excitation' method) becomes prohibitive since the size of the space to diagonalise scales exponentially with the number of magnetic electrons. We can establish a simple physical criterion to select important reference configurations, and derive from it a novel method with a strongly reduced computational cost. This is because configurations involved LCAS+S for example, are far too numerous compared to the necessary methods for a good quality modelling of low-lying energy state physics. Something needs to change when approaching this type of problem.
