@@ -64,7 +64,7 @@ def born_tensor(born_file):
             tensor[i,j+start_column] = m_dict['atom%d'%atom_num][i%3,j]
     return tensor
 
-def parse_hessian(hess_file):
+def parse_hessian(hess_file,thresh):
     "Parses Hessian to find index of pairs and diagonal elements"
     hess_data = []
     hess = open(hess_file).readlines()
@@ -90,7 +90,7 @@ def parse_hessian(hess_file):
             flag = False
             break
         for i in range(1,len(hess_data)):
-            if abs(hess_data[0][0]-hess_data[i][0]) <= 1e-12:
+            if abs(hess_data[0][0]-hess_data[i][0]) <= thresh:
                 mean = (hess_data[0][0]+hess_data[i][0])/2.0
                 hess_pairs.append([mean,hess_data[0][1],hess_data[i][1]])
                 rem1 = hess_data[0]
@@ -102,18 +102,18 @@ def parse_hessian(hess_file):
                 hess_data.remove(hess_data[0])
     return hess_pairs,hess_diag,hess_copy
 
-def hessian(born_file,hess_file):
+def hessian(born_file,hess_file,thresh):
     "Returns Hessian data as a square matrix (unfinished)"
     m_dim = 3*num_atoms(born_file)
     tensor_hess = np.zeros((m_dim,m_dim))
-    hess_info = parse_hessian(hess_file)
+    hess_info = parse_hessian(hess_file,thresh)
     hess = open(hess_file).readlines()
     #Waiting on example
 
-def solve_equation(born_file,hess_file,ex,ey,ez):
+def solve_equation(born_file,hess_file,thresh,ex,ey,ez):
     "Using numpy.linalg.solve for an ax = b equation"
     #q_tensor = born_tensor(born_file)
-    #h_tensor = hessian(born_file,hess_file)
+    #h_tensor = hessian(born_file,hess_file,thresh)
     #e_vector = np.ones((len(h_tensor)))
     #Placeholder matrix so we can keep writing the script
     m_dim = 192
@@ -139,26 +139,40 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     print("Displacement solutions: ")
     print(displacement)
 
-def print_indexes(hess_file):
+def print_indexes(hess_file,thresh):
     "Prints all paired and unique values with their frequencies"
     print("Pair indexes")
-    print([i[1:] for i in parse_hessian(hess_file)[0]])
+    print([i[1:] for i in parse_hessian(hess_file,thresh)[0]])
     print("Diag indexes")
-    print([i[1] for i in parse_hessian(hess_file)[1]])
+    print([i[1] for i in parse_hessian(hess_file,thresh)[1]])
 
-def print_diag(hess_file,rev):
+def print_diag(hess_file,thresh,rev):
     """Prints diagonal elements in either ascending
     or descending order depending on rev boolean"""
     with open("diagonal.txt",'w') as diag:
-        sort_diag = parse_hessian(hess_file)[1]
+        sort_diag = parse_hessian(hess_file,thresh)[1]
         sort_diag = [i[0] for i in sort_diag]
         sort_diag.sort(reverse=rev)
-        print(sort_diag[:10])
+        print("Length ", len(sort_diag))
         for item in sort_diag:
             diag.write("%s\n"%str(item))
 
-solve_equation('frequence.B1PW_PtBs.loto.out',"Pm.rePhonons.2123667.HESSFREQ.DAT",1,2,3)
-#print_diag("Pm.rePhonons.2123667.HESSFREQ.DAT",True)
+def num_diag(hess_file):
+    thresh_range = np.ones((15))
+    for i in range(len(thresh_range)):
+        if i == 0:
+            thresh_range[i] = 1e-3
+        else:
+            thresh_range[i] = 1e-1*thresh_range[i-1]
+    diag_dict = {str(i):None for i in thresh_range}
+    for i in range(len(thresh_range)):
+        diag_dict['%s'%str(thresh_range[i])] = len(parse_hessian("Pm.rePhonons.2123667.HESSFREQ.DAT",thresh_range[i])[1])
+    print("Format is 'threshold':number of diagonal elements")
+    print(diag_dict)
+
+num_diag("Pm.rePhonons.2123667.HESSFREQ.DAT")
+#solve_equation('frequence.B1PW_PtBs.loto.out',"Pm.rePhonons.2123667.HESSFREQ.DAT",1,2,3)
+#print_diag("Pm.rePhonons.2123667.HESSFREQ.DAT",1e-4,True)
 #print_indexes("Pm.rePhonons.2123667.HESSFREQ.DAT")
 #hessian("Pcab.reOptGeom.364624.out","Pcab.reOptGeom.364624.HESSOPT.DAT")
 #tensor = born_tensor('frequence.B1PW_PtBs.loto.out')
