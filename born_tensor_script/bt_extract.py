@@ -8,6 +8,7 @@ Created on Mon Jun 29 08:35:02 2020
 import numpy as np
 import sys
 import itertools as it
+import copy
 
 def num_atoms(born_file):
     "Determines number of atoms in the unit cell from parse"
@@ -63,26 +64,6 @@ def born_tensor(born_file):
             tensor[i,j+start_column] = m_dict['atom%d'%atom_num][i%3,j]
     return tensor
 
-def hessian(born_file,hess_file):
-    "Returns Hessian data as a square matrix (unfinished)"
-    m_dim = num_atoms(born_file)
-    tensor_hess = np.zeros((m_dim,m_dim))
-    hess_data = []
-    hess = open(hess_file).readlines()
-    for i in range(len(hess)):
-        hess_split = hess[i].split()
-        for j in range(len(hess_split)):
-            hess_data.append(float(hess_split[j]))
-    start = 0
-    end = start + m_dim
-    for i in range(m_dim):
-        print(start,end)
-        print(hess_data[start:end])
-        #tensor_hess[i] = hess_data[start:end]
-        start = end
-        end += m_dim
-    return tensor_hess
-
 def parse_hessian(hess_file):
     "Parses Hessian to find index of pairs and diagonal elements"
     hess_data = []
@@ -90,21 +71,26 @@ def parse_hessian(hess_file):
     for i in range(len(hess)):
         hess_split = hess[i].split()
         for j in range(len(hess_split)):
-            if float(hess_split[j])<= 1e-12:
+            if float(hess_split[j])<= 1e-15:
                 hess_data.append(0.0)
             else:
                 hess_data.append((float(hess_split[j]),i*len(hess_split)+j))
+    hess_copy = copy.deepcopy(hess_data) 
     hess_data = [i for i in hess_data if i != 0.0]
     hess_pairs = []
     hess_diag = []
     flag = True
     while flag == True:
         #print("initial element length ",len(hess_data),"twice pair length + diag length ",2*len(hess_pairs)+len(hess_diag))
+        if len(hess_data) == 1:
+            hess_diag.append(hess_data[0])
+            hess_data.remove(hess_data[0])
+            break
         if len(hess_data) == 0:
             flag = False
             break
         for i in range(1,len(hess_data)):
-            if abs(hess_data[0][0]-hess_data[i][0]) <= 1e-10:
+            if abs(hess_data[0][0]-hess_data[i][0]) <= 1e-12:
                 mean = (hess_data[0][0]+hess_data[i][0])/2.0
                 hess_pairs.append([mean,hess_data[0][1],hess_data[i][1]])
                 rem1 = hess_data[0]
@@ -114,15 +100,66 @@ def parse_hessian(hess_file):
             elif i == len(hess_data)-1:
                 hess_diag.append([hess_data[0][0],hess_data[0][1]])
                 hess_data.remove(hess_data[0])
-    return hess_pairs,hess_diag
+    return hess_pairs,hess_diag,hess_copy
+
+def hessian(born_file,hess_file):
+    "Returns Hessian data as a square matrix (unfinished)"
+    m_dim = 3*num_atoms(born_file)
+    tensor_hess = np.zeros((m_dim,m_dim))
+    hess_info = parse_hessian(hess_file)
+    hess = open(hess_file).readlines()
+    #Waiting on example
+
+def solve_equation(born_file,hess_file,ex,ey,ez):
+    "Using numpy.linalg.solve for an ax = b equation"
+    #q_tensor = born_tensor(born_file)
+    #h_tensor = hessian(born_file,hess_file)
+    #e_vector = np.ones((len(h_tensor)))
+    #Placeholder matrix so we can keep writing the script
+    m_dim = 192
+    h_tensor = np.random.rand(m_dim,m_dim)
+    q_tensor = np.random.rand(m_dim,m_dim)
+    e_vector = np.ones((m_dim))
+    for i in range(len(e_vector)):
+        if i % 3 == 0:
+            e_vector[i] = ex
+        elif i% 3 == 1:
+            e_vector[i] = ey
+        else:
+            e_vector[i] = ez
+    a = -1*h_tensor
+    b = q_tensor.dot(e_vector)
+    displacement = np.linalg.solve(a,b)
+    print("Negative Hessian: ")
+    print(a)
+    print("Born tensor: ")
+    print(q_tensor)
+    print("Electric field: ")
+    print(e_vector)
+    print("Displacement solutions: ")
+    print(displacement)
 
 def print_indexes(hess_file):
+    "Prints all paired and unique values with their frequencies"
     print("Pair indexes")
     print([i[1:] for i in parse_hessian(hess_file)[0]])
     print("Diag indexes")
     print([i[1] for i in parse_hessian(hess_file)[1]])
 
-print_indexes("Pm.rePhonons.2123667.HESSFREQ.DAT")
+def print_diag(hess_file,rev):
+    """Prints diagonal elements in either ascending
+    or descending order depending on rev boolean"""
+    with open("diagonal.txt",'w') as diag:
+        sort_diag = parse_hessian(hess_file)[1]
+        sort_diag = [i[0] for i in sort_diag]
+        sort_diag.sort(reverse=rev)
+        print(sort_diag[:10])
+        for item in sort_diag:
+            diag.write("%s\n"%str(item))
+
+solve_equation('frequence.B1PW_PtBs.loto.out',"Pm.rePhonons.2123667.HESSFREQ.DAT",1,2,3)
+#print_diag("Pm.rePhonons.2123667.HESSFREQ.DAT",True)
+#print_indexes("Pm.rePhonons.2123667.HESSFREQ.DAT")
 #hessian("Pcab.reOptGeom.364624.out","Pcab.reOptGeom.364624.HESSOPT.DAT")
 #tensor = born_tensor('frequence.B1PW_PtBs.loto.out')
 #print("Born tensor: ",tensor)
