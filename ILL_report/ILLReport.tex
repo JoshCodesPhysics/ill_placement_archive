@@ -6,6 +6,8 @@
 \usepackage{courier}
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage{hyperref}
+\usepackage{url}
 
 \author{Joshua Horswill}
 \title{ILL internship report}
@@ -43,7 +45,11 @@ where $E_0$ is the energy associated with all non-magnetic degrees of freedom an
 \mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \vec{S_i}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
 \end{equation*}
 
-where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth magnetic ions. It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly different from the critical temperature $T_c$ of the transition. In the paramagnetic phase ($T > T_c$, where for all $I$, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. Classically $Z = \sum_{i}^{N} \exp(-\beta E_i)$ but quantum mechanically $Z =$ tr$(\exp(-\beta \hat{H}))$. Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
+where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth magnetic ions. 
+
+It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly larger or smaller than the critical temperature of the transition ($T_c$). In the paramagnetic phase ($T > T_c$, where for all magnetic states, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. 
+
+Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
 
 To first order, $\bar{\bar{\alpha}}$ can resultantly be written as:
 
@@ -74,12 +80,12 @@ The associated magnetoelectric coupling is computed from the first derivative of
 \end{itemize}
 
 \begin{equation}
-	q^* \mathcal{E} = \mathcal{H} d
+	q^* \mathcal{E} = -\mathcal{H} d
 \end{equation}
 
-which implies that the displacement induced by an electric field is
+which implies that the displacement induced by an electric field is equivalent to:
 
-$$ d = \mathcal{H}^{-1} q^* \mathcal{E} $$
+$$ d = -\mathcal{H}^{-1} q^* \mathcal{E} $$
 
 This equation also suggests that the main response of a ferroelectric compound to an applied electric field will be a geometry modification that can be evaluated by the displacement of the system ions from their equilibrium position. 
 
@@ -92,7 +98,7 @@ In summary our approach is as follows:
 	\item From this, obtain the associated optimal Hessian matrix and Born tensor
 	\item Solve the resultant linear system of equations in equation (3) for charge displacement
 	\item For a range of displacements calculate the magnetic exchange integral $J$ using an embedded fragment, wavefunction-correlated method since DFT cannot generate accurate calculations for this part. This involves the consideration of many Slater's determinants: the evaluation of many antisymmetric superposition of states that each represent a given system configuration. This is required because the properties of J (governed by the Fermi level electrons) rely on a strongly-correlated, configuration-sensitive system. An example of this would be the SAS+S method (see section 5 for more details). This allows us to generate $\frac{\partial J}{\partial d}$
-	\item Computing $\mathcal{E}$ for a range of displacements allows for the generation of $\frac{\partial d}{\partial E}$, and therefore the numerical evaluation of the derivative of the spin Hamiltonian parameters as a function of the applied electric field:
+	\item Computing displacement for a range of $\mathcal{E}$ allows for the generation of $\frac{\partial d}{\partial E}$, and therefore the numerical evaluation of the derivative of the spin Hamiltonian parameters as a function of the applied electric field:
 	\begin{equation*}
 	\dfrac{\partial J}{\partial \mathcal{E}} = \dfrac{\partial J}{\partial d}\dfrac{\partial d}{\partial \mathcal{E}}
 	\end{equation*}
@@ -130,6 +136,51 @@ For most systems this equation cannot be solved exactly and so we must include f
 \end{equation*}
 
 This allows us to generate two energy eigenvalue equations for each wavefunction and try to solve for $\Psi(\mathbf{r_1},\mathbf{r}_2,...\mathbf{r_n})$ \cite{rebolini2014range}. 
+
+\subsection{Hartree-Fock Theory}
+The Hartree-Fock method is the basis of molecular orbital theory, which postulates that in a material, each electron's motion can be described by a single-particle function that does not depend explicitly on the neighbouring electron's instantaneous motion. These orbitals are only approximations of reality however; the only exact eigenfunctions of the full electronic Hamiltonian are for hydrogen or He$^+$ where the system contains only one electron. However, as long as we consider these molecules near their geometrical energetic equilibrium (see step one of section 3), Hartree-Fock theory provides a good starting point for more detailed theoretical methods (e.g many-body perturbations, single-reference configuration interactions - see section 5). It is designed to solve the electronic Schrödinger equation resulting from the reduced time independent equation after using the Born-Oppenheimer approximation, as in section 4.1. It starts from `pretending' that in multiple-electron systems, electron-electron interactions can be ignored in order to render the Hamiltonian separable; the electronic wavefunction becomes a product of N orbitals, where N is the number of electrons being considered in the quantum system \cite{sherrill2000introduction}. This is called the Hartree product and can be written generally as:
+
+\begin{equation}
+	\Psi_{HP}(\mathbf{r}_1,\mathbf{r}_2,...,\mathbf{r}_N) = \phi_1(\mathbf{r}_1)\phi_2(\mathbf{r}_2)...\phi_N(\mathbf{r}_N)
+\end{equation}
+
+This fails to satisfy the fermionic antisymmetry principle i.e. the wavefunction should be antisymmetric when interchanging any set of spin-space coordinates ($x,y,z$ spatial and $\alpha$ spin where a space-spin vector is given by $\mathbf{x}=(\mathbf{r},\omega)$ where $\omega$ is the general spin coordinate for $\alpha$. We can also change our orbital notation from spatial $\phi(\mathbf{r})$ to spin orbital $\chi(\mathbf{x})$. The spin orbital is usually given by $\chi(\mathbf{x}) = \phi(\mathbf{r})\alpha(\omega)$. This turns equation (5) into:
+
+\begin{equation*}
+	\Psi_{HP}(\mathbf{x}_1,\mathbf{x}_2,...,\mathbf{x}_N) = \chi_1(\mathbf{x}_1)\chi_2(\mathbf{x}_2)...\chi_N(\mathbf{x}_N)
+\end{equation*}
+
+which is still not antisymmetric in general, as it requires
+
+\begin{equation*}
+	\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1) = -\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})
+\end{equation*}
+
+This is where Slater determinants come in. For a two electron system we can write an antisymmetric spin orbital as $$\Psi(\mathbf{x}_1)\Psi(\mathbf{x}_2) = \frac{1}{\sqrt{2}}[\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})-\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1)]$$
+
+This can be written as a determinant:
+
+\begin{equation*}
+	\Psi(\mathbf{x}_1,\mathbf{x}_2) = \frac{1}{\sqrt{2}}
+\begin{vmatrix}
+	\chi_1(\mathbf{x}_1) & \chi_2(\mathbf{x}_2)\\
+	\chi_1(\mathbf{x}_2) & \chi_2(\mathbf{x}_2) \\
+	\end{vmatrix}
+\end{equation*}
+
+which can be generalised to:
+
+\begin{equation}
+	\Psi = \frac{1}{\sqrt{N}} =
+	\begin{vmatrix}
+	\chi_1(\mathbf{x}_1) & \chi_2(\mathbf{x}_1) & ... & \chi_N(\mathbf{x}_1) \\
+	\chi_1(\mathbf{x}_2) & \chi_2(\mathbf{x}_2) & ... & \chi_N(\mathbf{x}_2) \\
+	\vdots & \vdots &\ddots & \vdots \\
+	\chi_1(\mathbf{x}_N) & \chi_2(\mathbf{x}_N) & ... & \chi_N(\mathbf{x}_N)
+	\end{vmatrix}
+\end{equation}
+
+If you try to put two electrons in the same orbital i.e. set $\chi_1 = \chi_2$ then the wavefunction becomes zero. This is a mathematical form of Pauli's exclusion principle. If we have a list of the occupied orbitals we can shorten this form to ket notation, with the normalisation factor implied: $|ij...k\rangle$; see section 5. This way of writing electron wavefunctions assumes that electrons move independently of the others, and so Hartree-Fock theory is referred to as a `mean field' theory. 
 
 \subsection{Hohenberg-Kohn theorems}
 
@@ -247,7 +298,7 @@ In general, these extended models are very effective at accurately approximating
 
 DDCI solves these problems by building a configuration interaction with a small reference space, in the subspace of singles and doubles which contributes to the energy difference on the grounds of second-order perturbation considerations, i.e. a subspace defined by the `complete active space' (CAS) for all singles, and the doubles which involved at least one active orbital \cite{garcia1997application}. If faced with a system with numerous open-shells per atom (e.g high-spin manganese, cobalt, iron oxides), the computational cost of using CAS+DDCI or the LCAS+S (`large complete active space + single excitation' method) becomes prohibitive since the size of the space to diagonalise scales exponentially with the number of magnetic electrons. We can establish a simple physical criterion to select important reference configurations, and derive from it a novel method with a strongly reduced computational cost. This is because configurations involved LCAS+S for example, are far too numerous compared to the necessary methods for a good quality modelling of low-lying energy state physics. Something needs to change when approaching this type of problem.
 
-\subsection{Modifications of the standard WCMs and Effective Hamiltonian Criteria}
+\subsection{Modifications of the Standard WCMs and Effective Hamiltonian Criteria}
 
 Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge transfer configurations were removed from the reference part of the wavefunction (a ligand is a core electron; the charges being transferred are electrons between ions). When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn III ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion, to 20 million, respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
 
@@ -269,8 +320,10 @@ where $|\psi^0_m\rangle = \sum_{I}C^0_{I,m}|\Phi^0_I\rangle$, and $|\Phi^0_I\ran
 
 $\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments. 
 
-\subsection{Calculation of the displacement}
-From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|.
+\section{Calculation of the Displacement with Crystal}
+Crystal performs ab initio calculations of the ground state energy as well as the energy gradient. It also has the potential do generate the electron wavefunctions and consequently their behaviour in a periodic system. Hartree-Fock and Kohn-Sham Hamiltonians are typically used (using postulates of DFT). Periodic systems are approximated by expansion of the single-particle wavefunctions as a linear combination of Bloch functions; a wave function that can be written as a plane wave modulated by a periodic function is a Bloch wave, typically used to describe crystallographic electrons. These Bloch functions are modulated by local functions or `Atomic Orbitals'. These are linear `Gaussian type functions' used in the `Linear Combination of Atomic Orbitals' (LCAO) method, which you may know as an approximation that generates a system wavefunction from superposed electronic wavefunctions belonging to individual atoms. The various molecular symmetries (s,p,d,f,sp e.t.c) of the structure are used to modulate these LCAO orbitals \cite{dovesi2017crystal17}.
+
+From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|. 
 
 
 \subsection{Calculation of the J}
@@ -290,8 +343,17 @@ From a set of inputs for the software suite used for a point of the calculation
 \end{itemize}
 
 \section{Env2Seward}
-Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the atom types and ordering the data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file. They are organised into quantum fragment, pseudopotential and Madelung potential sections in a way that is readable by the SEWARD input algorithm.
+Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering the data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file. They are organised into quantum fragment, pseudopotential and Madelung potential sections in a way that is readable by the SEWARD input algorithm. It can be automated by calling it from command line with a separate shell script, with the libraries and basis sets as a third system input file. 
 
-\bibliographystyle{unsrt}
+\section{Solving the displacement equation}
+\subsection{Parsing the Born and Hessian files}
+
+Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogenoeous electric field.
+The Born tensor is stored in an output file, each $3\times3$ charge matrix categorised under a number of atoms given by a line specifying the population in the unit cell. Once this is found, we can parse for the charge matrices and diagonalise them into a matrix of dimension $3N\times3N$, where the positions are given in terms of Cartesian coordinates. The same goes for the symmetric Hessian, which needs to be parsed from a separate raw output file and arranged into a diagonally symmetric matrix with 3N diagonal elements.
+
+\subsection{Solving for the atom displacements}
+Once these tensors have been obtained and reformatted into square form, we can solve the linear equation $q.E = -H.d$ using a linear algebra package. Two possible options would be the more simplistic `numpy linalg' module with the `solve' function, that can solve linear equations of the form $\mathbf{Ax} = \mathbf{b}$, or the LAPACK Fortran drivers that are higher accuracy and specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time. When the displacements have been obtained, we can add them to the atom coordinates from the generational env15 program and reformat them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
+
 \bibliography{reportbib.bib}
+\bibliographystyle{plainurl}
 \end{document}
