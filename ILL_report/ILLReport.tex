@@ -182,6 +182,64 @@ which can be generalised to:
 
 If you try to put two electrons in the same orbital i.e. set $\chi_1 = \chi_2$ then the wavefunction becomes zero. This is a mathematical form of Pauli's exclusion principle. If we have a list of the occupied orbitals we can shorten this form to ket notation, with the normalisation factor implied: $|ij...k\rangle$; see section 5. This way of writing electron wavefunctions assumes that electrons move independently of the others, and so Hartree-Fock theory is referred to as a `mean field' theory. 
 
+Using this ket notation we can shorten the Hamiltonian to the following forms in order to bury some of the complexity in the evaluation of integrals. The singular-electron operator can be written as:
+
+\begin{equation*}
+	h(i) = -\frac{1}{2}\nabla_i^2-\sum_A\frac{Z_a}{r{iA}}
+\end{equation*}
+
+and the two electron operator can be written as:
+
+\begin{equation*}
+	v(i,j)=\frac{1}{r_{ij}}
+\end{equation*}
+
+so that the Hamiltonian becomes:
+
+\begin{equation*}
+	\hat{H}_{electron} = \sum_i h(i) + \sum_{i<j}v(i,j) + V_{NN}
+\end{equation*}
+
+where $V_{NN}$ is a constant for the fixed set of nuclear coordinates, so we can ignore if for now as this term only shifts the eigenvalues, with no effect on the eigenfunctions. Now we need to approach obtaining the molecular orbitals. If we are looking for a Hartree-Fock wavefunction in normalised Slater determinant form, and assert that the electronic energy is given by:
+
+\begin{equation*}
+	E_{electron} = \langle\Psi|\hat{H}_{electron}|\Psi\rangle
+\end{equation*}
+
+For symmetric energy expressions we can use something called the `variational theorem', which asserts that the energy is always an upper bound to the true energy. We can choose a `trial wavefunction' that depends on one or multiple parameters, and finding the parameter configuration that minimises the expectation value of the energy in the observed functional space. This allows for a better approximation of the system wavefunction. This is a key method in the the Hartree-Fock approach. In other words, $E_{electron}$ will be an overestimation of the true ground state energy unless $\Psi$ is equal to the exact ground state wavefunction of the system, but a tighter upper bound can be generated from tuning the trial wavefunction \cite{sakurai1994modern}. The energy-minimising orbital configuration can be obtained as a linear combination of the basis functions (Gaussian-type in LCAO) \cite{sherrill2000introduction}. 
+
+We can rewrite the Hartree-Fock energy to achieve this purpose, by expressing it in terms of the integrals of one and two electron operators:
+
+\begin{equation}
+	E_{electron} = \sum_{i}\langle i|h|i\rangle + \frac{1}{2}\sum_{ij}[ii|jj]-[ij|ji]
+\end{equation}
+
+where
+
+$$\sum_{i}\langle i|h|i\rangle = \int d\mathbf{x_1} \ \chi^*_i(\mathbf{x_1})h(\mathbf{r_1})\chi_j(\mathbf{x_1})$$
+
+and
+
+$$[ij|kl] = \int d\mathbf{x_1} d\mathbf{x_2} \ \chi^*_i(\mathbf{x_1})\chi_j(\mathbf{x_1})v(i,j)\chi^*_k(\mathbf{x_2})\chi_l(\mathbf{x_2})$$
+
+which can be calculated using common existing computer algorithms.
+
+\subsubsection{Hartree Fock Equations}
+The assumption that the wavefunction can be approximated by a single Slater determinant of one spin orbital per electron is core to DFT. This single-reference space can be built upon by a perturbational model to achieve more accurate wavefunction solutions. The Hartree-Fock energy expression is by definition symmetric and so we know that the Slater determinant generating the lowest overall energy is the closest one can get to the true wavefunction in the assumed functional form. We must minimise the value of $E_{electron}$ from equation (7) with respect to the changes in the orbitals $\chi_i$. So far the orbitals $\chi$ have been assumed to be orthonormal, and so we must keep them that way through our variational procedure. This is done by employing `Lagrange's method of undetermined multipliers', where we use a Lagrangian $\mathcal{L}$ such
+that:
+
+\begin{equation*}
+	\mathcal{L}[\{\chi_i\}] = E_{electron}[\{\chi_i\}]-\sum_{ij}\epsilon_{ij}(<i|j>- \ \delta_{ij})
+\end{equation*}
+
+where the coefficients $\epsilon_{ij}$ are undetermined Lagrange multipliers and the $<i|j>$ orbital inner product represents the overlap between the ith and jth spin orbitals. Setting the first variation of the Lagrangian equal to zero ($\delta\mathcal{L} = 0$) and doing some algebra we can generate the Hartree-Fock equations defining each orbital:
+
+\begin{equation}
+	h(\mathbf{x_1})\chi_i(\mathbf{x_1})+\sum_{j \not= i}\biggr(\int d\mathbf{x_2} \ |\chi_j(\mathbf{x_2})|^2r_{12}^{-1}\biggr)\chi_i(\mathbf{x_1})-\sum_{j \not= i}\biggr(\int d\mathbf{x_2} \ \chi_j^*(\mathbf{x_2})\chi_i(\mathbf{x_2})r_{12}^{-1}\biggr)\chi_j(\mathbf{x_1}) = \epsilon_i\chi_i(\mathbf{x_1})
+\end{equation}
+
+where $\epsilon_i$ is the energy eigenvalue corresponding to the ith orbital eigenfunction. This problem can be solved in two ways, the first being numerically, and the second solving it in a space spanned by the basis functions. Both solutions depend on the orbitals, and so we need to guess some initial orbitals and generate increasingly educated guesses iteratively. The first term in equation (8) represents the Coulomb interaction of an electron described by $\chi_i$ with the average charge distribution of the other electrons (mean field). 
+
 \subsection{Hohenberg-Kohn theorems}
 
 The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state wavefunction $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state wavefunction for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
