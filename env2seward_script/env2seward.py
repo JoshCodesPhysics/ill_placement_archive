@@ -36,6 +36,10 @@ def atom_find(sew0_file,psd_file):
                 if atom not in frag_list:
                     frag_list.append(atom)
                 break
+            elif element[j] == '_':
+                atom = element[0:j]
+                if atom not in frag_list:
+                    frag_list.append(atom)
     for i in range(len(pseudo_data)):
         element = pseudo_data[i].split()[0]
         for j in range(len(element)):
@@ -44,6 +48,10 @@ def atom_find(sew0_file,psd_file):
                 if atom not in pseudo_list:
                     pseudo_list.append(atom)
                 break
+            elif element[j] == '_':
+                atom = element[0:j]
+                if atom not in pseudo_list:
+                    pseudo_list.append(atom)
             elif j == len(element)-1:
                 atom = element
                 if atom not in pseudo_list:
@@ -59,7 +67,7 @@ def frag_basis(new_file,sew0_file,psd_file,lib):
        atom_check = []
        new_atom = False
        frag = open(sew0_file).readlines()
-       #Create list of pseudo data
+       #Create list of frag data
        for i in range(len(frag)):
            if frag[i].split()[0] == "Pseudos":
                end = i
@@ -160,7 +168,10 @@ def pseudos(new_file,sew0_file,psd_file,lib):
                         psd_coords.append(float(psd[i].split()[k]))
                     separation = ((psd_coords[0]-coords[0])**2+(psd_coords[1]-coords[1])**2+(psd_coords[2]-coords[2])**2)**0.5
                     if separation <= 1e-1 and elem == psd[i].split()[0][0:2]:
-                        atom = psd[i].split()[0][0:3]
+                        if '_' in psd[i].split()[0]:
+                            atom = psd[i].split()[0][0:psd[i].split()[0].index('_')]
+                        else:
+                            atom = psd[i].split()[0][0:3]
                         break
                 #Is it new?
                 if atom not in atom_check:
@@ -233,6 +244,9 @@ def ask_user(question):
         print(error)
         return ask_user(question)
 
+def atom_print(atoms):
+    print("Fragment atoms: ",atoms[0], "TIP atoms: ", atoms[1])
+
 def finalprompt():
     title = str(input('Please enter TITLE line (Maximum 80 characters):   '))
     prefix = str(input('Please enter files PREFIX (must match input file prefixes):   '))
@@ -240,6 +254,7 @@ def finalprompt():
     psdname = "%s.env.psd"%prefix
     filename = "%s.sew.in"%prefix
     atoms = atom_find(sew0name,psdname)
+    atom_print(atoms)
     lib_frag = {key: {} for key in atoms[0]}
     lib_pseudo = {key: {} for key in atoms[1]}
     print("")
@@ -277,6 +292,8 @@ def fileinput(input_file):
             lib_pseudo = "".join(file_line[2:])
             lib_pseudo = lib_pseudo.replace("'",'"')
             lib_pseudo = json.loads(lib_pseudo)
+    atoms = atom_find(sew0_file,psd_file)
+    atom_print(atoms)
     finalwrite(filename,title,sew0_file,psd_file,lib_frag,lib_pseudo)
 
 def input_jupyter_or_prompt():
@@ -286,4 +303,3 @@ def input_jupyter_or_prompt():
        if ask_user("Are you running this on the Jupyter notebook?") == False:
           finalprompt()
 input_jupyter_or_prompt()
-
