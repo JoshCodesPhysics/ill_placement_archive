@@ -311,7 +311,7 @@ def fileinput(input_file):
         if file_line[0] == "filename":
             filename = file_line[2]
         elif file_line[0] == "title":
-            title = file_line[2]
+            title = " ".join(file_line[2:])
         elif file_line[0] == "sew0_file":
             sew0_file = file_line[2]
         elif file_line[0] == "psd_file":
