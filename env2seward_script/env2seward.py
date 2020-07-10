@@ -271,6 +271,7 @@ def atom_print(atoms):
     print("Fragment atoms: ",atoms[0], "TIP atoms: ", atoms[1])
 
 def finalprompt():
+    write_prompts = ask_user('Would you like to save these prompts to an input file?')
     title = str(input('Please enter TITLE line (Maximum 80 characters):   '))
     prefix = str(input('Please enter files PREFIX (must match input file prefixes):   '))
     sew0name = "%s.env.sew0"%prefix
@@ -292,6 +293,14 @@ def finalprompt():
         input_atom = atoms[1][i]
         lib_pseudo[input_atom]["key"] = input("Please enter the TIPS for %s:   "%input_atom)
         lib_pseudo[input_atom]["loc"] = input("LIBRARY LOCATION (leave blank if default):  ")
+    if write_prompts == True:
+        input_file = open('%s.in'%prefix,'w')
+        input_list = ['filename = %s\n'%filename,'title = %s\n'%title,\
+                'sew0_file = %s\n'%sew0name,'psd_file = %s\n'%psdname, 'lib_frag = %s\n'%str(lib_frag),\
+                'lib_pseudo = %s'%str(lib_pseudo)]
+        input_file.writelines(input_list)
+        input_file.close()
+        print("Input file generated")
     print("Inputs complete")
     finalwrite(filename,title,sew0name,psdname,lib_frag,lib_pseudo)
 
