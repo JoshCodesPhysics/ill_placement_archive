@@ -128,25 +128,33 @@ def hessian(born_file,hess_file):
     tensor_hess = np.zeros((m_dim,m_dim))
     hess = open(hess_file).readlines()
     final_block = False
+    start_found = False
     #Finding relevant data range
     for i in range(len(hess)):
         hess_split = hess[i].split()
-        if hess_split == [str(i) for i in range(1,len(hess_split)+1)]\
-                and len(hess_split) > 0 and hess[i-1] == '\n':
+        #Start condition for Pm.rePhonons file
+        if hess_split == ['LOW', 'HALF', 'OF', 'HRED', 'AFTER', 'SYMMETRISATION']:
+            start = i+4
+            start_found = True
+        #Start condition for Pm.reOptGeom file
+        elif hess_split == [str(i) for i in range(1,len(hess_split)+1)]\
+                and len(hess_split) > 0 and hess[i-1] == '\n'\
+                and len(hess[i+1].split()) == 2 and start_found == False:
             start = i
-            print("start = ",i)
+            start_found = True
+        #Detecting final block to prepare for end truncation
         if ((str(m_dim) in hess_split and str(m_dim - 1) in hess_split)\
                 or (str(m_dim) in hess_split and str(m_dim+1) in hess_split)\
                 or (hess_split == [str(m_dim)])):
-            final_block = True
-            print("Final block = ",final_block)
+            if start_found == True:
+                final_block = True
+        #End detected, break the loop
         if len(hess_split) > 0:
-            if hess_split[0] == str(m_dim+3) and final_block == True:
+            if hess_split[0] == str(m_dim) and final_block == True and start_found == True:
                 end = i+1
-                print("end = ", end)
+                break
     #defining new range
     hess_data = hess[start:end]
-    print(hess_data[0],hess_data[-1])
     #Generalised column numbers for multiple format possibilities
     ncolumns = len(hess_data[0].split())
     #First column starts at 0, increase by number of columns for every data block
@@ -197,7 +205,7 @@ def hessian(born_file,hess_file):
             if i != j:
                 print(tensor_hess[i,j],tensor_hess[j,i],(i,j),(j,i))
     """
-    #Add [0] to function for L matrix and [1] for symmetric matrix
+    #Add [0] suffix to function for L matrix and [1] for symmetric matrix
     return l_matrix,tensor_hess
 
 def solve_equation(born_file,hess_file,ex,ey,ez):
@@ -229,6 +237,7 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     print(e_vector)
     print("Displacement solutions: ")
     print(displacement)
+    return displacement
 
 def print_indexes(hess_file,thresh):
     "Prints all paired and unique values with their indexes"
@@ -268,16 +277,9 @@ def num_diag(hess_file,nthresh,threshstart):
     print("Format is 'threshold':number of diagonal elements")
     print(diag_dict)
 
-#solve_equation('frequence.B1PW_PtBs.loto.out','Pm.reOptGeom.2164102.out',2,0,0)
-print(hessian('frequence.B1PW_PtBs.loto.out','Pm.rePhonons.7094721.out')[1])
-#num_diag("Pm.rePhonons.2123667.HESSFREQ.DAT",5,1e-3)
-#print_diag("Pm.rePhonons.2123667.HESSFREQ.DAT",1e-12,True)
-#print_indexes("Pm.rePhonons.2123667.HESSFREQ.DAT",1e-4)
-#hessian("Pcab.reOptGeom.364624.out","Pcab.reOptGeom.364624.HESSOPT.DAT")
+solve_equation('frequence.B1PW_PtBs.loto.out','Pm.rePhonons.7094721.out',2,0,0)
+#print(hessian('frequence.B1PW_PtBs.loto.out','Pm.reOptGeom.2164102.out')[1])
 #tensor = born_tensor('frequence.B1PW_PtBs.loto.out')
-#print("Born tensor: ",tensor)
-#print("#######################")
-#print("tensor*inverse: ",tensor.dot(np.linalg.inv(tensor)))
 
 """def cmd_input_or_prompt():
     if len(sys.argv) >= 2:
