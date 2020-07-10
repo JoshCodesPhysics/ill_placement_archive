@@ -28,6 +28,10 @@ def atom_find(sew0_file,psd_file):
             break
     frag_data = open(sew0_file).readlines()[start:end]
     pseudo_data = open(psd_file).readlines()[1:]
+    for i in range(len(pseudo_data)):
+        if pseudo_data[i].split() == ['En','symetrie'] or pseudo_data[i].split() == ['en','symetrie']:
+            pseudo_data = pseudo_data[i+1:]
+            break
     for i in range(len(frag_data)):
         element = frag_data[i].split()[0]
         for j in range(len(element)):
@@ -66,39 +70,46 @@ def frag_basis(new_file,sew0_file,psd_file,lib):
        atom_list = atom_find(sew0_file,psd_file)[0]
        atom_check = []
        new_atom = False
+       sym_bool = False
        frag = open(sew0_file).readlines()
        #Create list of frag data
        for i in range(len(frag)):
-           if frag[i].split()[0] == "Pseudos":
+           if frag[i].split()[0] == 'SYMMETRY':
+               sym_type = frag[i+1].split()[0]
+               sym_bool = True
+           elif frag[i].split()[0][:8] == "Fragment":
+               start = i+1
+           elif frag[i].split()[0][:7] == "Pseudos":
                end = i
                break
-       frag_sew0 = frag[:end]
+       frag_sew0 = frag[start:end]
        for i in range(len(frag_sew0)):
            line_list = frag_sew0[i].split()
-           if line_list[0] == "Fragment":
-               pass
+           atom_item = line_list[0]
+           #print("atom_item: ",atom_item)
+           for j in range(len(atom_item)):
+               if atom_item[j].isdigit():
+                   atom = atom_item[:j]
+                   #print("atom: ",atom)
+                   if atom not in atom_check:
+                       new_atom = True
+                       #print("atom boolean: ",new_atom)
+                       atom_check.append(atom)
+                   else:
+                       new_atom = False
+                       #print("atom boolean: ",new_atom)
+                   break
+           if new_atom == True:
+               frag_dict[atom] = []
+               data_list = frag_sew0[i]
+               frag_dict[atom].append(data_list)
            else:
-               atom_item = line_list[0]
-               #print("atom_item: ",atom_item)
-               for j in range(len(atom_item)):
-                   if atom_item[j].isdigit():
-                       atom = atom_item[:j]
-                       #print("atom: ",atom)
-                       if atom not in atom_check:
-                           new_atom = True
-                           #print("atom boolean: ",new_atom)
-                           atom_check.append(atom)
-                       else:
-                           new_atom = False
-                           #print("atom boolean: ",new_atom)
-                       break
-               if new_atom == True:
-                   frag_dict[atom] = []
-                   data_list = frag_sew0[i]
-                   frag_dict[atom].append(data_list)
-               else:
-                   data_list = frag_sew0[i]
-                   frag_dict[atom].append(data_list)
+               data_list = frag_sew0[i]
+               frag_dict[atom].append(data_list)
+       if sym_bool == True:
+           sym_list = [' SYMMETRY\n',' %s\n'%sym_type,'\n']
+           sew_in.writelines(sym_list)
+       sew_in.write('*** Fragment ***************************************************\n')
        for i in range(len(atom_list)):
            sew_in.write("Basis set\n")
            if lib[atom_list[i]]["loc"] == "":
@@ -153,9 +164,19 @@ def pseudos(new_file,sew0_file,psd_file,lib):
             #It has two characters, oh dear
             else:
                 psd_whole = open(psd_file).readlines()
+                for i in range(len(psd_whole)):
+                    if psd_whole[i].split() != []:    
+                        psd_split = psd_whole[i].split()
+                        if psd_split == ['En','symetrie'] or psd_split == ['en','symetrie']:
+                            new_start = i+1
+                            psd_sym = psd_whole[new_start:]
+                            psd_whole = psd_sym
+                            break
                 psd = []
-                for i in range(1,len(psd_whole)):
-                    if psd_whole[i].split()[0][1].isdigit() == False:
+                for i in range(len(psd_whole)):
+                    if psd_whole[i].split()[0] == 'Atom':
+                        pass
+                    elif psd_whole[i].split()[0][1].isdigit() == False:
                         psd.append(psd_whole[i])
                 elem = pseudo_sew0[j].split()[0][0:2]
                 coords = []
@@ -166,7 +187,9 @@ def pseudos(new_file,sew0_file,psd_file,lib):
                     psd_coords = []
                     for k in range(1,4):
                         psd_coords.append(float(psd[i].split()[k]))
+                    #print("element",elem,"coords", coords,"psd_coords", psd_coords)
                     separation = ((psd_coords[0]-coords[0])**2+(psd_coords[1]-coords[1])**2+(psd_coords[2]-coords[2])**2)**0.5
+                    #print("Separation ", separation)
                     if separation <= 1e-1 and elem == psd[i].split()[0][0:2]:
                         if '_' in psd[i].split()[0]:
                             atom = psd[i].split()[0][0:psd[i].split()[0].index('_')]
