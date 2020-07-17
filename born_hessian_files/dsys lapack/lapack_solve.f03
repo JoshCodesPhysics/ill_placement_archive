@@ -7,43 +7,37 @@ program lapack_solve
       !Generating hessian and born matrices for extraction from .npy files
       integer, parameter :: DPR = selected_real_kind(p=15)
       character(len=*), parameter :: hess_data = 'hess_matrix', &
-              born_data = 'born_matrix'
+              born_data = 'born_matrix', UPLO = 'L'
       
-      !Important variable : matrix dimension = 3*No. atoms in unit cell
-      integer, parameter :: N = 192
-      real(DPR), dimension(N,N) :: h_tensor, b_tensor
+      !Important variables : matrix dimension = 3*No. atoms in unit cell
+      !i,j for do loops
+      integer :: N, i,j
+      real(DPR), allocatable, dimension(:,:) :: h_tensor, b_tensor
       
       !Defining variables required for calling dysv
       
       !Integers
-      integer, parameter :: NRHS = 1, LDA = N, LDB = N
-      !Not sure what to assign these
-      integer :: LWORK, INFO
+      integer, parameter :: nout = 12
+      integer :: INFO, NRHS, LDA, LDB, LWORK
       
       !Arrays
-      integer, dimension(N) :: IPIV
-      real, dimension(N) :: E
-      double precision, dimension(N,N) :: A, B, q
-      !Allocatable because I don't know how to define LWORK which
-      !determines the length of WORK
-      double precision, allocatable, dimension(:) :: WORK
+      integer, allocatable, dimension(:) :: IPIV
+      real, allocatable, dimension(:) :: E
+      double precision, allocatable, dimension(:,:) :: A, q
+      double precision, allocatable, dimension(:) :: B
+      double precision, allocatable ,dimension(:) :: WORK
       !Defining electric field parameters to be able to generate B
       real, parameter :: Ex = 3.0, Ey = 2.0, Ez = 1.0
-      integer :: i,j
       
-      !I'm not sure if I even need these to be honest:
-      
-      !Local scalars
-      !logical :: lquery
-      !integer :: lwkopt
-      !External functions
-      !logical :: LSAME
-      !external :: lsame
-      !External subroutines
-      !external :: xerbla, dsytrf, dsytrs, dsytrs2
-      !Intrinsic functions
-      !intrinsic :: max
-      
+      print *, 'Dimension of Hessian and Born tensor: '
+      read *, N
+      NRHS = 1
+      LDA = N
+      LDB = N
+      LWORK = 3*N
+      allocate (h_tensor(N,N), b_tensor(N,N), A(LDA,N), q(N,N), E(N), B(N), WORK(LWORK), IPIV(N))
+      write (nout,*) 'DSYSV -Hd = qE Results'
+
       !Writing Hessian and Born tensors from .npy files from disp_solve.py
       open(10, file=hess_data, status = 'old', access = 'stream',&
               form = 'unformatted')
@@ -54,7 +48,7 @@ program lapack_solve
       read(11) b_tensor
       close(11)
       
-      !Generating the A matrix
+      !Generating the A and q matrices
       do i = 1,N
         do j = 1,N
                 A(i,j) = dble(-1.0*h_tensor(i,j))
@@ -73,10 +67,30 @@ program lapack_solve
         end if
       end do
 
-      !These have incompatible ranks for some reason
-      print *, "Rank of born tensor: ", rank(q), " Rank of E vector: ", rank(E), " Cannot multiply :("
-      !Trying to generate B matrix unsuccessfully:
-      !B = matmul(q,E)
+      !Generating B matrix
+      B = matmul(q,E)
        
-      !call dsysv(UPLO,N,NRHS,A,LDA,B,LDB,LWORK)
+      call dsysv(UPLO,N,NRHS,A,LDA,IPIV,B,LDB,WORK,LWORK,INFO)
+
+      if(info==0) then
+              !Print the solution
+              
+              write (12,*) 'Solutions'
+              write (nout,100) B(1:N)
+
+              !Print factorization details
+
+              write (nout, *)
+              flush (nout)
+
+              !Print pivot indices
+              write (nout,*)
+              write (nout, *) 'Pivot indices'
+              write (nout,110) ipiv(1:n)
+      else
+              write (nout, 120) 'The diagonal block ', info, ' of D is zero'
+      end if
+      100 format ((3x, 7f11.4))
+      110 format (1x, 7i11)
+      120 format (1x, A, I3, A)
 end program lapack_solve
