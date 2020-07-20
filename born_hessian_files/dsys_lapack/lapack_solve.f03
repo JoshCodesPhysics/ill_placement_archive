@@ -55,7 +55,7 @@ program lapack_solve
       do i = 1,N
         do j = 1,N
                 A(i,j) = dble(-1.0*h_tensor(i,j))
-                q(i,j) = dble(b_tensor(i,j))
+                q(i,j) = dble(b_tensor(j,i))
         end do
       end do
 
@@ -71,12 +71,22 @@ program lapack_solve
         end if
       end do
 
-      print *, E
-      print *, "######################"
+            !print *, q
+      !print *, "######################"
 
       !Generating B matrix
       B = matmul(q,E)
-      print *, B 
+      
+      write(*,*) B
+      
+      !do i = 1,2
+      !  do j = 1,N
+      !          print *, A(i,j)
+      !          if(j==N) then
+      !                  print *, "##############################"
+      !          end if
+      !  end do
+      !end do
       
       call dsysv(UPLO,N,NRHS,A,LDA,IPIV,B,LDB,WORK,LWORK,INFO)
 
