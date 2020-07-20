@@ -77,7 +77,7 @@ program lapack_solve
       !Generating B matrix
       B = matmul(q,E)
       
-      write(*,*) B
+      !write(*,*) B
       
       !do i = 1,2
       !  do j = 1,N
@@ -105,8 +105,10 @@ program lapack_solve
               write (nout,*)
               write (nout, *) 'Pivot indices'
               write (nout,110) ipiv(1:n)
+              print *, "Solution has been written to fort.12 file"
       else
               write (nout, 120) 'The diagonal block ', info, ' of D is zero'
+              print *, "See fort.12 file for outcome"
       end if
       100 format (7(e18.10,2X))
       110 format (1x, 7i11)

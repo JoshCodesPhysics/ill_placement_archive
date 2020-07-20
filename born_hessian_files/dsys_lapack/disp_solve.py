@@ -119,6 +119,47 @@ def parse_hessian(hess_file,thresh):
     #return triple of pairs, diagonal and original data lists
     return hess_pairs,hess_diag,hess_copy
 
+def print_indexes(hess_file,thresh):
+    "Prints all paired and unique values with their indexes"
+    print("Pair indexes")
+    print([i[1:] for i in parse_hessian(hess_file,thresh)[0]])
+    print("Diag indexes")
+    print([i[1] for i in parse_hessian(hess_file,thresh)[1]])
+
+def print_diag(hess_file,thresh,rev):
+    """Writes diagonal elements to a text file in either ascending
+    or descending order depending on rev boolean"""
+    with open("diagonal.txt",'w') as diag:
+        sort_diag = parse_hessian(hess_file,thresh)[1]
+        sort_diag = [i[0] for i in sort_diag]
+        #Sorting ascending or descending, rev = True creates descending
+        sort_diag.sort(reverse=rev)
+        print("Length ", len(sort_diag))
+        for item in sort_diag:
+            diag.write("%s\n"%str(item))
+
+
+
+def num_diag(hess_file,nthresh,threshstart):
+    "Prints a dictionary containing number of diagonal elements for a range of thresholds"
+    "nthresh gives number of thresholds to test, and threshstart gives starting value"
+    thresh_range = np.ones((nthresh))
+    #Generating threshold values
+    for i in range(len(thresh_range)):
+        if i == 0:
+            thresh_range[i] = threshstart
+        else:
+            #One order of magnitude between each index
+            thresh_range[i] = 1e-1*thresh_range[i-1]
+    #Empty dictionary for writing
+    diag_dict = {str(i):None for i in thresh_range}
+    #Loop writing all diagonal list lengths for given thresholds
+    for i in range(len(thresh_range)):
+        diag_dict['%s'%str(thresh_range[i])] = len(parse_hessian("Pm.rePhonons.2123667.HESSFREQ.DAT",thresh_range[i])[1])
+    print("Format is 'threshold':number of diagonal elements")
+    print(diag_dict)
+
+
 def hessian(born_file,hess_file):
     "Returns L Hessian matrix as a square matrix"
     #Determines dimensions of Hessian
@@ -261,53 +302,6 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     print(displacement)
     return displacement
 
-def print_indexes(hess_file,thresh):
-    "Prints all paired and unique values with their indexes"
-    print("Pair indexes")
-    print([i[1:] for i in parse_hessian(hess_file,thresh)[0]])
-    print("Diag indexes")
-    print([i[1] for i in parse_hessian(hess_file,thresh)[1]])
-
-def print_diag(hess_file,thresh,rev):
-    """Writes diagonal elements to a text file in either ascending
-    or descending order depending on rev boolean"""
-    with open("diagonal.txt",'w') as diag:
-        sort_diag = parse_hessian(hess_file,thresh)[1]
-        sort_diag = [i[0] for i in sort_diag]
-        #Sorting ascending or descending, rev = True creates descending
-        sort_diag.sort(reverse=rev)
-        print("Length ", len(sort_diag))
-        for item in sort_diag:
-            diag.write("%s\n"%str(item))
-
-def num_diag(hess_file,nthresh,threshstart):
-    "Prints a dictionary containing number of diagonal elements for a range of thresholds"
-    "nthresh gives number of thresholds to test, and threshstart gives starting value"
-    thresh_range = np.ones((nthresh))
-    #Generating threshold values
-    for i in range(len(thresh_range)):
-        if i == 0:
-            thresh_range[i] = threshstart
-        else:
-            #One order of magnitude between each index
-            thresh_range[i] = 1e-1*thresh_range[i-1]
-    #Empty dictionary for writing
-    diag_dict = {str(i):None for i in thresh_range}
-    #Loop writing all diagonal list lengths for given thresholds
-    for i in range(len(thresh_range)):
-        diag_dict['%s'%str(thresh_range[i])] = len(parse_hessian("Pm.rePhonons.2123667.HESSFREQ.DAT",thresh_range[i])[1])
-    print("Format is 'threshold':number of diagonal elements")
-    print(diag_dict)
-
 #print(hessian('frequence.B1PW_PtBs.loto.out','Pm.rePhonons.7094721.out')[1])
-#save_hess_born('frequence.B1PW_PtBs.loto.out','Pm.rePhonons.7094721.out',np.random.rand(192,192))
 solve_equation('frequence.B1PW_PtBs.loto.out','Pm.rePhonons.7094721.out',3,2,1)
-#print(hessian('frequence.B1PW_PtBs.loto.out','Pm.reOptGeom.2164102.out')[1])
-#tensor = born_tensor('frequence.B1PW_PtBs.loto.out')
 
-"""def cmd_input_or_prompt():
-    if len(sys.argv) >= 2:
-       pass
-    else:
-        pass
-"""
