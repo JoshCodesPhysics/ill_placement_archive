@@ -153,7 +153,8 @@ def num_diag(hess_file,nthresh,threshstart):
     diag_dict = {str(i):None for i in thresh_range}
     #Loop writing all diagonal list lengths for given thresholds
     for i in range(len(thresh_range)):
-        diag_dict['%s'%str(thresh_range[i])] = len(parse_hessian("Pm.rePhonons.2123667.HESSFREQ.DAT",thresh_range[i])[1])
+        diag_dict['%s'%str(thresh_range[i])] =\
+                len(parse_hessian("Pm.rePhonons.2123667.HESSFREQ.DAT",thresh_range[i])[1])
     print("Format is 'threshold':number of diagonal elements")
     print(diag_dict)
 
@@ -250,6 +251,37 @@ def hessian(born_file,hess_file):
     #Add [0] suffix to function for L matrix and [1] for symmetric matrix
     return l_matrix,tensor_hess
 
+def convert_coords(out_file):
+    """Parses for lattice parameters and converts them into unit cell edge
+    vectors in cartesian coordinates"""
+    out = open(out_file).readlines()
+    lat_list = []
+    for i in range(len(out)):
+        out_split = out[i].split()
+        if out_split == ['LATTICE', 'PARAMETERS', '(ANGSTROMS', 'AND',\
+                'DEGREES)', '-', 'CONVENTIONAL', 'CELL']:
+            lat_data = out[i+2].split()
+            break
+    for i in range(len(lat_data)):
+        lat_list.append(float(lat_data[i]))
+    a = lat_list[0]
+    b = lat_list[1]
+    c = lat_list[2]
+    alpha = lat_list[3]
+    beta = lat_list[4]
+    gamma = lat_list[5]
+    a_vector = np.array([a,0.0,0.0])
+    b_vector = np.array([b*np.cos(gamma),b*np.sin(gamma),0])
+    omega = a*b*c*np.sqrt(1-np.cos(alpha)*np.cos(alpha)-np.cos(beta)*np.cos(beta)\
+            -np.cos(gamma)*np.cos(gamma)\
+            +2*np.cos(alpha)*np.cos(beta)*np.cos(gamma))
+    c_vector = np.array([c*np.cos(beta),\
+            c*((np.cos(alpha)-np.cos(beta)*np.cos(gamma))/(np.sin(gamma))),\
+            omega/(a*b*np.sin(gamma))])
+    lattice_vectors = np.array([a_vector,b_vector,c_vector])
+    unit_vectors = np.array([vec/np.sqrt(vec.dot(vec)) for vec in lattice_vectors])
+    return lattice_vectors, unit_vectors
+
 def save_hess_born(born_file,hess_file,ex,ey,ez):
     h_tensor = hessian(born_file,hess_file)[1]
     q_tensor = born_tensor(born_file)
@@ -309,14 +341,7 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     print("Displacement solutions: ")
     print(displacement)
     return displacement
-
-def add_displacement(born_file,hess_file,cell_file,ex,ey,ez):
-    positions = open(cell_file).readlines()
-    atoms_charges = []
-    #for i in range(len(positions)):
-        #pos_line = positions[i].split()
-        #if pos_line
     
 input_file = "ht.frequence.B1PW_PtBs.loto.out"
 #solve_equation(input_file,input_file,.75,0,0)
-save_hess_born(input_file,input_file,.75,0,0)
+save_hess_born(input_file,input_file,.1,0,0)
