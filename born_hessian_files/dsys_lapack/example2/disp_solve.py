@@ -9,6 +9,8 @@ import numpy as np
 import sys
 import itertools as it
 import copy
+import os.path
+np.set_printoptions(precision=15)
 
 def num_atoms(born_file):
     "Determines number of atoms in the unit cell from parse"
@@ -65,7 +67,7 @@ def born_tensor(born_file):
             start_column += 3
             atom_num += 1
         for j in range(3):
-            tensor[i,j+start_column] = m_dict['atom%d'%atom_num][i%3,j]
+            tensor[i,j+start_column] = float(m_dict['atom%d'%atom_num][i%3,j])
     return tensor
 
 def parse_hessian(hess_file,thresh):
@@ -240,7 +242,7 @@ def hessian(born_file,hess_file):
                 if abs(tensor_hess[j,i]) <= 1e-12:
                     tensor_hess[i,j] = 0
                 else:
-                    tensor_hess[i,j] = tensor_hess[j,i]
+                    tensor_hess[i,j] = float(tensor_hess[j,i])
     #Print example of symmetries
     """entries = 10
     for i in range(entries):
@@ -251,7 +253,84 @@ def hessian(born_file,hess_file):
     #Add [0] suffix to function for L matrix and [1] for symmetric matrix
     return l_matrix,tensor_hess
 
-def convert_coords(out_file):
+def convert_coords(output_file):
+    atom_num = num_atoms(output_file)
+    out = open(output_file).readlines()
+    conv_matrix = np.zeros((3,3))
+    conv_inverse= np.zeros((3,3))
+    ang2at = float(0.529177210903) 
+    for i in range(len(out)):
+        out_split = out[i].split()
+        if out_split == ['DIRECT', 'LATTICE', 'VECTORS', 'CARTESIAN',\
+                'COMPONENTS', '(ANGSTROM)']:
+            start = i+2
+            end = start+3
+        elif out_split == ['COORDINATES', 'OF', 'THE', 'EQUIVALENT',\
+                'ATOMS', '(FRACTIONARY', 'UNITS)']:
+            start2 =i+4
+        elif out_split[:5] == ['NUMBER','OF','SYMMETRY','OPERATORS',':']:
+            end2 = i-1
+        elif out_split == ['*', 'ATOM', 'X(ANGSTROM)', 'Y(ANGSTROM)',\
+                'Z(ANGSTROM)']:
+            start3 = i+2
+            end3 = start3+atom_num
+            break
+    conv_data = out[start:end]
+    frac_data = out[start2:end2]
+    test_data = out[start3:end3]
+    for i in range(len(conv_data)):
+        conv_split = conv_data[i].split()
+        for j in range(len(conv_split)):
+            conv_matrix[i,j] = ang2at*float(conv_split[j])
+    conv_matrix = np.transpose(conv_matrix)
+    conv_inverse = np.linalg.inv(conv_matrix)
+    print("Translation matrix before being converted from Angstrom to Bohr: ")
+    print(conv_matrix/ang2at)
+    frac_coords = np.zeros((atom_num,3))
+    row = 0
+    for i in range(len(frac_data)):
+        frac_split = frac_data[i].split()
+        if len(frac_split) > 0:
+            for j in range(5,len(frac_split)):
+                frac_coords[row,j-5] = frac_split[j]
+            row += 1
+    print("Desired coordinates:")
+    print(frac_coords)
+    test_coords = np.zeros((atom_num,3))
+    for i in range(len(test_data)):
+        test_split = test_data[i].split()
+        for j in range(3,len(test_split)):
+            if abs(float(test_split[j])) <= 1e-12:
+                test_coords[i,j-3] = 0.0
+            else:
+                test_coords[i,j-3] = ang2at*float(test_split[j])
+    print("########################################")
+    print("Cartesian primitive cell coordinates before Bohr conversion:")
+    print(test_coords/ang2at)
+    print("########################################") 
+    test_coords2 = np.zeros((atom_num,3))
+    test_coords3 = np.zeros((atom_num,3))
+    for i in range(len(test_coords)):
+        xyz = test_coords[i]
+        conv_coords = np.linalg.solve(conv_matrix,xyz)
+        #conv_coords = np.matmul(conv_inverse,xyz)
+        for j in range(len(conv_coords)):
+            if abs(conv_coords[j]) > 0.5:
+                conv_coords[j] = conv_coords[j] % 1
+        test_coords2[i] = conv_coords
+    for i in range(len(frac_coords)):
+        abc = frac_coords[i]
+        #orig_coords = np.matmul(conv_matrix,abc)
+        orig_coords = np.linalg.solve(conv_inverse,abc)
+        test_coords3[i] = orig_coords
+    print("Final coordinates: ")
+    print(test_coords2)
+    print("#######################################")
+    print("Original reconverted coordinates: ")
+    print(test_coords3/ang2at)
+    return conv_matrix
+
+def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
     vectors in cartesian coordinates"""
     out = open(out_file).readlines()
@@ -267,9 +346,9 @@ def convert_coords(out_file):
     a = lat_list[0]
     b = lat_list[1]
     c = lat_list[2]
-    alpha = lat_list[3]
-    beta = lat_list[4]
-    gamma = lat_list[5]
+    alpha = np.radians(lat_list[3])
+    beta = np.radians(lat_list[4])
+    gamma = np.radians(lat_list[5])
     a_vector = np.array([a,0.0,0.0])
     b_vector = np.array([b*np.cos(gamma),b*np.sin(gamma),0])
     omega = a*b*c*np.sqrt(1-np.cos(alpha)*np.cos(alpha)-np.cos(beta)*np.cos(beta)\
@@ -279,22 +358,24 @@ def convert_coords(out_file):
             c*((np.cos(alpha)-np.cos(beta)*np.cos(gamma))/(np.sin(gamma))),\
             omega/(a*b*np.sin(gamma))])
     lattice_vectors = np.array([a_vector,b_vector,c_vector])
-    unit_vectors = np.array([vec/np.sqrt(vec.dot(vec)) for vec in lattice_vectors])
+    unit_vectors = np.array([float(vec/np.sqrt(vec.dot(vec))) for vec in lattice_vectors])
     return lattice_vectors, unit_vectors
 
 def save_hess_born(born_file,hess_file,ex,ey,ez):
+    "Writes arrays to binary files for fortran processing"
+    "Enter electric field components in kV/m"
     h_tensor = hessian(born_file,hess_file)[1]
     q_tensor = born_tensor(born_file)
     e_vector = np.zeros((len(h_tensor)))
-    conversion = 1.944690381e-9
+    conversion = float(1.944690381e-9)
     #Generating e_vector from inputs
     for i in range(len(e_vector)):
         if i % 3 == 0:
-            e_vector[i] = conversion*ex
+            e_vector[i] = float(conversion*ex)
         elif i% 3 == 1:
-            e_vector[i] = conversion*ey
+            e_vector[i] = float(conversion*ey)
         else:
-            e_vector[i] = conversion*ez
+            e_vector[i] = float(conversion*ez)
     dim_array = np.array([len(h_tensor)])
 
     h_tensor.tofile('hess_matrix')
@@ -313,19 +394,19 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     h_tensor = hessian(born_file,hess_file)[1]
     m_dim = len(h_tensor)
     e_vector = np.zeros((m_dim))
-    conversion = 1.94469038e-9
+    conversion = float(1.94469038e-9)
     #Placeholder matrix so we can keep writing the script   
     #q_tensor = np.random.rand(m_dim,m_dim)
     #Generating e_vector from inputs
     for i in range(len(e_vector)):
         if i % 3 == 0:
-            e_vector[i] = conversion*ex
+            e_vector[i] = float(conversion*ex)
         elif i% 3 == 1:
-            e_vector[i] = conversion*ey
+            e_vector[i] = float(conversion*ey)
         else:
-            e_vector[i] = conversion*ez
+            e_vector[i] = float(conversion*ez)
     #Generating matrices for linalg solve
-    a = -1*h_tensor
+    a = float(-1.0)*h_tensor
     b = np.matmul(q_tensor,e_vector)
     displacement = np.linalg.solve(a,b)
     save_hess_born(born_file,hess_file,ex,ey,ez)
@@ -340,8 +421,26 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     #print(e_vector)
     print("Displacement solutions: ")
     print(displacement)
+    print("Error matrix: ")
+    print(abs(np.matmul(a,displacement)-b))
     return displacement
-    
+
+def convert_disp(output_file,ex,ey,ez):
+    displacement = solve_equation(output_file,output_file,ex,ey,ez)
+    conv_matrix = convert_coords(output_file)
+    convdisp = np.zeros((len(displacement),len(displacement)))
+    for i in range(len(displacement)):
+        if i % 3 == 0:
+            coords = displacement[i:i+3]
+            newcoords = np.linalg.solve(conv_matrix,coords)
+            for j in range(i,i+3):
+                convdisp[j] = newcoords[j-i,j-i+3]
+    print(displacement)
+    print(convdisp)
+    return convdisp
+
 input_file = "ht.frequence.B1PW_PtBs.loto.out"
-#solve_equation(input_file,input_file,.75,0,0)
-save_hess_born(input_file,input_file,.1,0,0)
+#solve_equation(input_file,input_file,.1,.1,.1)
+#save_hess_born(input_file,input_file,.1,.1,.1)
+convert_coords(input_file)
+#convert_disp(input_file,.1,.1,.1)
