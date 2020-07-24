@@ -10,6 +10,7 @@ import sys
 import itertools as it
 import copy
 import os.path
+from tabulate import tabulate
 np.set_printoptions(precision=15)
 
 def num_atoms(born_file):
@@ -254,11 +255,16 @@ def hessian(born_file,hess_file):
     return l_matrix,tensor_hess
 
 def convert_coords(output_file):
+    """Finds conversion matrix and transposes it. Also parses for
+    fractional coordinate data"""
+    #Allocating number of unit cell atoms and conversion matrices
     atom_num = num_atoms(output_file)
     out = open(output_file).readlines()
     conv_matrix = np.zeros((3,3))
     conv_inverse= np.zeros((3,3))
-    ang2at = float(0.529177210903) 
+    #Angstrom to Bohr conversion factor
+    ang2at = float(0.529177210903)
+    #Parsing for data strips
     for i in range(len(out)):
         out_split = out[i].split()
         if out_split == ['DIRECT', 'LATTICE', 'VECTORS', 'CARTESIAN',\
@@ -278,14 +284,17 @@ def convert_coords(output_file):
     conv_data = out[start:end]
     frac_data = out[start2:end2]
     test_data = out[start3:end3]
+    #Appending conversion matrix
     for i in range(len(conv_data)):
         conv_split = conv_data[i].split()
         for j in range(len(conv_split)):
             conv_matrix[i,j] = ang2at*float(conv_split[j])
+    #Transposing it so we can solve for u,v,w
     conv_matrix = np.transpose(conv_matrix)
     conv_inverse = np.linalg.inv(conv_matrix)
-    print("Translation matrix before being converted from Angstrom to Bohr: ")
-    print(conv_matrix/ang2at)
+    """
+    #print("Translation matrix before being converted from Angstrom to Bohr: ")
+    #print(conv_matrix/ang2at)
     frac_coords = np.zeros((atom_num,3))
     row = 0
     for i in range(len(frac_data)):
@@ -294,8 +303,9 @@ def convert_coords(output_file):
             for j in range(5,len(frac_split)):
                 frac_coords[row,j-5] = frac_split[j]
             row += 1
-    print("Desired coordinates:")
-    print(frac_coords)
+    #print("Desired coordinates:")
+    #print(frac_coords)
+    
     test_coords = np.zeros((atom_num,3))
     for i in range(len(test_data)):
         test_split = test_data[i].split()
@@ -320,15 +330,15 @@ def convert_coords(output_file):
         test_coords2[i] = conv_coords
     for i in range(len(frac_coords)):
         abc = frac_coords[i]
-        #orig_coords = np.matmul(conv_matrix,abc)
-        orig_coords = np.linalg.solve(conv_inverse,abc)
+        orig_coords = np.matmul(np.transpose(conv_matrix),abc)
         test_coords3[i] = orig_coords
     print("Final coordinates: ")
     print(test_coords2)
     print("#######################################")
     print("Original reconverted coordinates: ")
     print(test_coords3/ang2at)
-    return conv_matrix
+    """
+    return [conv_matrix,frac_data]
 
 def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
@@ -409,38 +419,149 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     a = float(-1.0)*h_tensor
     b = np.matmul(q_tensor,e_vector)
     displacement = np.linalg.solve(a,b)
-    save_hess_born(born_file,hess_file,ex,ey,ez)
+    #save_hess_born(born_file,hess_file,ex,ey,ez)
     #Printing components of linear equation including the solution
-    print("Negative Hessian: ")
-    print(a)
-    print("B matrix: ")
-    print(b)
+    #print("Negative Hessian: ")
+    #print(a)
+    #print("B matrix: ")
+    #print(b)
     #print("Born tensor: ")
     #print(q_tensor)
     #print("Electric field: ")
     #print(e_vector)
-    print("Displacement solutions: ")
-    print(displacement)
-    print("Error matrix: ")
-    print(abs(np.matmul(a,displacement)-b))
+    #print("Displacement solutions: ")
+    #print(displacement)
+    #print("Error matrix: ")
+    #print(abs(np.matmul(a,displacement)-b))
     return displacement
 
 def convert_disp(output_file,ex,ey,ez):
     displacement = solve_equation(output_file,output_file,ex,ey,ez)
-    conv_matrix = convert_coords(output_file)
-    convdisp = np.zeros((len(displacement),len(displacement)))
+    conv_data = convert_coords(output_file)
+    conv_matrix = conv_data[0]
+    frac = conv_data[1]
+    convdisp = []
     for i in range(len(displacement)):
-        if i % 3 == 0:
-            coords = displacement[i:i+3]
-            newcoords = np.linalg.solve(conv_matrix,coords)
-            for j in range(i,i+3):
-                convdisp[j] = newcoords[j-i,j-i+3]
-    print(displacement)
-    print(convdisp)
-    return convdisp
+        if i == len(displacement)-1:
+            pass
+        elif i % 3 == 0:
+            xyz = np.array(displacement[i:i+3])
+            newcoords = np.linalg.solve(conv_matrix,xyz)
+            for i in range(len(newcoords)):
+                convdisp.append(newcoords[i])
+    convdisp = np.array(convdisp)
+    #print("Converted displacements")
+    #print(convdisp)
+    return convdisp,frac
+
+def unit_cell(output_file,cell_file,ex,ey,ez):
+    cell = open(cell_file).readlines()
+    atom_num = num_atoms(output_file)
+    conv_data = convert_disp(output_file,ex,ey,ez)
+    convdisp = conv_data[0]
+    frac_data = conv_data[1]
+    num_groups = len(frac_data)-atom_num+1
+    group_nums = [i for i in range(1,num_groups+1)]
+    atom_nums = [i for i in range(1,atom_num+1)]
+    atom_list = []
+    group_list = []
+    for i in atom_nums:
+        atom_list.append("atom %d"%i)
+    for i in group_nums:
+        group_list.append("group %d"%i)
+    gap_index = []
+    for i in range(len(frac_data)):
+        frac_split = frac_data[i].split()
+        if len(frac_split) == 0:
+            gap_index.append(i)
+    #print(gap_index)
+    groups = []
+    for i in range(len(gap_index)):
+        if i == 0:
+            groups.append(frac_data[:gap_index[i]])
+        elif i == len(gap_index)-1:
+            groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+            groups.append(frac_data[gap_index[i]+1:])
+        else:
+            groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+    element_charge = {}
+    for i in range(len(cell)):
+        cell_split = cell[i].split()
+        if cell_split[0][1].isdigit():
+            element = cell_split[0][0].upper()
+        else:
+            element = cell_split[0].upper()
+        charge = float(cell_split[-1])
+        if (element,charge) not in element_charge.items():
+            element_charge[element]=charge
+    atom_dict = {key:{} for key in group_list}
+    parsed_atoms = {}
+    dist_atoms = {}
+    for i in range(len(groups)):
+        for j in range(len(groups[i])):
+            coords_split = groups[i][j].split()
+            #print(i,j,coords_split)
+            atom = coords_split[4]
+            atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
+                        {"coords":[float(coords_split[5+k]) for k in range(3)],\
+                        "element":atom,"charge":element_charge[atom]}
+    for i in range(len(groups)):
+        for j in range(len(groups[i])):
+            coords_split = groups[i][j].split()
+            atom = coords_split[4]
+            if atom not in parsed_atoms and j == 0:
+                    parsed_atoms[atom] = i+1
+            elif coords_split[4] in parsed_atoms:
+                if j > 0:
+                    pass
+                elif atom not in dist_atoms:
+                    dist_atoms[atom] = 2
+                    #print("Group of atom before: ",parsed_atoms[atom])
+                    prev_dict = atom_dict["group %d"%parsed_atoms[atom]]
+                    for k in prev_dict:
+                        #print("prev_dict being written for %s"%k)
+                        prev_dict[k]["element"] = "%s1"%atom
+                    current_dict = atom_dict["group %d"%(i+1)]
+                    #print("group of current atom: ",i+1)
+                    for k in current_dict:
+                        #print("current_dict being written for %s"%k)
+                        current_dict[k]["element"] = "%s2"%atom
+                else:
+                    dist_atoms[atom] += 1
+                    current_dict = atom_dict["group %d"%(i+1)]
+                    for k in current_dict:
+                        current_dict[k]["element"] = "%s%d"%(atom,dist_atoms[atoms])
+    #print(atom_dict)
+    return atom_dict,convdisp
+
+def modify_cell(output_file,cell_file,ex,ey,ez):
+    unit_data = unit_cell(output_file,cell_file,ex,ey,ez)
+    atom_dict = unit_data[0]
+    convdisp = unit_data[1]
+    fsplit = cell_file.split('.')
+    fsplit[1:1] = ['new']
+    fnew = '.'.join(fsplit)
+    cell_new = open(fnew,'w+')
+    line_list = []
+    for group in atom_dict:
+        for atom in atom_dict[group]:
+            temp_dict = atom_dict[group][atom]
+            writelist = [str(temp_dict["element"]),None,None,None,str("{:.12e}".format(temp_dict["charge"]))+'\n']
+            for i in range(3):
+                writelist[i+1] = str("{:.12e}".format(temp_dict["coords"][i]))
+            writeline = "     ".join(writelist)
+            line_list.append(writeline.split())
+
+    for i in range(len(line_list)):
+        for j in range(1,len(line_list[i])):
+            line_list[i][j] = line_list[i][j].replace("e+","D+")
+            line_list[i][j] = line_list[i][j].replace("e-","D-")
+    cell_new.write(tabulate(line_list,tablefmt="plain",colalign=("left",)))
 
 input_file = "ht.frequence.B1PW_PtBs.loto.out"
+cell_file = "ymno3.cell"
 #solve_equation(input_file,input_file,.1,.1,.1)
 #save_hess_born(input_file,input_file,.1,.1,.1)
-convert_coords(input_file)
+#convert_coords(input_file)
 #convert_disp(input_file,.1,.1,.1)
+modify_cell(input_file,cell_file,.1,.1,.1)
