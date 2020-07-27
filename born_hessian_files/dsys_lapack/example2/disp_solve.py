@@ -11,6 +11,7 @@ import itertools as it
 import copy
 import os.path
 from tabulate import tabulate
+import ast
 np.set_printoptions(precision=15)
 
 def num_atoms(born_file):
@@ -534,34 +535,128 @@ def unit_cell(output_file,cell_file,ex,ey,ez):
     #print(atom_dict)
     return atom_dict,convdisp
 
-def modify_cell(output_file,cell_file,ex,ey,ez):
+def modify_cell(output_file,cell_file,dirname,ex,ey,ez):
     unit_data = unit_cell(output_file,cell_file,ex,ey,ez)
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
     fsplit = cell_file.split('.')
-    fsplit[1:1] = ['new']
+    fsplit[1:1] = ['(%s,%s,%s)'%(str(round(ex,2)),str(round(ey,2)),str(round(ez,2)))]
     fnew = '.'.join(fsplit)
-    cell_new = open(fnew,'w+')
+    cd = os.getcwd()
+    completeName = os.path.join(cd+"/"+dirname, fnew)
+    cell_new = open(completeName,'w+')
+    for group in atom_dict:
+        for i in range(int(len(convdisp)/3)):
+            if "atom %d"%i in atom_dict[group]:
+                for j in range(3):
+                    atom_dict[group]["atom %d"%i]["coords"][j] += convdisp[3*i+j]
+    #print(convdisp)
     line_list = []
     for group in atom_dict:
         for atom in atom_dict[group]:
             temp_dict = atom_dict[group][atom]
-            writelist = [str(temp_dict["element"]),None,None,None,str("{:.12e}".format(temp_dict["charge"]))+'\n']
+            writelist = [str(temp_dict["element"]),None,None,None,str("{:.15e}".format(temp_dict["charge"]))+'\n']
             for i in range(3):
-                writelist[i+1] = str("{:.12e}".format(temp_dict["coords"][i]))
+                writelist[i+1] = str("{:.15e}".format(temp_dict["coords"][i]))
             writeline = "     ".join(writelist)
             line_list.append(writeline.split())
-
+    #print(line_list)
     for i in range(len(line_list)):
         for j in range(1,len(line_list[i])):
             line_list[i][j] = line_list[i][j].replace("e+","D+")
             line_list[i][j] = line_list[i][j].replace("e-","D-")
     cell_new.write(tabulate(line_list,tablefmt="plain",colalign=("left",)))
+    cell_new.close()
 
-input_file = "ht.frequence.B1PW_PtBs.loto.out"
-cell_file = "ymno3.cell"
+def modify_existing_cell(output_file,cell_file,ex,ey,ez):
+    convdisp = convert_disp(output_file,ex,ey,ez)[0]
+    cell_old = open(cell_file).readlines()
+    cell_new = []
+    for i in range(len(cell_old)):
+        cell_split = cell_old[i].split()
+        for j in range(len(cell_split)):
+            cell_split[j] = cell_split[j].replace("D+","e+").replace("D-","e-")
+        for j in range(3):
+            cell_split[j+1] = str("{:.15e}".format(float(cell_split[j+1])+float(convdisp[3*i+j])))
+        temp_list = []
+        for j in range(len(cell_split)):
+            temp_list.append(cell_split[j].replace("e+","D+").replace("e-","D-"))
+        cell_new.append(temp_list)
+    prev_field = ".".join(cell_file.split(".")[1:5])
+    curr_field = "(%s,%s,%s)"%(str(ex),str(ey),str(ez))
+    compound = cell_file.split(".")[0]
+    new_cell_name = "%s.%s&%s.cell"%(compound,prev_field,curr_field)
+    f = open(new_cell_name,'w')
+    f.write(tabulate(cell_new,tablefmt='plain',colalign=("left",)))
+
+def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array):
+    dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],2)),str(round(ex_array[-1],2)),\
+            str(round(abs(ex_array[0]-ex_array[1]),2)),str(round(ey_array[0],2)),\
+            str(round(ey_array[-1],2)),str(round(abs(ey_array[0]-ey_array[1]),2)),\
+            str(round(ez_array[0],2)),str(round(ez_array[-1],2)),\
+            str(round(abs(ez_array[0]-ez_array[1]),2)))
+    try:
+        #Creating the target directory
+        os.mkdir(dirname)
+        print("Directory ", dirname, " created. ")
+    except FileExistsError:
+        print("Directory ", dirname, "exists")
+    for i in range(len(ex_array)):
+        for j in range(len(ey_array)):
+            for k in range(len(ez_array)):
+                modify_cell(output_file,cell_file,dirname,ex_array[i],ey_array[j],ez_array[k])
+                #print("Cell file written for Ex,Ey,Ez = %s,%s,%s"%\
+                #        (str(ex_array[i]),str(ey_array[j]),str(ez_array[k])))
+    print("Grid written")
+
+def read_input(input_file):
+    inp = open(input_file).readlines()
+    for i in range(len(inp)):
+        inp_split = inp[i].split()
+        if inp_split[0] == "crystal_file":
+            crystal_file = inp_split[-1]
+        elif inp_split[0] == "cell_init":
+            cell_init = inp_split[-1]
+        elif inp_split[0].lower() == "ex":
+            ex_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "ey":
+            ey_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "ez":
+            ez_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+    ex_array = np.arange(ex_list[0],ex_list[1]+ex_list[2],ex_list[2])
+    ey_array = np.arange(ey_list[0],ey_list[1]+ey_list[2],ey_list[2])
+    ez_array = np.arange(ez_list[0],ez_list[1]+ez_list[2],ez_list[2])
+    cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array)
+
+def read_prompt():
+    print("Since no input file argument has been passed, please input following info: ")
+    crystal_file = input("Name of crystal output file: ")
+    cell_init = input("Please enter the initial cell file containing the required charges: ")
+    print("Parameters for Ex array: ")
+    ex_list = input("Please enter start,stop,step separated by commas for Ex: ").split(",")
+    print("Parameters for Ey array: ")
+    ey_list = input("Please enter start,stop,step separated by commas for Ey: ").split(",")
+    print("Parameters for Ez array: ")
+    ez_list = input("Please enter start,stop,step separated by commas for Ez: ").split(",")
+    ex_array = np.arange(float(ex_list[0]),float(ex_list[1])+float(ex_list[2]), float(ex_list[2]))
+    ey_array = np.arange(float(ey_list[0]),float(ey_list[1])+float(ey_list[2]), float(ey_list[2]))
+    ez_array = np.arange(float(ez_list[0]),float(ez_list[1])+float(ez_list[2]), float(ez_list[2]))
+    cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array)
+
+def input_or_prompt():
+    if len(sys.argv) >= 2:
+        read_input(sys.argv[1])
+    else:
+        read_prompt()
+
+#input_file = "ht.frequence.B1PW_PtBs.loto.out"
+#cell_first = "ymno3.cell"
+#ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01), np.arange(0,1.2,0.2)
+#cell_new = "ymno3.(%s,%s,%s).cell"%(str(ex),str(ey),str(ez))
 #solve_equation(input_file,input_file,.1,.1,.1)
 #save_hess_born(input_file,input_file,.1,.1,.1)
 #convert_coords(input_file)
 #convert_disp(input_file,.1,.1,.1)
-modify_cell(input_file,cell_file,.1,.1,.1)
+#modify_existing_cell(input_file,cell_new,.2,.2,.2)
+#cell_grid(input_file,cell_first,ex,ey,ez)
+input_or_prompt()
