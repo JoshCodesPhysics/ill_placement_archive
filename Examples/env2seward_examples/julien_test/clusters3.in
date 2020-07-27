@@ -1,0 +1,6 @@
+filename = clusters3.sew.in
+title = normal_title
+sew0_file = clusters3.env.sew0
+psd_file = clusters3.env.psd
+lib_frag = {'Cu': {'key': 'Cu', 'loc': ''}, 'F': {'key': 'F', 'loc': ''}}
+lib_pseudo = {'Ba1': {'key': 'Ba1', 'loc': ''}, 'Cu1': {'key': 'Cu1', 'loc': ''}, 'F1': {'key': 'F1', 'loc': ''}, 'F2': {'key': 'F2', 'loc': ''}, 'F3': {'key': 'F3', 'loc': ''}, 'F4': {'key': 'F4', 'loc': ''}}

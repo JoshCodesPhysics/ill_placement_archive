@@ -1,0 +1,7 @@
+filename = TbMn2O5_J2a.sew.in
+title = test
+sew0_file = TbMn2O5_J2a.env.sew0
+psd_file = TbMn2O5_J2a.env.psd
+lib_frag = {}
+lib_pseudo
+#To be finished
