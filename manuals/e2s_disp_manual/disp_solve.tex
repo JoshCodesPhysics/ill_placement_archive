@@ -3,7 +3,7 @@
 Disp\_solve is a script that generates a number of atomic displacement cell
 files for a crystal compound. These displaced unit cell atoms result from
 enacting a range of uniform electric fields on a system. It takes input files
-from a CRYSTAL~\footnote{Quantum-chemical ab inito calculation program}
+from a CRYSTAL~\footnote{Density Functional quantum ab-initio code.}
 simulation to generate the necessary matrices for this displacement
 calculation.
 
@@ -35,7 +35,7 @@ Most of these modules should be native to your python 3 package. However, the ex
 
 \subsubsection{Required Files}
 The following files are required by the python script:
-\begin{itemize}  \itemsep -0.5ex
+\begin{itemize}  
   \item (compulsory) the CRYSTAL ouput file of a phonon calculation of your system, including IR
     intensities (Born charges) and Hessian matrix printing in cartesian coordinate;
   \item (compulsory) the system.cell input file of the env code corresponding
@@ -44,18 +44,24 @@ The following files are required by the python script:
     for the input data.  
 \end{itemize}
 
+% The first cell file output by CRYSTAL is used only to obtain the charges of the unit cell atoms so that a new cell file can be recreated and edited to add the displacements caused by the electric field (see section 3.3). This is only used once per calculation, and the output cell files are only related to this initial cell file by the charge values.
 
-The first cell file output by CRYSTAL is used only to obtain the charges of the unit cell atoms so that a new cell file can be recreated and edited to add the displacements caused by the electric field (see section 3.3). This is only used once per calculation, and the output cell files are only related to this initial cell file by the charge values.
 
-There are example files in the `Example' folder of the repository if you wish to test the software before you have your own CRYSTAL output files, and the python script is under `python\_scripts'.
+% There are example files in the `Example' folder of the repository if you wish to test the software before you have your own CRYSTAL output files, and the python script is under `python\_scripts'.
 
-If you do not wish for the input files to be in the same directory, you must replace the name of the input file, and the filenames within the input file, with the full path directory address of each one. Once you have made sure all of these files are present, you have two options: 
-\begin{itemize}
-	\item Prompt input (no input file required)
-	\item Passing input file as a command line argument
-\end{itemize}
+% If you do not wish for the input files to be in the same directory, you must
+% replace the name of the input file, and the filenames within the input file,
+% with the full path directory address of each one.
 
 \subsubsection{Executing the Script and Input File Format}
+Once you have made sure all of these files are present, you have two options: 
+\begin{itemize}
+	\item `\texttt{python3 disp_solve.py}' (with no input file: the code
+          will prompt you for the inputs)
+	\item `\texttt{python3 disp_solve.py }' Passing input file as a command line argument
+\end{itemize}
+
+
 Prompt allows you to enter the information directly into the terminal for the file names of the cell and CRYSTAL output files, as well as the start,stop,steps of the electric field arrays for $E_x,E_y,E_z$. This can be called in the terminal as `\texttt{python3 disp\_solve.py}' as long as the prerequisite files are present or their locations are known and entered. You will receive the following prompts:
 
 \begin{itemize}
