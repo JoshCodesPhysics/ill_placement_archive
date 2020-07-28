@@ -9,10 +9,8 @@ calculation.
 
 \subsection{How to Use Disp\_solve}
 \subsubsection{Installing python 3 and necessary modules}
-A \textbf{python 3} compiler must be installed (ee section $2.1.1$ for
-information on how to install python 3 or an associated IDE {\color{red} what
-  is an IDE?}). There may be some modules that do not come default with this
-package or is unfamiliar to the chosen IDE. If an error message occurs that
+A \textbf{python 3} compiler must be installed (see section $2.1.1$ for
+information on how to install python 3 or an associated IDE~\footnote{Integrated development environment}). If an error message occurs that
 mentions a missing module, execute the command
 
 `\texttt{pip install <module\_name>}'
@@ -29,40 +27,28 @@ the script:
  	\item ast
  \end{itemize}
 
-Most of these modules should be native to your python 3 package. However, the existence of tabulate in your libraries is the first thing to check before compiling the code, as it is not default with some packages. You can check this by executing the command:
+Most of these modules should be native to your python 3 package. You can check if you have these by executing the command:
 
 `\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'.
 
 \subsubsection{Required Files}
 The following files are required by the python script:
 \begin{itemize}  
-  \item (compulsory) the CRYSTAL ouput file of a phonon calculation of your system, including IR
-    intensities (Born charges) and Hessian matrix printing in cartesian coordinate;
-  \item (compulsory) the system.cell input file of the env code corresponding
+  \item (Compulsory) the CRYSTAL ouput file of a phonon calculation of your system, including IR
+    intensities (Born charges) and Hessian matrix printed in Cartesian coordinates;
+  \item (Compulsory) the system.cell input file of the env code corresponding
     to the undistored system
-  \item (optional) the Disp\_solve input file. If absent prompts will ask you
-    for the input data.  
+  \item (Optional) the disp\_solve command line input file. If absent prompts will ask you for the input data.  
 \end{itemize}
-
-% The first cell file output by CRYSTAL is used only to obtain the charges of the unit cell atoms so that a new cell file can be recreated and edited to add the displacements caused by the electric field (see section 3.3). This is only used once per calculation, and the output cell files are only related to this initial cell file by the charge values.
-
-
-% There are example files in the `Example' folder of the repository if you wish to test the software before you have your own CRYSTAL output files, and the python script is under `python\_scripts'.
-
-% If you do not wish for the input files to be in the same directory, you must
-% replace the name of the input file, and the filenames within the input file,
-% with the full path directory address of each one.
 
 \subsubsection{Executing the Script and Input File Format}
 Once you have made sure all of these files are present, you have two options: 
 \begin{itemize}
-	\item `\texttt{python3 disp_solve.py}' (with no input file: the code
-          will prompt you for the inputs)
-	\item `\texttt{python3 disp_solve.py }' Passing input file as a command line argument
+	\item `\texttt{python3 disp\_solve.py}' (with no input file: the code will prompt you for the inputs)
+	\item `\texttt{python3 disp\_solve.py <input\_file>}' Passing input file as a command line argument
 \end{itemize}
 
-
-Prompt allows you to enter the information directly into the terminal for the file names of the cell and CRYSTAL output files, as well as the start,stop,steps of the electric field arrays for $E_x,E_y,E_z$. This can be called in the terminal as `\texttt{python3 disp\_solve.py}' as long as the prerequisite files are present or their locations are known and entered. You will receive the following prompts:
+The prompt option allows you to enter the information directly into the terminal. You will receive the following prompts:
 
 \begin{itemize}
 	\item Name/directory of crystal output file:
@@ -78,8 +64,6 @@ Prompt allows you to enter the information directly into the terminal for the fi
 	Simply input starting electric field value, final value and size of step as a tuple: start,stop,step for $E_x$ ($E_y$,$E_z$ after)
 \end{itemize}
 
-The downside to this is that it is not automatable and this information has to be entered every time.
-
 The alternative is writing an input text file that contains the above information in a certain format. Below is an example of an input file format:
 
 \begin{lstlisting}
@@ -94,26 +78,24 @@ We have the following rules:
 
 \begin{itemize}
 	\item Each line element is separated by a space i.e. there is a space either side of the `$=$' sign
-	\item \texttt{crystal\_file} is the variable assigned to the name/full path directory of the crystal output file.
-	\item \texttt{cell\_init} is assigned to the name/full path directory of the initial cell file
+	\item \texttt{crystal\_file} is the variable assigned to the relative/full path directory of the crystal output file.
+	\item \texttt{cell\_init} is assigned to the relative/full path directory of the initial cell file
 	\item The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
 \end{itemize}
 
- `\texttt{ex,ey,ez}' will generate arrays with these parameters and execute the cell file grid accordingly once the script is run. Once this input file has been written, one can execute the script with this input file passed as an argument on the command line as:
-\\
-\texttt{python3 disp\_solve.py <name\_of\_input\_file>}
-\\
-Make sure the input file is in the same directory as the python script, and if not, quote the full path directory address of the input file on the command line instead of just the name:
+Once this input file has been written, one can execute the script with this input file passed as an argument on the command line as above.
+
+Make sure the input file is in the same directory as the python script, and if not, quote the full path directory address of the input file on the command line instead of just the name/relative path:
 \\
 \texttt{python3 disp\_solve.py <full\_path\_directory\_input\_file>}
 \\
-As mentioned before, for both of these methods the same outcome is a new directory file named after the [start,stop,step] of the electric field component arrays being generated containing the cell file grid.
 
 \subsubsection{Output files}
 
-If the files are called locally, the output cell files will be generated and stored in a new folder inside the script directory, that is named after the start,stop and step for each axis of the electric field arrays. This is so you can distinguish between two different calcualations. The format of the new cell files will be the same as the initial cell file, except the coordinates will be displaced.
-
-If you call an input file or any prerequisites from it's file location rather than locally on the command line, the grid files will appear inside that prerequisite directory, without a separate folder being generated. These can be moved manually to the associated folder still created within the same directory as the python script. However, for convenience, it is recommended to have the prerequisite files within the same directory as the python script when executing.
+\begin{itemize}
+	\item If the files are called locally, output cell files will be generated and stored in a new folder inside the script directory that is name after the array parameters for x,y,z.
+	\item If you call the input file or prerequisite files from full path, the output cell files will be generated in the specified directory and not locally with the script. The new folder is still generated locally however.
+\end{itemize}
 
 \subsection{Details of Script Mechanisms}
 
