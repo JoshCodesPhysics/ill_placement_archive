@@ -31,17 +31,17 @@
 }
 
 \author{Joshua Horswill}
-\title{Env2Seward Technical Manual}
+\title{Software Driver Technical Manual}
 
 \begin{document}
 \maketitle
 \tableofcontents
 
 \section{Author and Permissions}
-This code was written by {\bf Joshua Horswill} during an internship with the ILL theory group in June 2020 under supervision of {\bf Marie-Bernadette Lepetit}. 
+This code was written by {\bf Joshua Horswill} during an internship with the ILL theory group in June-November of 2020 under supervision of {\bf Marie-Bernadette Lepetit}. 
 \\
 
-It is permissible to use and diffuse this code provided J. Horswill and MB lepetit are kept informed. Modifications to this code can be made provided that the developer sends modifications to J. Horswill or M.B. Lepetit, so they may be included in the source code.
+It is permissible to use and diffuse this code provided J. Horswill and MB Lepetit are kept informed. Modifications to this code can be made provided that the developer sends modifications to J. Horswill or M.B. Lepetit, so they may be included in the source code.
 \\
 \\
 
@@ -61,7 +61,7 @@ It is permissible to use and diffuse this code provided J. Horswill and MB lepet
 	France\\[+1ex]                                          
 	{\bf Email :} horswill@imap.ill.fr  \\
 \end{minipage}
-\section{Manual}
+\section{Env2Seward}
 \subsection{Introduction}
 As you may have guessed from the name of the script, this code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD. These simulation scripts are found in the local tools manual for the `Fast calculation of the electrostatic potential in ionic crystals by direct summation method' written by MB Lepetit and A. Gellé. This local tools manual contains scripts that provide a ``set of charges that allow the calculation of the Madelung potential of an ionic crystal within a predefined accuracy" \cite{gelle2008fast}. This is designed for the purpose of performing an ab-initio quantum calculation on a `quantum fragment' that is surrounded by a first shell of ionic pseudo-potentials, and a second layer of renormalised point charges \cite{varignon2013ab}. The `prefix' is a placeholder for the name of the compound being simulated.
 
@@ -178,6 +178,52 @@ Please follow the instructions in between the code cells to enter the correct in
 	\item After this the last code cell (\texttt{e2s.finalwrite(filename,...}) will output `File has been created' which means you now have a seward input file ready in the webapp directory. You can download this to a specific directory by going back to the dashboard menu, ticking the box next to `\texttt{chosen filename}' and clicking `Download'.
 	\item The output file will also naturally appear in the same directory as your \texttt{env2seward\_notebook.ipynb} file.
 \end{itemize}
+\section{Disp\_solve}
+\subsection{Introduction}
+
+\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian and Born tensor have been calculated. CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information. Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x,y,z for N atoms) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born matrix. Any element separated by an index of more than one from any of these centers is zero.
+
+Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
+\begin{equation*}
+	q.E = -H.d
+\end{equation*}
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. These displacements are given as a $3N$ dimensional column vector where $x_n,y_n,z_n = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is converted from kV/m input to atomic units. These are converted to fractional coordinates in the lattice vector basis ($a,b,c$) using a conversion matrix also found in the CRYSTAL file. This is done by solving a set of linear equations involving the conversion matrix, components of an atom's position in the a,b,c basis and the components in the x,y,z basis. An Angstrom to atomic units conversion is also needed before this system is solved.
+
+\subsection{Cell File}
+The cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates. Sometimes the direct file can be generated in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by again parsing the CRYSTAL output file for the unit cell data. A new file is then written containing double-precision floats with the associated displacements added. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $x,y,z$ directions. A grid of cell files specified by the $E_x,E_y,E_z$ inputs are generated and stored in a directory specifying the ranges. 
+
+\subsection{How to Use Disp\_solve}
+\subsubsection{Installing python 3 and necessary modules}
+As mentioned above, a \textbf{python 3} compiler must be installed so the following commands will work. See section $2.1.1$ for info on how to install python 3 or an associated IDE. There may be some modules that do not come default with this package or is unfamiliar to the chosen IDE. If an error message occurs that mentions a missing module, execute the command `\texttt{pip install <module\_name>}' in the terminal, replacing the \texttt{<module\_name>} with the name of the module. For example, the module `tabulate' may not be native to your python 3 package, and so the command `\texttt{pip install tabulate}' will enable you to compile the tabulate functions in \texttt{disp\_solve.py}. The existence of tabulate in your libraries is the first thing to check before compiling the code, as the author's default package did not include it. You can check this by executing the command `\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'.
+
+\subsubsection{Local files and executing the command}
+There are several files that are required to be either localised in the same file directory, or the location of which needs to be specified when prompted or passing it as input. They can be found in the driver tools git repository, and are called:
+
+\begin{itemize}
+	\item \texttt{disp\_solve.py}
+	\item \texttt{<name\_of\_input\_file>} if you wish to pass an input file, e.g \texttt{disp\_input}
+	\item \texttt{<name\_of\_crystal\_output\_file>} e.g ht.frequence.B1PW\_PtBs.loto.out
+	\item \texttt{<name\_of\_initial\_cell\_file>} e.g ymno3.cell
+\end{itemize}
+
+There are example files in the `Example' folder of the repository if you wish to test the software, and the python script is under `python\_scripts'. If you do not wish for the input files to be in the same directory, you must replace the name with the directory address of the required files. Once you have made sure all of these files are present, you have two options: prompt or file input. Prompt allows you to enter the information directly into the terminal for the file names of the cell and CRYSTAL output files, as well as the start,stop,steps of the electric field arrays for $E_x,E_y,E_z$. This can be called in the terminal as `\texttt{python3 disp\_solve.py}' as long as the prerequisite files are present or their locations are known and entered. The downside to this is that it is not automatable and this information has to be entered every time.
+
+The alternative is writing an input text file that contains the above information in a certain format. Below is an example of an input file format:
+
+\begin{lstlisting}
+	crystal_file = ht.frequence.B1PW_PtBs.loto.out
+	cell_init = ymno3.cell
+	ex = [0,0.5,0.1]
+	ey = [0,0.2,0.05]
+	ez = [0,1,0.2]
+\end{lstlisting}
+Notice each element on a line is separated by a space i.e. there is a space either side of the `$=$' sign. This is important for the code to run effectively. \texttt{crystal\_file} is the variable assigned to the name of the crystal output file. \texttt{cell\_init} is assigned to the name of the initial cell file. The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values. These lists will generate arrays with these parameters and execute the cell file grid accordingly. Once this input file has been written, one can execute the script with this input file passed as an argument on the command line as:
+
+\texttt{python3 disp\_solve.py <name\_of\_input\_file>}
+
+Make sure the input file is in the same directory as the python script, and if not, quote the directory address of the input file instead of just the name. As mentioned before, for both of these methods the same outcome is a new directory file named after the [start,stop,step] of the electric field component arrays being generated containing the cell file grid.
+
+One final note is that if you call an input file or any prerequisites from it's file location rather than locally on the command line, the grid will appear inside that prerequisite directory, without a separate folder being generated. These can be moved manually to the associated folder created within the same directory as the python script. However, for convenience, it is recommended to have the prerequisite files within the same directory as the python script when executing.
 
 \bibliographystyle{unsrt}
 \bibliography{manualbib.bib}
