@@ -1,0 +1,130 @@
+\section{Disp\_solve}
+\subsection{What is Disp\_solve?}
+Disp\_solve is a script that generates a number of atomic displacement cell
+files for a crystal compound. These displaced unit cell atoms result from
+enacting a range of uniform electric fields on a system. It takes input files
+from a CRYSTAL~\footnote{Quantum-chemical ab inito calculation program}
+simulation to generate the necessary matrices for this displacement
+calculation.
+
+\subsection{How to Use Disp\_solve}
+\subsubsection{Installing python 3 and necessary modules}
+A \textbf{python 3} compiler must be installed (ee section $2.1.1$ for
+information on how to install python 3 or an associated IDE {\color{red} what
+  is an IDE?}). There may be some modules that do not come default with this
+package or is unfamiliar to the chosen IDE. If an error message occurs that
+mentions a missing module, execute the command
+
+`\texttt{pip install <module\_name>}'
+
+in the terminal. The following python modules are required to compile
+the script:
+  \begin{itemize} \itemsep -0.5ex
+ 	\item numpy
+ 	\item sys
+ 	\item itertools
+ 	\item copy
+ 	\item os.path
+ 	\item tabulate
+ 	\item ast
+ \end{itemize}
+
+Most of these modules should be native to your python 3 package. However, the existence of tabulate in your libraries is the first thing to check before compiling the code, as it is not default with some packages. You can check this by executing the command:
+
+`\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'.
+
+\subsubsection{Required Files}
+The following files are required by the python script:
+\begin{itemize}  \itemsep -0.5ex
+  \item (compulsory) the CRYSTAL ouput file of a phonon calculation of your system, including IR
+    intensities (Born charges) and Hessian matrix printing in cartesian coordinate;
+  \item (compulsory) the system.cell input file of the env code corresponding
+    to the undistored system
+  \item (optional) the Disp\_solve input file. If absent prompts will ask you
+    for the input data.  
+\end{itemize}
+
+
+The first cell file output by CRYSTAL is used only to obtain the charges of the unit cell atoms so that a new cell file can be recreated and edited to add the displacements caused by the electric field (see section 3.3). This is only used once per calculation, and the output cell files are only related to this initial cell file by the charge values.
+
+There are example files in the `Example' folder of the repository if you wish to test the software before you have your own CRYSTAL output files, and the python script is under `python\_scripts'.
+
+If you do not wish for the input files to be in the same directory, you must replace the name of the input file, and the filenames within the input file, with the full path directory address of each one. Once you have made sure all of these files are present, you have two options: 
+\begin{itemize}
+	\item Prompt input (no input file required)
+	\item Passing input file as a command line argument
+\end{itemize}
+
+\subsubsection{Executing the Script and Input File Format}
+Prompt allows you to enter the information directly into the terminal for the file names of the cell and CRYSTAL output files, as well as the start,stop,steps of the electric field arrays for $E_x,E_y,E_z$. This can be called in the terminal as `\texttt{python3 disp\_solve.py}' as long as the prerequisite files are present or their locations are known and entered. You will receive the following prompts:
+
+\begin{itemize}
+	\item Name/directory of crystal output file:
+	
+	Input the name of the crystal output if it is local to the script directory, or the full path of the file if it is not.
+	
+	\item Name/directory of initial cell file containing the required charge values:
+	
+	Same again, name if local, full path if non-local
+	
+	\item Please enter start,stop,step separated by commas for $E_x$ ($E_y$, $E_z$ are done sequentially after)
+	
+	Simply input starting electric field value, final value and size of step as a tuple: start,stop,step for $E_x$ ($E_y$,$E_z$ after)
+\end{itemize}
+
+The downside to this is that it is not automatable and this information has to be entered every time.
+
+The alternative is writing an input text file that contains the above information in a certain format. Below is an example of an input file format:
+
+\begin{lstlisting}
+	crystal_file = ht.frequence.B1PW_PtBs.loto.out
+	cell_init = ymno3.cell
+	ex = [0,0.5,0.1]
+	ey = [0,0.2,0.05]
+	ez = [0,1,0.2]
+\end{lstlisting}
+
+We have the following rules:
+
+\begin{itemize}
+	\item Each line element is separated by a space i.e. there is a space either side of the `$=$' sign
+	\item \texttt{crystal\_file} is the variable assigned to the name/full path directory of the crystal output file.
+	\item \texttt{cell\_init} is assigned to the name/full path directory of the initial cell file
+	\item The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
+\end{itemize}
+
+ `\texttt{ex,ey,ez}' will generate arrays with these parameters and execute the cell file grid accordingly once the script is run. Once this input file has been written, one can execute the script with this input file passed as an argument on the command line as:
+\\
+\texttt{python3 disp\_solve.py <name\_of\_input\_file>}
+\\
+Make sure the input file is in the same directory as the python script, and if not, quote the full path directory address of the input file on the command line instead of just the name:
+\\
+\texttt{python3 disp\_solve.py <full\_path\_directory\_input\_file>}
+\\
+As mentioned before, for both of these methods the same outcome is a new directory file named after the [start,stop,step] of the electric field component arrays being generated containing the cell file grid.
+
+\subsubsection{Output files}
+
+If the files are called locally, the output cell files will be generated and stored in a new folder inside the script directory, that is named after the start,stop and step for each axis of the electric field arrays. This is so you can distinguish between two different calcualations. The format of the new cell files will be the same as the initial cell file, except the coordinates will be displaced.
+
+If you call an input file or any prerequisites from it's file location rather than locally on the command line, the grid files will appear inside that prerequisite directory, without a separate folder being generated. These can be moved manually to the associated folder still created within the same directory as the python script. However, for convenience, it is recommended to have the prerequisite files within the same directory as the python script when executing.
+
+\subsection{Details of Script Mechanisms}
+
+\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information. Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x,y,z for N atoms) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born matrix. Any element separated by an index of more than one from any of these centers is zero.
+
+Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
+\begin{equation*}
+q.E = -H.d
+\end{equation*}
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. These displacements are given as a $3N$ dimensional column vector where $x_n,y_n,z_n = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is converted from kV/m input to atomic units. These are converted to fractional coordinates in the lattice vector basis ($a,b,c$) using a conversion matrix also found in the CRYSTAL file. This is done by solving a set of linear equations involving the conversion matrix, components of an atom's position in the a,b,c basis and the components in the x,y,z basis. An Angstrom to atomic units conversion is also needed before this system is solved.
+
+\subsection{Cell File}
+The cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates. Sometimes the direct file can be generated in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by again parsing the CRYSTAL output file for the unit cell data. A new file is then written containing double-precision floats with the associated displacements added. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $x,y,z$ directions. A grid of cell files specified by the $E_x,E_y,E_z$ inputs are generated and stored in a directory specifying the ranges. 
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: driver_manual
+%%% End:
+
+

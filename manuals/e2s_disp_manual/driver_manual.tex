@@ -1,4 +1,5 @@
-\documentclass[10pt]{article}
+\documentclass[10pt,a4paper]{article}
+\usepackage{a4}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -8,6 +9,10 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{color}
+
+\setlength{\parskip}{2ex}
+\textwidth = 17cm
+\oddsidemargin = 0pt
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -33,276 +38,59 @@
 \author{Joshua Horswill}
 \title{Software Driver Technical Manual}
 
+
 \begin{document}
 \maketitle
 \tableofcontents
 
+\newpage 
 \section{Author and Permissions}
-This code was written by {\bf Joshua Horswill} during an internship with the ILL theory group in June-November of 2020 under supervision of {\bf Marie-Bernadette Lepetit}. 
-\\
+This code was written by {\bf Joshua Horswill} during an internship with the
+ILL theory group in June-November of 2020 under supervision of {\bf
+  Marie-Bernadette Lepetit} and {\bf Elisa Rebolini}. 
 
-It is permissible to use and diffuse this code provided J. Horswill and MB Lepetit are kept informed. Modifications to this code can be made provided that the developer sends modifications to J. Horswill or M.B. Lepetit, so they may be included in the source code.
-\\
-\\
 
-\hspace*{3cm}                
+It is permissible to use and diffuse this code provided J. Horswill and MB
+Lepetit are kept informed. Modifications to this code can be made provided
+that the developer sends modifications to J. Horswill, M.B. Lepetit or
+E. Rebolini, so they may be included in the source code. \\
+
+
+\noindent 
 \begin{minipage}{10cm}
-	MB Lepetit \\
-	Institut Néel, CNRS UPR~2940 \\                       
-	25 rue des Martyrs, BP 166, Bât. K\\
-	38042 Grenoble cedex 9 \\
-	FRANCE \\[+1ex]                                          
-	{\bf Courriel :} Marie-Bernadette.Lepetit@Neel.CNRS.fr  \\
-	
-	J. Horswill \\
-	Institut Laue-Langevin\\            
-	71 Avenue des Martyrs,\\  
-	38000 Grenoble,\\
-	France\\[+1ex]                                          
-	{\bf Email :} horswill@imap.ill.fr  \\
+  MB Lepetit \\
+  Institut Néel, CNRS UPR~2940 \\                       
+  25 rue des Martyrs, BP 166, Bât. K\\
+  38042 Grenoble cedex 9 \\
+  FRANCE \\[+1ex]                                          
+  {\bf Email :} Marie-Bernadette.Lepetit@Neel.CNRS.fr
+
+  E. Rebolini \\
+  Institut Laue-Langevin\\            
+  71 Avenue des Martyrs,\\  
+  38000 Grenoble,\\
+  France\\[+1ex]                                          
+  {\bf Email :} rebolini@ill.fr  \\
+\end{minipage} \hfill 
+%
+\begin{minipage}{8cm}
+  J. Horswill \\
+  Institut Laue-Langevin\\            
+  71 Avenue des Martyrs,\\  
+  38000 Grenoble,\\
+  France\\[+1ex]                                          
+  {\bf Email :} horswill@ill.fr  
 \end{minipage}
-\section{Env2Seward}
-\subsection{Introduction}
-As you may have guessed from the name of the script, this code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD. These simulation scripts are found in the local tools manual for the `Fast calculation of the electrostatic potential in ionic crystals by direct summation method' written by MB Lepetit and A. Gellé. This local tools manual contains scripts that provide a ``set of charges that allow the calculation of the Madelung potential of an ionic crystal within a predefined accuracy" \cite{gelle2008fast}. This is designed for the purpose of performing an ab-initio quantum calculation on a `quantum fragment' that is surrounded by a first shell of ionic pseudo-potentials, and a second layer of renormalised point charges \cite{varignon2013ab}. The `prefix' is a placeholder for the name of the compound being simulated.
+      
 
-\subsubsection{How to compile and run the script}
-A {\bf python 3} distribution such as `Anaconda' or `Active Python' must be downloaded, which provides the option of using integrated development environments (IDE) for programming in the python language. For the development of this script, `Spyder' was used. This is an IDE available in Anaconda. Before running the file, make sure the script is in the same directory as the input files described below. After you have made sure this is the case, open the file with an IDE (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal. If you want to install python directly, see \url{https://realpython.com/installing-python/}. Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. The new file will appear in the same directory as the python script.
-\subsection{Prompt entry}
-\subsubsection{Inputs and outputs}
-Prefix.env.sew0 is a help file that contains the input data for SEWARD of the MOLCAS chain. It contains the data for the quantum fragment, the TIPS and the renormalised charges. This is one of two input files for the env2seward script. The second is called prefix.psd, and contains the information on the atoms represented by TIPs. The ordering seen in this file is as follows: first, atoms that are irreducable (with symmetry), and second, all atoms (without symmetry). It also requires two groups of basis sets - one for the quantum fragment and one for the ionic pseudopotential. Once these have been prompted and entered through the terminal command line, an output file ready to be fed into SEWARD will be generated. This can be called prefix.sew.in.
+\include{env2seward}
+\include{disp_solve}
 
-In summary the files and data required for this program are:
-\begin{itemize}
-	\item \texttt{prefix.env.sew0}
-	\item \texttt{prefix.env.psd}
-	\item Fragment basis sets and library locations.
-	\item Pseudopotential basis sets and library locations.
-	\item Name of the prefix.
-\end{itemize}
-The input files must be in the same directory as the env2seward script for the program to run successfully. The first prompt before basis set and library input will be to ask if you are running the script in a Jupyter Notebook (see relevant section below). If you wish to be prompted for input, enter `N' or `n'. 
-
-\subsubsection{Prefix, Title and Basis Set Formatting}
-
-The prefix entered can be anything you want, but it must match the prefix on the input files. For example, if the prefix was `example', this automatically generates a seward input file called `\texttt{example.sew.in}'. However, this will not work unless the env input files have the filenames `\texttt{example.env.sew0}' and `\texttt{example.env.psd}'. The input on the prompt for the title will be written to the document introduction, and this does not depend on the name of the input files or the prefix.
-
-Basis sets for the fragment potential are unique to the system being evaluated and so cannot be managed by env2seward. These must be entered individually when prompted by the command line, as well as their library location. For example, if oxygen is one of the elements contained within the input files, the command will prompt for it's basis set input after parsing the prefix.env.sew0 file. It will then ask for the specified library location. If the corresponding library is default for the system, leave the input blank and press enter. If this is not the case, submit the name of the specified library.
-\\
-It is almost the same for the pseudopotential, but the pseudo basis sets depend upon the charge of the atom. For example, for GdMn2O5 there are three elements but eight basis sets, since there are two types of gadolinium and manganese and four types of oxygen. This results in more prompts for the corresponding basis sets and libraries. The command line will distinguish between the inputs between the fragment and the TIPs. Continue until all basis sets have been entered and the file will be written.
-
-\subsection{Reading Filenames, Basis Sets and Libraries from an Input File}
-
-There is another option for entering the data required to format the ENV output files, and this is to write the filenames, title and basis set information in a text file. To do this, write the text file in the following format (each bullet point is a new line, although the order does not matter):
-
-\begin{itemize}
-	\item \texttt{filename = chosen\_filename}
-	\item \texttt{title = chosen\_title}
-	\item \texttt{sew0\_file = prefix.env.sew0}
-	\item \texttt{psd\_file = prefix.env.psd}
-	\item \texttt{lib\_frag = \{"atom\_type":\{"loc":"specified basis set library","key":"basis set for atom\_type"\},"atom\_type2":...\}}
-	\item \texttt{lib\_pseudo = \{"atom\_type":\{"loc":"specified basis set library","key":"basis set for atom\_type"\},"atom\_type2":...\}}
-\end{itemize}
-
-The format of the basis set libraries is in the python dictionary syntax. This means each dictionary key (e.g \texttt{"atom\_type},\texttt{"loc"} and \texttt{"key"}) corresponds to a piece of data. In this case the data is either a string or another dictionary. Each atom is assigned to it's own dictionary containing a key for the specified basis set library (set to \texttt{"loc":""} if default) and a key for the basis set (\texttt{"key":"basis set"}).
-Here is an example for a GdMn2O5 input file, where the fragment dictionary (\texttt{lib\_frag}) has no specified library but the TIP dictionary (\texttt{lib\_pseudo}) basis sets are found in PSEUDO:
-
-\begin{lstlisting}
-	filename = example.sew.in
-	title = example
-	sew0_file = GdMn2O5_J1.env.sew0
-	psd_file = GdMn2O5_J1.env.psd
-	lib_frag = {'Mn':{'loc':'','key':'Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.'},
-	'O':{'loc':'','key':'O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f'}}
-	lib_pseudo = {'Gd1':{'loc':'PSEUDO','key':'Gd.ECP.Marie.0s.0s.0e-Gd1-GdMn2O5.'},
-	'Gd2':{'loc':'PSEUDO','key':'Gd.ECP.Marie.0s.0s.0e-Gd2-GdMn2O5.'},
-	'Mn1':{'loc':'PSEUDO','key':'Mn.ECP.Marie.0s.0s.0e-Mn1-GdMn2O5.'},
-	'Mn2':{'loc':'PSEUDO','key':'Mn.ECP.Marie.0s.0s.0e-Mn2-GdMn2O5.'},
-	'O1':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O1-GdMn2O5.'},
-	'O2':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O2-GdMn2O5.'},
-	'O3':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O3-GdMn2O5.'},
-	'O4':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O4-GdMn2O5.'}}
-\end{lstlisting}
-Make sure that all variables are on the {\bf same line} as the string/dictionary they are being assigned to. There also must be spacing between the variable, the $=$ sign and the data, so that the parsing algorithm can identify the data and write it to the output file.
-
-Make sure this file is in the same directory as the python script and the ENV input files. Once you have written this text file with the correct formatting and wish for it to be parsed by env2seward.py, enter the following command:
-
-\begin{itemize}
-	\item \texttt{python3 env2seward.py chosen\_input\_filename}
-\end{itemize}
-
-If the setup has been performed correctly, the script will output `File has been created' and the sew.in file will appear in the script directory.
-
-\subsection{Jupyter Notebook Version}
-To install Jupyter Notebook, follow this guide: \url{https://jupyter.org/install}. For the creation of the \texttt{env2seward\_notebook.ipynb} file, the Anaconda distribution was used to install Jupyter Notebook with the \texttt{conda} command. This is the recommended method (see \url{https://www.anaconda.com/products/individual} for distribution download). 
-\\
-Once you have installed Jupyter notebook you need to download and localise the following files into the same directory/folder:
-
-\begin{itemize}
-	\item \texttt{env2seward.py}
-	\item \texttt{env2seward\_notebook.ipynb}
-	\item \texttt{prefix.env.sew0}
-	\item \texttt{prefix.env.psd}
-\end{itemize}
-Next we need to open the Jupyter Notebook web app. We can do this by:
-
-\begin{itemize}
-	\item Opening up a terminal in the directory containing the four files mentioned above.
-	\item Entering `\texttt{jupyter notebook}' to initialise the web app.
-	\item Your browser should open it in a new tab and you should see these four files in your notebook directory.
-	\item Now open the \texttt{env2seward\_notebook.ipynb} file from the web app dashboard menu.
-\end{itemize}
-
-You should see the menu shown in figure (1) and the notebook shown in figure (2). In the notebook you will see a page of Jupyter cells, some in markdown (a text formatting language) and some to run python3 code. If you want to learn more about how these work, see \url{https://www.dataquest.io/blog/jupyter-notebook-tutorial/}. In order to run these cells individually, click on them and hit \texttt{Ctrl+Enter} or press the run button (below the cell tab in the toolbar). 
-Please follow the instructions in between the code cells to enter the correct inputs. If you would like to see the atom-types that require basis set entry, follow the instructions under the subtitle `Basis atoms (see instructions below on how to run this cell):'. The next steps are:
-
-\begin{figure}
-	\centering
-	\includegraphics[width=1.3\linewidth]{dashboard.png}
-	\caption{Web app dashboard menu}
-	\label{fig:screenshot-from-2020-06-23-12-26-13}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\includegraphics[width=1.3\linewidth]{notebook.png}
-	\caption{env2seward\_notebook when opened}
-	\label{fig:screenshot-from-2020-06-23-12-26-25}
-\end{figure}
-
-
-
-\begin{itemize}
-	\item Make sure the inputs have all been entered according to the instructions (filename, title, sew0name, psdname, lib\_frag, lib\_pseudo)
-	\item Select the button that says `restart the kernel and re-run the whole notebook' that looks like a fast-forward icon.
-	\item If you cannot find this, click the kernel icon (in English, it may be different in other languages), next to cell and widgets, and select `Restart and Run All'.
-	\item You will see a prompt in the first code cell (\texttt{import env2seward as e2s}). Please enter `Y'.
-	\item After this the last code cell (\texttt{e2s.finalwrite(filename,...}) will output `File has been created' which means you now have a seward input file ready in the webapp directory. You can download this to a specific directory by going back to the dashboard menu, ticking the box next to `\texttt{chosen filename}' and clicking `Download'.
-	\item The output file will also naturally appear in the same directory as your \texttt{env2seward\_notebook.ipynb} file.
-\end{itemize}
-\section{Disp\_solve}
-\subsection{What is Disp\_solve?}
-Disp\_solve is a script that generates a number of atomic displacement cell files for a crystal compound. These displaced unit cell atoms result from enacting a range of uniform electric fields on a system. It takes input files from a CRYSTAL simulation (a quantum-chemical ab inito calculation program) to generate the necessary matrices for this displacement calculation. 
-
-\subsection{How to Use Disp\_solve}
-\subsubsection{Installing python 3 and necessary modules}
-A \textbf{python 3} compiler must be installed so the commands mentioned later on will work. See section $2.1.1$ for information on how to install python 3 or an associated IDE. There may be some modules that do not come default with this package or is unfamiliar to the chosen IDE. If an error message occurs that mentions a missing module, execute the command 
-\\
-`\texttt{pip install <module\_name>}'
-\\
- in the terminal, replacing the \texttt{<module\_name>} with the name of the module. For example, the module `tabulate' may not be native to your python 3 package, and so the command 
-\\
- `\texttt{pip install tabulate}'
-\\
- will enable you to compile the tabulate functions in \texttt{disp\_solve.py}. The following python modules are required to compile the script:
- 
- \begin{itemize}
- 	\item numpy
- 	\item sys
- 	\item itertools
- 	\item copy
- 	\item os.path
- 	\item tabulate
- 	\item ast
- \end{itemize}
-
-Most of these modules should be native to your python 3 package. However, the existence of tabulate in your libraries is the first thing to check before compiling the code, as it is not default with some packages. You can check this by executing the command:
-
-`\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'.
-
-\subsubsection{Required Files}
-There are several files that are required to be either named and localised in the same file directory as the python script, or the full path directory needs to be specified when prompted or passing it as input. They can be found in the driver tools git repository, and are called:
-
-\begin{itemize}
-	\item \texttt{disp\_solve.py}
-	\item \texttt{<name\_of\_input\_file>} if you wish to pass an input file, e.g \texttt{disp\_input}
-	\item \texttt{<name\_of\_crystal\_output\_file>} e.g ht.frequence.B1PW\_PtBs.loto.out
-	\item \texttt{<name\_of\_initial\_cell\_file>} e.g ymno3.cell
-\end{itemize}
-
-The crystal output file must contain in regular format:
-
-\begin{itemize}
-	\item The Born tensor matrices
-	\item The lower matrix half of the symmetric Hessian
-	\item The unit cell coordinates in fractional units
-	\item The conversion matrix between x,y,z and fractional units
-\end{itemize}
-
-The first cell file output by CRYSTAL is used only to obtain the charges of the unit cell atoms so that a new cell file can be recreated and edited to add the displacements caused by the electric field (see section 3.3). This is only used once per calculation, and the output cell files are only related to this initial cell file by the charge values.
-
-There are example files in the `Example' folder of the repository if you wish to test the software before you have your own CRYSTAL output files, and the python script is under `python\_scripts'.
-
-If you do not wish for the input files to be in the same directory, you must replace the name of the input file, and the filenames within the input file, with the full path directory address of each one. Once you have made sure all of these files are present, you have two options: 
-\begin{itemize}
-	\item Prompt input (no input file required)
-	\item Passing input file as a command line argument
-\end{itemize}
-
-\subsubsection{Executing the Script and Input File Format}
-Prompt allows you to enter the information directly into the terminal for the file names of the cell and CRYSTAL output files, as well as the start,stop,steps of the electric field arrays for $E_x,E_y,E_z$. This can be called in the terminal as `\texttt{python3 disp\_solve.py}' as long as the prerequisite files are present or their locations are known and entered. You will receive the following prompts:
-
-\begin{itemize}
-	\item Name/directory of crystal output file:
-	
-	Input the name of the crystal output if it is local to the script directory, or the full path of the file if it is not.
-	
-	\item Name/directory of initial cell file containing the required charge values:
-	
-	Same again, name if local, full path if non-local
-	
-	\item Please enter start,stop,step separated by commas for $E_x$ ($E_y$, $E_z$ are done sequentially after)
-	
-	Simply input starting electric field value, final value and size of step as a tuple: start,stop,step for $E_x$ ($E_y$,$E_z$ after)
-\end{itemize}
-
-The downside to this is that it is not automatable and this information has to be entered every time.
-
-The alternative is writing an input text file that contains the above information in a certain format. Below is an example of an input file format:
-
-\begin{lstlisting}
-	crystal_file = ht.frequence.B1PW_PtBs.loto.out
-	cell_init = ymno3.cell
-	ex = [0,0.5,0.1]
-	ey = [0,0.2,0.05]
-	ez = [0,1,0.2]
-\end{lstlisting}
-
-We have the following rules:
-
-\begin{itemize}
-	\item Each line element is separated by a space i.e. there is a space either side of the `$=$' sign
-	\item \texttt{crystal\_file} is the variable assigned to the name/full path directory of the crystal output file.
-	\item \texttt{cell\_init} is assigned to the name/full path directory of the initial cell file
-	\item The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
-\end{itemize}
-
- `\texttt{ex,ey,ez}' will generate arrays with these parameters and execute the cell file grid accordingly once the script is run. Once this input file has been written, one can execute the script with this input file passed as an argument on the command line as:
-\\
-\texttt{python3 disp\_solve.py <name\_of\_input\_file>}
-\\
-Make sure the input file is in the same directory as the python script, and if not, quote the full path directory address of the input file on the command line instead of just the name:
-\\
-\texttt{python3 disp\_solve.py <full\_path\_directory\_input\_file>}
-\\
-As mentioned before, for both of these methods the same outcome is a new directory file named after the [start,stop,step] of the electric field component arrays being generated containing the cell file grid.
-
-\subsubsection{Output files}
-
-If the files are called locally, the output cell files will be generated and stored in a new folder inside the script directory, that is named after the start,stop and step for each axis of the electric field arrays. This is so you can distinguish between two different calcualations. The format of the new cell files will be the same as the initial cell file, except the coordinates will be displaced.
-
-If you call an input file or any prerequisites from it's file location rather than locally on the command line, the grid files will appear inside that prerequisite directory, without a separate folder being generated. These can be moved manually to the associated folder still created within the same directory as the python script. However, for convenience, it is recommended to have the prerequisite files within the same directory as the python script when executing.
-
-\subsection{Details of Script Mechanisms}
-
-\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information. Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x,y,z for N atoms) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born matrix. Any element separated by an index of more than one from any of these centers is zero.
-
-Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
-\begin{equation*}
-q.E = -H.d
-\end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. These displacements are given as a $3N$ dimensional column vector where $x_n,y_n,z_n = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is converted from kV/m input to atomic units. These are converted to fractional coordinates in the lattice vector basis ($a,b,c$) using a conversion matrix also found in the CRYSTAL file. This is done by solving a set of linear equations involving the conversion matrix, components of an atom's position in the a,b,c basis and the components in the x,y,z basis. An Angstrom to atomic units conversion is also needed before this system is solved.
-
-\subsection{Cell File}
-The cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates. Sometimes the direct file can be generated in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by again parsing the CRYSTAL output file for the unit cell data. A new file is then written containing double-precision floats with the associated displacements added. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $x,y,z$ directions. A grid of cell files specified by the $E_x,E_y,E_z$ inputs are generated and stored in a directory specifying the ranges. 
 \bibliographystyle{unsrt}
 \bibliography{manualbib.bib}
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: driver_manual
+%%% End:
