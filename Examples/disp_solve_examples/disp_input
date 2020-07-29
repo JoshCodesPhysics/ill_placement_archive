@@ -1,5 +1,7 @@
-crystal_file = ht.frequence.B1PW_PtBs.loto.out
-cell_init = ymno3.cell
-ex = [0,0.5,0.1]
-ey = [0, 0.2,0.05]
-ez = [0,1,0.2]
+crystal_file = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out
+cell_init = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ymno3.cell
+ex = [0,1,0.1]
+ey = [0,10,1]
+ez = [0,100,10]
+unit_source = charge
+charge_dict = {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}

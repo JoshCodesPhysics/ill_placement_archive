@@ -12,6 +12,8 @@ import copy
 import os.path
 from tabulate import tabulate
 import ast
+from pathlib import Path
+import json
 np.set_printoptions(precision=15)
 
 def num_atoms(born_file):
@@ -455,95 +457,170 @@ def convert_disp(output_file,ex,ey,ez):
     #print(convdisp)
     return convdisp,frac
 
-def unit_cell(output_file,cell_file,ex,ey,ez):
+def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
+    "Generates unit cell data in a dictionary"
+    "Takes 'direct' cell file data or"
+    "'auto'mates data from crystal output completely or"
+    "Automates but allows for 'charge' input"
+    "Moderated by unit_source input and cell_file type"
+    #Generating preliminary storage lists
     cell = open(cell_file).readlines()
     atom_num = num_atoms(output_file)
     conv_data = convert_disp(output_file,ex,ey,ez)
     convdisp = conv_data[0]
     frac_data = conv_data[1]
-    num_groups = len(frac_data)-atom_num+1
-    group_nums = [i for i in range(1,num_groups+1)]
     atom_nums = [i for i in range(1,atom_num+1)]
     atom_list = []
-    group_list = []
     for i in atom_nums:
-        atom_list.append("atom %d"%i)
-    for i in group_nums:
-        group_list.append("group %d"%i)
-    gap_index = []
-    for i in range(len(frac_data)):
-        frac_split = frac_data[i].split()
-        if len(frac_split) == 0:
-            gap_index.append(i)
-    #print(gap_index)
-    groups = []
-    for i in range(len(gap_index)):
-        if i == 0:
-            groups.append(frac_data[:gap_index[i]])
-        elif i == len(gap_index)-1:
-            groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
-            groups.append(frac_data[gap_index[i]+1:])
-        else:
-            groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
-    element_charge = {}
-    for i in range(len(cell)):
-        cell_split = cell[i].split()
-        if cell_split[0][1].isdigit():
-            element = cell_split[0][0].upper()
-        else:
+        atom_list.append("atom %d"%i) 
+    #Taking data direct from cell file
+    if unit_source == "direct":
+        groups = []
+        atom_types = []
+        group_num = 1
+        start=0
+        #Grouping irreducible atoms
+        for i in range(len(cell)):
+            cell_split = cell[i].split()
+            if cell_split[0] not in atom_types:
+                atom_types.append(cell_split[0])
+                if i > 0:
+                    end = i
+                    groups.append(cell[start:end])
+                    start = end
+            if i == len(cell)-1:
+                groups.append(cell[start:])
+        #Dictionary keys:
+        group_list = ["group %d"%i for i in range(1,len(groups)+1)]
+        #Obtaining charge data for atom_dict
+        element_charge = {}
+        for i in range(len(cell)):
+            cell_split = cell[i].split()
             element = cell_split[0].upper()
-        charge = float(cell_split[-1])
-        if (element,charge) not in element_charge.items():
-            element_charge[element]=charge
-    atom_dict = {key:{} for key in group_list}
-    parsed_atoms = {}
-    dist_atoms = {}
-    for i in range(len(groups)):
-        for j in range(len(groups[i])):
-            coords_split = groups[i][j].split()
-            #print(i,j,coords_split)
-            atom = coords_split[4]
-            atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
-                        {"coords":[float(coords_split[5+k]) for k in range(3)],\
-                        "element":atom,"charge":element_charge[atom]}
-    for i in range(len(groups)):
-        for j in range(len(groups[i])):
-            coords_split = groups[i][j].split()
-            atom = coords_split[4]
-            if atom not in parsed_atoms and j == 0:
-                    parsed_atoms[atom] = i+1
-            elif coords_split[4] in parsed_atoms:
-                if j > 0:
-                    pass
-                elif atom not in dist_atoms:
-                    dist_atoms[atom] = 2
-                    #print("Group of atom before: ",parsed_atoms[atom])
-                    prev_dict = atom_dict["group %d"%parsed_atoms[atom]]
-                    for k in prev_dict:
-                        #print("prev_dict being written for %s"%k)
-                        prev_dict[k]["element"] = "%s1"%atom
-                    current_dict = atom_dict["group %d"%(i+1)]
-                    #print("group of current atom: ",i+1)
-                    for k in current_dict:
-                        #print("current_dict being written for %s"%k)
-                        current_dict[k]["element"] = "%s2"%atom
+            charge = cell_split[-1]
+            if (element,charge) not in element_charge.items():
+                element_charge[element]=charge
+        atom_dict = {key:{} for key in group_list}
+        count = 1
+        for i in range(len(groups)):
+            for j in range(len(groups[i])):
+                coords_split = groups[i][j].split()
+                for k in range(len(coords_split)):
+                    coords_split[k] = coords_split[k].replace("D+","e+").replace("D-","e-")
+                atom = coords_split[0]
+                atom_dict["group %d"%(i+1)]["atom %d"%(count)] =\
+                        {"coords":[float(coords_split[k+1]) for k in range(3)],\
+                        "element":atom,\
+                        "charge":float(element_charge[atom].replace("D+","e+").replace("D-","e-"))}
+                count += 1
+    else:
+        num_groups = len(frac_data)-atom_num+1
+        group_nums = [i for i in range(1,num_groups+1)]
+        gap_index = []
+        group_list = []
+        for i in group_nums:
+            group_list.append("group %d"%i)
+        for i in range(len(frac_data)):
+            frac_split = frac_data[i].split()
+            if len(frac_split) == 0:
+                gap_index.append(i)
+        #print(gap_index)
+        groups = []
+        for i in range(len(gap_index)):
+            if i == 0:
+                groups.append(frac_data[:gap_index[i]])
+            elif i == len(gap_index)-1:
+                groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+                groups.append(frac_data[gap_index[i]+1:])
+            else:
+                groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+        if unit_source == "auto":
+            element_charge = {}
+            for i in range(len(cell)):
+                cell_split = cell[i].split()
+                if cell_split[0][1].isdigit():
+                    element = cell_split[0][0].upper()
                 else:
-                    dist_atoms[atom] += 1
-                    current_dict = atom_dict["group %d"%(i+1)]
-                    for k in current_dict:
-                        current_dict[k]["element"] = "%s%d"%(atom,dist_atoms[atoms])
+                    element = cell_split[0].upper()
+                charge = float(cell_split[-1])
+                if (element,charge) not in element_charge.items():
+                    element_charge[element]=charge
+        elif unit_source == "charge":
+            if len(args)>0:
+                element_charge = args[0]
+        else:
+            sys.exit("Not a recognised argument, see documentation")
+        atom_dict = {key:{} for key in group_list}
+        parsed_atoms = {}
+        dist_atoms = {}
+        for i in range(len(groups)):
+            for j in range(len(groups[i])):
+                coords_split = groups[i][j].split()
+                #print(i,j,coords_split)
+                atom = coords_split[4]
+                if unit_source == "auto":
+                    atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
+                            {"coords":[float(coords_split[5+k]) for k in range(3)],\
+                            "element":atom,"charge":element_charge[atom]}
+                elif unit_source == "charge":
+                    atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
+                            {"coords":[float(coords_split[5+k]) for k in range(3)],\
+                            "element":atom}
+        for i in range(len(groups)):
+            for j in range(len(groups[i])):
+                coords_split = groups[i][j].split()
+                atom = coords_split[4]
+                if atom not in parsed_atoms and j == 0:
+                        parsed_atoms[atom] = i+1
+                elif coords_split[4] in parsed_atoms:
+                    if j > 0:
+                        pass
+                    elif atom not in dist_atoms:
+                        dist_atoms[atom] = 2
+                        #print("Group of atom before: ",parsed_atoms[atom])
+                        prev_dict = atom_dict["group %d"%parsed_atoms[atom]]
+                        for k in prev_dict:
+                            #print("prev_dict being written for %s"%k)
+                            prev_dict[k]["element"] = "%s1"%atom
+                        current_dict = atom_dict["group %d"%(i+1)]
+                        #print("group of current atom: ",i+1)
+                        for k in current_dict:
+                            #print("current_dict being written for %s"%k)
+                            current_dict[k]["element"] = "%s2"%atom
+                    else:
+                        dist_atoms[atom] += 1
+                        current_dict = atom_dict["group %d"%(i+1)]
+                        for k in current_dict:
+                            current_dict[k]["element"] = "%s%d"%(atom,dist_atoms[atoms])
+        if unit_source == "charge" and len(args)>0:
+            for group in atom_dict:
+                for atom in atom_dict[group]:
+                    atom_dict[group][atom]["charge"] = element_charge[atom_dict[group][atom]["element"]]
+        elif unit_source == "charge" and len(args) == 0:
+            for group in atom_dict:
+                for atom in atom_dict[group]:
+                    atom_dict[group][atom]["charge"] = None
+    #print("##########atom_dict###############")
     #print(atom_dict)
     return atom_dict,convdisp
 
-def modify_cell(output_file,cell_file,dirname,ex,ey,ez):
-    unit_data = unit_cell(output_file,cell_file,ex,ey,ez)
+def modify_cell(output_file,cell_file,dirname,ex,ey,ez,unit_source,*args,**kwargs):
+    unit_data = unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs)
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
     fsplit = cell_file.split('.')
-    fsplit[1:1] = ['(%s,%s,%s)'%(str(round(ex,2)),str(round(ey,2)),str(round(ez,2)))]
-    fnew = '.'.join(fsplit)
-    cd = os.getcwd()
-    completeName = os.path.join(cd+"/"+dirname, fnew)
+    fsplit[1:1] = ['(%s,%s,%s)'%(str(round(ex,3)),str(round(ey,3)),str(round(ez,3)))]
+    fnew = '.'.join(fsplit).split("/")[-1]
+    cell_dir = "/".join(cell_file.split("/")[:-1])
+    out_dir = "/".join(output_file.split("/")[:-1])
+    if os.path.isdir(cell_dir):
+        cd = cell_dir
+    elif os.path.isdir(out_dir):
+        cd = out_dir
+    else:
+        cd = os.getcwd()
+    completeName = os.path.join(cd+"/"+dirname+"/"+fnew)
+    #print(completeName)
     cell_new = open(completeName,'w+')
     for group in atom_dict:
         for i in range(int(len(convdisp)/3)):
@@ -589,22 +666,30 @@ def modify_existing_cell(output_file,cell_file,ex,ey,ez):
     f = open(new_cell_name,'w')
     f.write(tabulate(cell_new,tablefmt='plain',colalign=("left",)))
 
-def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array):
-    dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],2)),str(round(ex_array[-1],2)),\
-            str(round(abs(ex_array[0]-ex_array[1]),2)),str(round(ey_array[0],2)),\
-            str(round(ey_array[-1],2)),str(round(abs(ey_array[0]-ey_array[1]),2)),\
-            str(round(ez_array[0],2)),str(round(ez_array[-1],2)),\
-            str(round(abs(ez_array[0]-ez_array[1]),2)))
-    try:
-        #Creating the target directory
-        os.mkdir(dirname)
-        print("Directory ", dirname, " created. ")
-    except FileExistsError:
-        print("Directory ", dirname, "exists")
+def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array,unit_source,*args,**kwargs):
+    dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],3)),str(round(ex_array[-1],3)),\
+            str(round(abs(ex_array[0]-ex_array[1]),3)),str(round(ey_array[0],3)),\
+            str(round(ey_array[-1],3)),str(round(abs(ey_array[0]-ey_array[1]),3)),\
+            str(round(ez_array[0],3)),str(round(ez_array[-1],3)),\
+            str(round(abs(ez_array[0]-ez_array[1]),3)))
+    out_dir = "/".join(output_file.split("/")[:-1])
+    cell_dir = "/".join(cell_file.split("/")[:-1])
+    if os.path.isdir(cell_dir):
+        cd = cell_dir
+        print("Files output to cell file directory")
+    elif os.path.isdir(out_dir):
+        cd = out_dir
+        print("Files output to crystal output file directory")
+    else:
+        cd = os.getcwd()
+        print("Files output to current working directory")
+    directory = cd+"/"+dirname
+    #Creating the target directory
+    Path(directory).mkdir(parents=True, exist_ok=True)
     for i in range(len(ex_array)):
         for j in range(len(ey_array)):
             for k in range(len(ez_array)):
-                modify_cell(output_file,cell_file,dirname,ex_array[i],ey_array[j],ez_array[k])
+                modify_cell(output_file,cell_file,dirname,ex_array[i],ey_array[j],ez_array[k],unit_source,*args,**kwargs)
                 #print("Cell file written for Ex,Ey,Ez = %s,%s,%s"%\
                 #        (str(ex_array[i]),str(ey_array[j]),str(ez_array[k])))
     print("Grid written")
@@ -614,22 +699,46 @@ def read_input(input_file):
     for i in range(len(inp)):
         inp_split = inp[i].split()
         if inp_split[0] == "crystal_file":
-            crystal_file = inp_split[-1]
+            crystal_file = "".join(inp_split[2:]).strip()
         elif inp_split[0] == "cell_init":
-            cell_init = inp_split[-1]
+            cell_init = "".join(inp_split[2:]).strip()
         elif inp_split[0].lower() == "ex":
             ex_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
         elif inp_split[0].lower() == "ey":
             ey_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
         elif inp_split[0].lower() == "ez":
             ez_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "unit_source":
+            unit_source = "".join(inp_split[2:]).strip()
+        elif inp_split[0].lower() == "charge_dict":
+            charge_dict = "".join(inp_split[2:]).strip()
+            charge_dict = charge_dict.replace("'",'"')
+            charge_dict = json.loads(charge_dict)
     ex_array = np.arange(ex_list[0],ex_list[1]+ex_list[2],ex_list[2])
     ey_array = np.arange(ey_list[0],ey_list[1]+ey_list[2],ey_list[2])
     ez_array = np.arange(ez_list[0],ez_list[1]+ez_list[2],ez_list[2])
-    cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array)
+    if unit_source == "charge":
+        cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source,charge_dict)
+    elif unit_source == "auto" or unit_source == "direct":
+        cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source)
+    else:
+        sys.exit("unit_source is invalid, see documentation")
+
+def return_atoms(output_file,cell_file,unit_source):
+    atom_dict = unit_cell(output_file,cell_file,0,0,0,unit_source)[0]
+    #print(atom_dict)
+    atoms = []
+    for group in atom_dict:
+        for atom in atom_dict[group]:
+            elem = atom_dict[group][atom]["element"]
+            if elem not in atoms:
+                atoms.append(elem)
+    return atoms
 
 def read_prompt():
+    print("Please enter file names if local to script directory, or full path if non-local")
     print("Since no input file argument has been passed, please input following info: ")
+    unit_source = input("Please give unit cell generator parameter (direct,charge,auto)").lower().split()[0] 
     crystal_file = input("Name/directory of crystal output file: ")
     cell_init = input("Name/directory of initial cell file containing the required charge values: ")
     print("Parameters for Ex array: ")
@@ -641,7 +750,16 @@ def read_prompt():
     ex_array = np.arange(float(ex_list[0]),float(ex_list[1])+float(ex_list[2]), float(ex_list[2]))
     ey_array = np.arange(float(ey_list[0]),float(ey_list[1])+float(ey_list[2]), float(ey_list[2]))
     ez_array = np.arange(float(ez_list[0]),float(ez_list[1])+float(ez_list[2]), float(ez_list[2]))
-    cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array)
+    #Need to copy code from second part of modify_cell to generate list of element keys and then ask for the associated charges below
+    if unit_source == "charge":
+        element_charge = {}
+        atoms = return_atoms(crystal_file,cell_file,unit_source)
+        print("charge parameter has been chosen, please center charge data")
+        for i in range(len(atoms)):
+            element_charge[atoms[i]] = input("Please enter the float value of the charge for %s: "%atoms[i])
+        cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source,element_charge)
+    else:
+        cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source)
 
 def input_or_prompt():
     if len(sys.argv) >= 2:
@@ -649,14 +767,11 @@ def input_or_prompt():
     else:
         read_prompt()
 
-#input_file = "ht.frequence.B1PW_PtBs.loto.out"
-#cell_first = "ymno3.cell"
+#input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
+#cell_first = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ymno3.new.cell"
 #ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01), np.arange(0,1.2,0.2)
-#cell_new = "ymno3.(%s,%s,%s).cell"%(str(ex),str(ey),str(ez))
-#solve_equation(input_file,input_file,.1,.1,.1)
-#save_hess_born(input_file,input_file,.1,.1,.1)
-#convert_coords(input_file)
-#convert_disp(input_file,.1,.1,.1)
-#modify_existing_cell(input_file,cell_new,.2,.2,.2)
-#cell_grid(input_file,cell_first,ex,ey,ez)
+#return_atoms(input_file,cell_first,"charge")
+#unit_cell(input_file,cell_first,.1,.1,.1,"direct"),{'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0})
+#modify_cell(input_file,cell_first,"test",.2,.2,.2,"direct")#,{'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0})
+#cell_grid(input_file,cell_first,ex,ey,ez,"direct")#,{'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0})
 input_or_prompt()
