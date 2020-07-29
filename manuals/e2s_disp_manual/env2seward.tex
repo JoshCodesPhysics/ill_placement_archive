@@ -1,12 +1,30 @@
 \section{Env2Seward}
 \subsection{Introduction}
-As you may have guessed from the name of the script, this code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD. These simulation scripts are found in the local tools manual for the `Fast calculation of the electrostatic potential in ionic crystals by direct summation method' written by MB Lepetit and A. Gell\'e. This local tools manual contains scripts that provide a ``set of charges that allow the calculation of the Madelung potential of an ionic crystal within a predefined accuracy" \cite{gelle2008fast}. This is designed for the purpose of performing an ab-initio quantum calculation on a `quantum fragment' that is surrounded by a first shell of ionic pseudo-potentials, and a second layer of renormalised point charges \cite{varignon2013ab}. The `prefix' is a placeholder for the name of the compound being simulated.
+\begin{itemize}
+	\item This code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD.
+	\item These simulation scripts are found in the local tools manual for the `Fast calculation of the electrostatic potential in ionic crystals by direct summation method' written by MB Lepetit and A. Gell\'e.
+	
+	This local tools manual contains scripts that provide a ``set of charges that allow the calculation of the Madelung potential of an ionic crystal within a predefined accuracy" \cite{gelle2008fast}.
+	\item This is designed for the purpose of performing an ab-initio quantum calculation on a `quantum fragment' that is surrounded by a first shell of ionic pseudo-potentials, and a second layer of renormalised point charges \cite{varignon2013ab}.
+\end{itemize} 
 
 \subsubsection{How to compile and run the script}
-A {\bf python 3} distribution such as `Anaconda' or `Active Python' must be downloaded, which provides the option of using integrated development environments (IDE) for programming in the python language. For the development of this script, `Spyder' was used. This is an IDE available in Anaconda. Before running the file, make sure the script is in the same directory as the input files described below. After you have made sure this is the case, open the file with an IDE (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal. If you want to install python directly, see \url{https://realpython.com/installing-python/}. Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. The new file will appear in the same directory as the python script.
+\begin{itemize}
+	\item A {\bf python 3} distribution such as `Anaconda' or `Active Python' can be downloaded, which provides the option of using integrated development environments (IDE) such as `Spyder' for programming in the python language
+	\item Before running the file, make sure the script is in the same directory as the input files described below
+	\item If you are using an IDE, open the file (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal
+	\item If you want to install python directly, see \url{https://realpython.com/installing-python/}
+	\item Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. The new file will appear in the same directory as the python script.
+\end{itemize} 
 \subsection{Prompt entry}
 \subsubsection{Inputs and outputs}
-Prefix.env.sew0 is a help file that contains the input data for SEWARD of the MOLCAS chain. It contains the data for the quantum fragment, the TIPS and the renormalised charges. This is one of two input files for the env2seward script. The second is called prefix.psd, and contains the information on the atoms represented by TIPs. The ordering seen in this file is as follows: first, atoms that are irreducable (with symmetry), and second, all atoms (without symmetry). It also requires two groups of basis sets - one for the quantum fragment and one for the ionic pseudopotential. Once these have been prompted and entered through the terminal command line, an output file ready to be fed into SEWARD will be generated. This can be called prefix.sew.in.
+There are two input files:
+
+\begin{itemize}
+	\item Prefix.env.sew0 is a help file that contains the input data for SEWARD of the MOLCAS chain. It contains the data for the quantum fragment, the TIPS and the renormalised charges.
+	\item The second is called prefix.psd, and contains the information on the atoms represented by TIPs.
+\end{itemize}
+ The script requires two groups of basis sets - one for the quantum fragment and one for the ionic pseudopotential. Once these have been prompted and entered through the terminal command line, an output file ready to be fed into SEWARD will be generated. This can be called prefix.sew.in.
 
 In summary the files and data required for this program are:
 \begin{itemize}
@@ -16,15 +34,15 @@ In summary the files and data required for this program are:
 	\item Pseudopotential basis sets and library locations.
 	\item Name of the prefix.
 \end{itemize}
-The input files must be in the same directory as the env2seward script for the program to run successfully. The first prompt before basis set and library input will be to ask if you are running the script in a Jupyter Notebook (see relevant section below). If you wish to be prompted for input, enter `N' or `n'. 
+Remember that for the prompt option, the input files must be in the same directory as the env2seward script.
 
 \subsubsection{Prefix, Title and Basis Set Formatting}
 
 The prefix entered can be anything you want, but it must match the prefix on the input files. For example, if the prefix was `example', this automatically generates a seward input file called `\texttt{example.sew.in}'. However, this will not work unless the env input files have the filenames `\texttt{example.env.sew0}' and `\texttt{example.env.psd}'. The input on the prompt for the title will be written to the document introduction, and this does not depend on the name of the input files or the prefix.
 
-Basis sets for the fragment potential are unique to the system being evaluated and so cannot be managed by env2seward. These must be entered individually when prompted by the command line, as well as their library location. For example, if oxygen is one of the elements contained within the input files, the command will prompt for it's basis set input after parsing the prefix.env.sew0 file. It will then ask for the specified library location. If the corresponding library is default for the system, leave the input blank and press enter. If this is not the case, submit the name of the specified library.
+Basis sets for the fragment potential are unique to the system being evaluated and so cannot be managed by env2seward. These must be entered individually when prompted by the command line, as well as their library location. If the corresponding library is default for the system, leave the input blank and press enter. If this is not the case, submit the name of the specified library.
 \\
-It is almost the same for the pseudopotential, but the pseudo basis sets depend upon the charge of the atom. For example, for GdMn2O5 there are three elements but eight basis sets, since there are two types of gadolinium and manganese and four types of oxygen. This results in more prompts for the corresponding basis sets and libraries. The command line will distinguish between the inputs between the fragment and the TIPs. Continue until all basis sets have been entered and the file will be written.
+It is almost the same for the pseudopotential, but there are usually more prompts. For example, for GdMn2O5 there are three elements but eight basis sets, since there are two types of gadolinium and manganese and four types of oxygen. This results in more prompts for the corresponding basis sets and libraries. The command line will distinguish between the inputs between the fragment and the TIPs. Continue until all basis sets have been entered and the file will be written.
 
 \subsection{Reading Filenames, Basis Sets and Libraries from an Input File}
 
@@ -60,13 +78,13 @@ Here is an example for a GdMn2O5 input file, where the fragment dictionary (\tex
 \end{lstlisting}
 Make sure that all variables are on the {\bf same line} as the string/dictionary they are being assigned to. There also must be spacing between the variable, the $=$ sign and the data, so that the parsing algorithm can identify the data and write it to the output file.
 
-Make sure this file is in the same directory as the python script and the ENV input files. Once you have written this text file with the correct formatting and wish for it to be parsed by env2seward.py, enter the following command:
+Make sure this file is in the same directory as the python script if you are giving the relative path (filename) or if not, quote the full path in the command line when calling it as explained below. This is also the case for the ENV files. Write the full path of these files instead of their filenames in the input file being passed to the command line, if they are not local. 
 
 \begin{itemize}
 	\item \texttt{python3 env2seward.py chosen\_input\_filename}
 \end{itemize}
 
-If the setup has been performed correctly, the script will output `File has been created' and the sew.in file will appear in the script directory.
+If the setup has been performed correctly, the script will output `File has been created' and the sew.in file will appear in the input file directory.
 
 \subsection{Jupyter Notebook Version}
 To install Jupyter Notebook, follow this guide: \url{https://jupyter.org/install}. For the creation of the \texttt{env2seward\_notebook.ipynb} file, the Anaconda distribution was used to install Jupyter Notebook with the \texttt{conda} command. This is the recommended method (see \url{https://www.anaconda.com/products/individual} for distribution download). 
