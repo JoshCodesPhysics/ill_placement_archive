@@ -711,7 +711,12 @@ def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array,unit_source,*args
     "This function generates a grid of displaced cell files in the target directory"
     "Uses range of Ex, Ey, Ez values"
     #Generating new folder for results, named after ranges of E coordinates
-    dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],3)),str(round(ex_array[-1],3)),\
+    if len(ex_array) == 1 or len(ey_array) == 1 or len(ez_array) == 1:
+        dirname = "Ex(%s,%s)Ey(%s,%s)Ez(%s,%s)"%(str(round(ex_array[0],3)),str(round(ex_array[-1],3)),\
+            str(round(ey_array[0],3)), str(round(ey_array[-1],3)),str(round(ez_array[0],3)),\
+            str(round(ez_array[-1],3)))
+    else:
+        dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],3)),str(round(ex_array[-1],3)),\
             str(round(abs(ex_array[0]-ex_array[1]),3)),str(round(ey_array[0],3)),\
             str(round(ey_array[-1],3)),str(round(abs(ey_array[0]-ey_array[1]),3)),\
             str(round(ez_array[0],3)),str(round(ez_array[-1],3)),\
@@ -761,9 +766,20 @@ def read_input(input_file):
             charge_dict = "".join(inp_split[2:]).strip()
             charge_dict = charge_dict.replace("'",'"')
             charge_dict = json.loads(charge_dict)
-    ex_array = np.arange(ex_list[0],ex_list[1]+ex_list[2],ex_list[2])
-    ey_array = np.arange(ey_list[0],ey_list[1]+ey_list[2],ey_list[2])
-    ez_array = np.arange(ez_list[0],ez_list[1]+ez_list[2],ez_list[2])
+    #Zero array options
+    if ex_list == [0,0,0]:
+        ex_array = np.array([0])
+    else:
+        ex_array = np.arange(ex_list[0],ex_list[1]+ex_list[2],ex_list[2])
+    if ey_list == [0,0,0]:
+        ey_array = np.array([0])
+    else:
+        ey_array = np.arange(ey_list[0],ey_list[1]+ey_list[2],ey_list[2])
+    if ez_list == [0,0,0]:
+        ez_array = np.array([0])
+    else:
+        ez_array = np.arange(ez_list[0],ez_list[1]+ez_list[2],ez_list[2])
+    
     if unit_source == "charge":
         cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source,charge_dict)
     elif unit_source == "auto" or unit_source == "direct":
@@ -797,9 +813,19 @@ def read_prompt():
     ey_list = input("Please enter start,stop,step separated by commas for Ey: ").split(",")
     print("Parameters for Ez array: ")
     ez_list = input("Please enter start,stop,step separated by commas for Ez: ").split(",")
-    ex_array = np.arange(float(ex_list[0]),float(ex_list[1])+float(ex_list[2]), float(ex_list[2]))
-    ey_array = np.arange(float(ey_list[0]),float(ey_list[1])+float(ey_list[2]), float(ey_list[2]))
-    ez_array = np.arange(float(ez_list[0]),float(ez_list[1])+float(ez_list[2]), float(ez_list[2]))
+
+    if ex_list == ["0","0","0"]:
+        ex_array = np.array([0])
+    else:
+        ex_array = np.arange(float(ex_list[0]),float(ex_list[1])+float(ex_list[2]), float(ex_list[2]))
+    if ey_list == ["0","0","0"]:
+        ey_array = np.array([0])
+    else:
+        ey_array = np.arange(float(ey_list[0]),float(ey_list[1])+float(ey_list[2]), float(ey_list[2]))
+    if ez_list == ["0","0","0"]:
+        ez_array = np.array([0])
+    else:
+        ez_array = np.arange(float(ez_list[0]),float(ez_list[1])+float(ez_list[2]), float(ez_list[2]))
     #Asking for charge data for specific atoms
     if unit_source == "charge":
         element_charge = {}
@@ -821,6 +847,7 @@ def input_or_prompt():
 #input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
 #cell_first = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/disp_solve_examples/ymno3.new.cell"
 #ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01), np.arange(0,1.2,0.2)
+#print(solve_equation(input_file,input_file,100,0,0))
 #return_atoms(input_file,cell_first,"charge")
 #unit_cell(input_file,cell_first,.1,.1,.1,"direct"),{'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0})
 #modify_cell(input_file,cell_first,"test",.2,.2,.2,"direct")#,{'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0})
