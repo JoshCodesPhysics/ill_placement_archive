@@ -284,8 +284,11 @@ def convert_coords(output_file):
             start3 = i+2
             end3 = start3+atom_num
             break
+    #Conversion matrix strip
     conv_data = out[start:end]
+    #Unit cell in fractional units strip
     frac_data = out[start2:end2]
+    #Cartesian coordinates to test conversion matrix
     test_data = out[start3:end3]
     #Appending conversion matrix
     for i in range(len(conv_data)):
@@ -346,6 +349,7 @@ def convert_coords(output_file):
 def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
     vectors in cartesian coordinates"""
+    #This function isn't very general so is not used
     out = open(out_file).readlines()
     lat_list = []
     for i in range(len(out)):
@@ -390,7 +394,7 @@ def save_hess_born(born_file,hess_file,ex,ey,ez):
         else:
             e_vector[i] = float(conversion*ez)
     dim_array = np.array([len(h_tensor)])
-
+    #Saves all matrices and dimension to binary files to be read by lapack_solve.f03
     h_tensor.tofile('hess_matrix')
     q_tensor.tofile('born_matrix')
     e_vector.tofile('e_vector')
@@ -408,9 +412,7 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     m_dim = len(h_tensor)
     e_vector = np.zeros((m_dim))
     conversion = float(1.94469038e-9)
-    #Placeholder matrix so we can keep writing the script   
-    #q_tensor = np.random.rand(m_dim,m_dim)
-    #Generating e_vector from inputs
+    #Generating e_vector from inputs (uniform field)
     for i in range(len(e_vector)):
         if i % 3 == 0:
             e_vector[i] = float(conversion*ex)
@@ -439,11 +441,15 @@ def solve_equation(born_file,hess_file,ex,ey,ez):
     return displacement
 
 def convert_disp(output_file,ex,ey,ez):
+    "Applies conversion matrix to displacement solutions"
+    "Change of basis (x,y,z -> a,b,c in fractional units)"
+    #Calling all necessary data
     displacement = solve_equation(output_file,output_file,ex,ey,ez)
     conv_data = convert_coords(output_file)
     conv_matrix = conv_data[0]
     frac = conv_data[1]
     convdisp = []
+    #Applying conversion matrix to one set of x,y,z coordinates at a time
     for i in range(len(displacement)):
         if i == len(displacement)-1:
             pass
@@ -461,9 +467,9 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
     "Generates unit cell data in a dictionary"
     "Takes 'direct' cell file data or"
     "'auto'mates data from crystal output completely or"
-    "Automates but allows for 'charge' input"
+    "Automates from crystal output but allows for 'charge' input"
     "Moderated by unit_source input and cell_file type"
-    #Generating preliminary storage lists
+    #Generating preliminary storage lists and required data
     cell = open(cell_file).readlines()
     atom_num = num_atoms(output_file)
     conv_data = convert_disp(output_file,ex,ey,ez)
@@ -471,15 +477,17 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
     frac_data = conv_data[1]
     atom_nums = [i for i in range(1,atom_num+1)]
     atom_list = []
+    #Atom key list based on number of atoms in unit cell
     for i in atom_nums:
         atom_list.append("atom %d"%i) 
     #Taking data direct from cell file
     if unit_source == "direct":
+        #Groups of irreducible atoms
         groups = []
         atom_types = []
         group_num = 1
         start=0
-        #Grouping irreducible atoms
+        #Appending irreducible atom data
         for i in range(len(cell)):
             cell_split = cell[i].split()
             if cell_split[0] not in atom_types:
@@ -492,7 +500,8 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
                 groups.append(cell[start:])
         #Dictionary keys:
         group_list = ["group %d"%i for i in range(1,len(groups)+1)]
-        #Obtaining charge data for atom_dict
+        #Obtaining charge data for atom_dict directly from cell file
+        #No manipulation necessary
         element_charge = {}
         for i in range(len(cell)):
             cell_split = cell[i].split()
@@ -500,12 +509,15 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
             charge = cell_split[-1]
             if (element,charge) not in element_charge.items():
                 element_charge[element]=charge
+        #Empty dictionary to store important data
         atom_dict = {key:{} for key in group_list}
         count = 1
+        #Appending dictionary in categories of group number and subcategories of atom number
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
                 for k in range(len(coords_split)):
+                    #convert double precision to single temporarily for manipulation
                     coords_split[k] = coords_split[k].replace("D+","e+").replace("D-","e-")
                 atom = coords_split[0]
                 atom_dict["group %d"%(i+1)]["atom %d"%(count)] =\
@@ -514,17 +526,23 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
                         "charge":float(element_charge[atom].replace("D+","e+").replace("D-","e-"))}
                 count += 1
     else:
+        #Else unit data is taken from crystal output file rather than the cell file
+        #Another branching will occur when deciding to automate charge data or obtain it manually
         num_groups = len(frac_data)-atom_num+1
+        #Group keys
         group_nums = [i for i in range(1,num_groups+1)]
         gap_index = []
+        #Group data
         group_list = []
         for i in group_nums:
             group_list.append("group %d"%i)
+        #Appending indexes of the gaps in the fractional unit cell data to distinguish
+        #irreducible atom groups
         for i in range(len(frac_data)):
             frac_split = frac_data[i].split()
             if len(frac_split) == 0:
                 gap_index.append(i)
-        #print(gap_index)
+        #Appending groups according to these indexes
         groups = []
         for i in range(len(gap_index)):
             if i == 0:
@@ -534,6 +552,8 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
                 groups.append(frac_data[gap_index[i]+1:])
             else:
                 groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+        #Automatic charge data generation from initial cell file, potentially from different space group
+        #Different spatial group cell file is reason for using auto and charge
         if unit_source == "auto":
             element_charge = {}
             for i in range(len(cell)):
@@ -545,27 +565,35 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
                 charge = float(cell_split[-1])
                 if (element,charge) not in element_charge.items():
                     element_charge[element]=charge
+        #Manual charge data input
         elif unit_source == "charge":
             if len(args)>0:
                 element_charge = args[0]
+        #Terminate if incorrect unit_source argument entered
         else:
             sys.exit("Not a recognised argument, see documentation")
         atom_dict = {key:{} for key in group_list}
         parsed_atoms = {}
         dist_atoms = {}
+        #Generating dictionary and then scanning dictionary, relabelling
+        #Atoms of same element but different irreducible group
+        #e.g O, O -> O1, O2
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
                 #print(i,j,coords_split)
                 atom = coords_split[4]
+                #Charge data included for auto
                 if unit_source == "auto":
                     atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
                             {"coords":[float(coords_split[5+k]) for k in range(3)],\
                             "element":atom,"charge":element_charge[atom]}
+                #Charge data not included until element data is reformulated
                 elif unit_source == "charge":
                     atom_dict["group %d"%(i+1)]["atom %d"%(int(coords_split[0]))]=\
                             {"coords":[float(coords_split[5+k]) for k in range(3)],\
                             "element":atom}
+        #Relabel if repeats
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
@@ -592,10 +620,12 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
                         current_dict = atom_dict["group %d"%(i+1)]
                         for k in current_dict:
                             current_dict[k]["element"] = "%s%d"%(atom,dist_atoms[atoms])
+        #Input manual charge data after correct dictionary is generated
         if unit_source == "charge" and len(args)>0:
             for group in atom_dict:
                 for atom in atom_dict[group]:
                     atom_dict[group][atom]["charge"] = element_charge[atom_dict[group][atom]["element"]]
+        #This is for a function later one where we only require the element labels (O1,O2 e.t.c)
         elif unit_source == "charge" and len(args) == 0:
             for group in atom_dict:
                 for atom in atom_dict[group]:
@@ -605,29 +635,37 @@ def unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs):
     return atom_dict,convdisp
 
 def modify_cell(output_file,cell_file,dirname,ex,ey,ez,unit_source,*args,**kwargs):
+    "This function adds converted displacements to the formulated unit cell dictionary"
+    "and writes the results to a new file"
     unit_data = unit_cell(output_file,cell_file,ex,ey,ez,unit_source,*args,**kwargs)
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
+    #New file name including electric field parameters
     fsplit = cell_file.split('.')
     fsplit[1:1] = ['(%s,%s,%s)'%(str(round(ex,3)),str(round(ey,3)),str(round(ez,3)))]
     fnew = '.'.join(fsplit).split("/")[-1]
+    #Directory of initial cell file and output file
     cell_dir = "/".join(cell_file.split("/")[:-1])
     out_dir = "/".join(output_file.split("/")[:-1])
+    #If file input is a full/relative path directory rather than filename
+    #generate output files in that directory
     if os.path.isdir(cell_dir):
         cd = cell_dir
     elif os.path.isdir(out_dir):
         cd = out_dir
     else:
+        #Else use the current working directory
         cd = os.getcwd()
+    #Resultant filename given in full path
     completeName = os.path.join(cd+"/"+dirname+"/"+fnew)
-    #print(completeName)
     cell_new = open(completeName,'w+')
+    #Add displacements to unit cell dictionary
     for group in atom_dict:
         for i in range(int(len(convdisp)/3)):
             if "atom %d"%i in atom_dict[group]:
                 for j in range(3):
                     atom_dict[group]["atom %d"%i]["coords"][j] += convdisp[3*i+j]
-    #print(convdisp)
+    #Writing displaced coordinates to a file
     line_list = []
     for group in atom_dict:
         for atom in atom_dict[group]:
@@ -637,15 +675,18 @@ def modify_cell(output_file,cell_file,dirname,ex,ey,ez,unit_source,*args,**kwarg
                 writelist[i+1] = str("{:.15e}".format(temp_dict["coords"][i]))
             writeline = "     ".join(writelist)
             line_list.append(writeline.split())
-    #print(line_list)
+    #Converting back to double precision string
     for i in range(len(line_list)):
         for j in range(1,len(line_list[i])):
             line_list[i][j] = line_list[i][j].replace("e+","D+")
             line_list[i][j] = line_list[i][j].replace("e-","D-")
+    #Tabulate data
     cell_new.write(tabulate(line_list,tablefmt="plain",colalign=("left",)))
     cell_new.close()
 
 def modify_existing_cell(output_file,cell_file,ex,ey,ez):
+    "This function adds displacements to cell files already displaced by another field"
+    "Increases error so not used"
     convdisp = convert_disp(output_file,ex,ey,ez)[0]
     cell_old = open(cell_file).readlines()
     cell_new = []
@@ -667,11 +708,15 @@ def modify_existing_cell(output_file,cell_file,ex,ey,ez):
     f.write(tabulate(cell_new,tablefmt='plain',colalign=("left",)))
 
 def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array,unit_source,*args,**kwargs):
+    "This function generates a grid of displaced cell files in the target directory"
+    "Uses range of Ex, Ey, Ez values"
+    #Generating new folder for results, named after ranges of E coordinates
     dirname = "Ex(%s,%s,%s)Ey(%s,%s,%s)Ez(%s,%s,%s)"%(str(round(ex_array[0],3)),str(round(ex_array[-1],3)),\
             str(round(abs(ex_array[0]-ex_array[1]),3)),str(round(ey_array[0],3)),\
             str(round(ey_array[-1],3)),str(round(abs(ey_array[0]-ey_array[1]),3)),\
             str(round(ez_array[0],3)),str(round(ez_array[-1],3)),\
             str(round(abs(ez_array[0]-ez_array[1]),3)))
+    #Make new folder in target directory from modify_cell, and print location
     out_dir = "/".join(output_file.split("/")[:-1])
     cell_dir = "/".join(cell_file.split("/")[:-1])
     if os.path.isdir(cell_dir):
@@ -684,8 +729,9 @@ def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array,unit_source,*args
         cd = os.getcwd()
         print("Files output to current working directory")
     directory = cd+"/"+dirname
-    #Creating the target directory
+    #Creating the target directory folder
     Path(directory).mkdir(parents=True, exist_ok=True)
+    #Writing cell files
     for i in range(len(ex_array)):
         for j in range(len(ey_array)):
             for k in range(len(ez_array)):
@@ -695,6 +741,7 @@ def cell_grid(output_file,cell_file,ex_array,ey_array,ez_array,unit_source,*args
     print("Grid written")
 
 def read_input(input_file):
+    "Scans input file and calls cell_grid based on the contained info"
     inp = open(input_file).readlines()
     for i in range(len(inp)):
         inp_split = inp[i].split()
@@ -722,9 +769,11 @@ def read_input(input_file):
     elif unit_source == "auto" or unit_source == "direct":
         cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source)
     else:
+        #Invalid unit_source again, cancel run
         sys.exit("unit_source is invalid, see documentation")
 
 def return_atoms(output_file,cell_file,unit_source):
+    #Lists atoms in the system
     atom_dict = unit_cell(output_file,cell_file,0,0,0,unit_source)[0]
     #print(atom_dict)
     atoms = []
@@ -736,11 +785,12 @@ def return_atoms(output_file,cell_file,unit_source):
     return atoms
 
 def read_prompt():
+    "Prompt entry of data required to call cell_grid"
+    print("PROMPT INPUT")
     print("Please enter file names if local to script directory, or full path if non-local")
-    print("Since no input file argument has been passed, please input following info: ")
-    unit_source = input("Please give unit cell generator parameter (direct,charge,auto)").lower().split()[0] 
+    unit_source = input("Please give unit cell generator parameter (direct,charge,auto): ").lower().split()[0] 
     crystal_file = input("Name/directory of crystal output file: ")
-    cell_init = input("Name/directory of initial cell file containing the required charge values: ")
+    cell_init = input("Name/directory of initial cell file containing the unit cell data: ")
     print("Parameters for Ex array: ")
     ex_list = input("Please enter start,stop,step separated by commas for Ex: ").split(",")
     print("Parameters for Ey array: ")
@@ -750,18 +800,19 @@ def read_prompt():
     ex_array = np.arange(float(ex_list[0]),float(ex_list[1])+float(ex_list[2]), float(ex_list[2]))
     ey_array = np.arange(float(ey_list[0]),float(ey_list[1])+float(ey_list[2]), float(ey_list[2]))
     ez_array = np.arange(float(ez_list[0]),float(ez_list[1])+float(ez_list[2]), float(ez_list[2]))
-    #Need to copy code from second part of modify_cell to generate list of element keys and then ask for the associated charges below
+    #Asking for charge data for specific atoms
     if unit_source == "charge":
         element_charge = {}
-        atoms = return_atoms(crystal_file,cell_file,unit_source)
+        atoms = return_atoms(crystal_file,cell_init,unit_source)
         print("charge parameter has been chosen, please center charge data")
         for i in range(len(atoms)):
-            element_charge[atoms[i]] = input("Please enter the float value of the charge for %s: "%atoms[i])
+            element_charge[atoms[i]] = float(input("Please enter the float value of the charge for %s: "%atoms[i]))
         cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source,element_charge)
     else:
         cell_grid(crystal_file,cell_init,ex_array,ey_array,ez_array,unit_source)
 
 def input_or_prompt():
+    #Logic for receiving input file or prompting user
     if len(sys.argv) >= 2:
         read_input(sys.argv[1])
     else:
