@@ -3,7 +3,7 @@
 Disp\_solve is a script that generates a number of atomic displacement cell
 files for a crystal compound. These displaced unit cell atoms result from
 enacting a range of uniform electric fields on a system. It takes input files
-from a CRYSTAL~\footnote{Density functional quantum ab-initio code.}
+from a CRYSTAL~\footnote{Density functional quantum ab-initio program.}
 simulation to generate the necessary matrices for this displacement
 calculation.
 
@@ -29,9 +29,11 @@ the script:
  	\item json
  \end{itemize}
 
-Most of these modules should be native to your python 3 package. You can check if you have these by executing the command:
+Most if not all of these modules should be native to your python 3 package. You can check if you have these by executing the command:
 
-`\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'.
+`\texttt{pip list | grep <module\_name\_you\_want\_to\_check>}'
+
+or by running the script and interpreting the error for missing modules.
 
 \subsubsection{Required Files}
 The following files are required by the python script:
@@ -67,11 +69,11 @@ The prompt option allows you to enter the information directly into the terminal
 	
 	Same again, name if local, full path if non-local.
 	
-	\item start,stop,step separated by commas for $E_x$ ($E_y$, $E_z$ are done sequentially after).
+	\item start,stop,step separated by commas for $E_a$ ($E_b$, $E_c$ are done sequentially after).
 	
-	Simply input starting electric field value, final value and size of step as a tuple: start,stop,step for $E_x$ ($E_y$,$E_z$ after).
+	Simply input starting electric field value, final value and size of step as a tuple.
 	
-	\item If \texttt{charge} is chosen, charge values will then be prompted
+	\item If \texttt{charge} is chosen, float charge values will then be prompted
 \end{itemize}
 
 The alternative is writing an input text file that contains the above information in a certain format. Below is an example of an input file format:
@@ -79,9 +81,9 @@ The alternative is writing an input text file that contains the above informatio
 \begin{lstlisting}
 	crystal_file = ht.frequence.B1PW_PtBs.loto.out
 	cell_init = ymno3.cell
-	ex = [0,0.5,0.1]
-	ey = [0,0.2,0.05]
-	ez = [0,1,0.2]
+	ea = [0,0.5,0.1]
+	eb = [0,0.2,0.05]
+	ec = [0,1,0.2]
 	unit_source = charge
 	charge_dict = {"Y":3.0, "MN":3.0, "O1":-2.0, "O2":-2.0}
 	
@@ -93,7 +95,7 @@ We have the following rules:
 	\item Each line element is separated by a space i.e. there is a space either side of the `$=$' sign.
 	\item \texttt{crystal\_file} is the variable assigned to the relative/full path directory of the crystal output file.
 	\item \texttt{cell\_init} is assigned to the relative/full path directory of the initial cell file.
-	\item The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
+	\item The \texttt{ea, eb, ec} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
 	\item \texttt{unit\_source} is the variable assigned to the unit cell generator parameter (charge,auto,direct).
 	\item If \texttt{charge} is passed, a dictionary in python format must assign each atom to a charge value. The general format is \texttt{\{"key":value\}}. See section 2.3 for more examples.
 	
@@ -104,22 +106,11 @@ Once this input file has been written, one can execute the script with this inpu
 \subsubsection{Output files}
 
 \begin{itemize}
-	\item Output cell file is named after the initial cell file with an added (Ex,Ey,Ez) component label. If the files are called locally, output cell file grid will be generated and stored in a new folder inside the script directory that is named after the array parameters for x,y,z.
+	\item Output cell file is named after the initial cell file with an added (Ea,Eb,Ec) component label. If the files are called locally, output cell file grid will be generated and stored in a new folder inside the script directory that is named after the array parameters for a,b,c.
 	\item If the inputs files are called from full path, the output cell files will be generated and stored in a new folder inside either the directory of the cell file or the output file (specified by the command line).
 \end{itemize}
 
-\subsection{Details of Script Mechanisms}
 
-\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information. Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x,y,z for N atoms) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centers is zero.
-
-Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
-\begin{equation*}
-q.E = -H.d
-\end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. These displacements are given as a $3N$ dimensional column vector where $x_n,y_n,z_n = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is converted from kV/m input to atomic units. These are converted to fractional coordinates in the lattice vector basis ($a,b,c$) using a conversion matrix also found in the CRYSTAL file. This is done by solving a set of linear equations involving the conversion matrix, components of an atom's position in the a,b,c basis and the components in the x,y,z basis. An Angstrom to atomic units conversion is also needed before this system is solved.
-
-\subsection{Cell File}
-The initial cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates, and the corresponding charges. If all the required information is stored in this file, the \texttt{unit\_source} parameter "direct" can be called and all unit cell information is parsed from this file. Sometimes the cell file can be generated by CRYSTAL in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, if \texttt{unit\_source} = auto, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by again parsing the CRYSTAL output file for the unit cell data. A new file is then written containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $x,y,z$ directions. A grid of cell files specified by the $E_x,E_y,E_z$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges. 
 
 %%% Local Variables:
 %%% mode: latex
