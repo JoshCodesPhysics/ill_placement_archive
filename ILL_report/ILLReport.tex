@@ -103,7 +103,7 @@ In summary our approach is as follows:
 	\dfrac{\partial J}{\partial \mathcal{E}} = \dfrac{\partial J}{\partial d}\dfrac{\partial d}{\partial \mathcal{E}}
 	\end{equation*}
 	\item Use non ab-initio spin wave methods to determine $\frac{\partial\langle S_{i,j}\rangle}{\partial H}$ and $\langle S_{i,j}\rangle$
-	\item Obtain $\bar{\bar{\alpha}}$
+	\item Combine these terms to obtain $\bar{\bar{\alpha}}$
 \end{enumerate}
 
 This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when the electric field was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When the electric field was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
@@ -122,8 +122,8 @@ The nonrelativistic time-dependent Schrödinger equation for an individual parti
 where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions and mass of which are denoted by \textbf{$r_n$} and $m_e$ respectively, and $M$ nuclei, whose positions and mass are given by \textbf{$R_{I_n}$} and $m_{I_n}$ respectively. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (4) by adding the many-body terms:
 
 \begin{gather*}
-	\biggr(-\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)+\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
-	+\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}\biggr)\Psi = i\frac{\partial\Psi}{\partial t}
+	\biggr[-\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)+\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
+	+\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}\biggr]\Psi = i\frac{\partial\Psi}{\partial t}
 \end{gather*}
 
 where the term $$\hat{T} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)$$ is the kinetic contribution and $$\hat{V}=\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
@@ -144,7 +144,7 @@ The Hartree-Fock method is the basis of molecular orbital theory, which postulat
 	\Psi_{HP}(\mathbf{r}_1,\mathbf{r}_2,...,\mathbf{r}_N) = \phi_1(\mathbf{r}_1)\phi_2(\mathbf{r}_2)...\phi_N(\mathbf{r}_N)
 \end{equation}
 
-This fails to satisfy the fermionic antisymmetry principle i.e. the wavefunction should be antisymmetric when interchanging any set of spin-space coordinates ($x,y,z$ spatial and $\alpha$ spin where a space-spin vector is given by $\mathbf{x}=(\mathbf{r},\omega)$ where $\omega$ is the general spin coordinate for $\alpha$. We can also change our orbital notation from spatial $\phi(\mathbf{r})$ to spin orbital $\chi(\mathbf{x})$. The spin orbital is usually given by $\chi(\mathbf{x}) = \phi(\mathbf{r})\alpha(\omega)$. This turns equation (5) into:
+This fails to satisfy the fermionic antisymmetry principle i.e. the wavefunction should be antisymmetric when interchanging any set of spin-space coordinates ($x,y,z$ spatial and $\alpha$ spin where a space-spin vector is given by $\mathbf{x}=(\mathbf{r},\omega)$ where $\omega$ is the general spin coordinate for $\alpha$). We can also change our orbital notation from spatial $\phi(\mathbf{r})$ to spin orbital $\chi(\mathbf{x})$. The spin orbital is usually given by $\chi(\mathbf{x}) = \phi(\mathbf{r})\alpha(\omega)$. This turns equation (5) into:
 
 \begin{equation*}
 	\Psi_{HP}(\mathbf{x}_1,\mathbf{x}_2,...,\mathbf{x}_N) = \chi_1(\mathbf{x}_1)\chi_2(\mathbf{x}_2)...\chi_N(\mathbf{x}_N)
@@ -288,7 +288,7 @@ The functional $F[n]$ can be separated into three categories:
 	F[n] = T[n]+\frac{1}{2}\int d\mathbf{r} \ d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+E_{exch}
 \end{equation*}
 
-where $T[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same density as that of the interacting system, the second term is the continuous classical Coulomb energy, and the final term represents the exchange-correlation interaction energy. The separation of these terms is to demonstrate that the first two parts can be tackled in a relatively easy way, whereas dealing with the last term proves to be more complicated, but actually only represents a small fraction of the system's total energy. Now equation (6) can be rewritten as:
+where $T[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same density as that of the interacting system, the second term is the continuous classical Coulomb energy, and the final term represents the exchange-correlation interaction energy. The separation of these terms is to demonstrate that the first two parts can be tackled in a relatively easy way, whereas dealing with the last term proves to be more complicated, but actually only represents a small fraction of the system's total energy. Now equation (10) can be rewritten as:
 
 \begin{equation}
 	\frac{\delta T[n]}{\delta n(\mathbf{r})} + V_{KS}(\mathbf{r}) = \mu
@@ -304,7 +304,7 @@ and the exchange-correlation potential is given by:
 
 $$V_{exch}(\mathbf{r}) = \frac{\delta E_{exch}[n]}{\delta n(\mathbf{r})}$$
 
-Equation (7) can be obtained from evaluating a non-interacting system of particles moving in an external potential ($V_{KS}(\mathbf{r})$). To find The ground state density we solve the N/2 (N must be even in this case) one-electron Schrödinger equations featuring the Kohn-Sham potential, constructing the density from the solutions via the twice sum of N/2 wavefunction probability amplitudes:
+Equation (11)) can be obtained from evaluating a non-interacting system of particles moving in an external potential $V_{KS}(\mathbf{r})$. To find the ground state density we solve the N/2 (N must be even in this case) one-electron Schrödinger equations featuring the Kohn-Sham potential, constructing the density from the solutions via the twice sum of N/2 wavefunction probability amplitudes:
 
 $$n(\mathbf{r}) = 2\sum_{i=1}^{N/2}|\Psi_i(\mathbf{r})|^2$$
 
@@ -316,7 +316,7 @@ as you would expect.
 
 The energy of the non-interacting system is given by the twice sum of the one electron eigenvalues from their Schrödinger equations:
 
-$$2\sum_{i=1}^{N/2} = T[n]+\int d\mathbf{r}d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|} +\int d\mathbf{r} \ n(\mathbf{r})V_{exch}(\mathbf{r}) + \int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r})$$
+$$2\sum_{i=1}^{N/2}\epsilon_i = T[n]+\int d\mathbf{r}d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|} +\int d\mathbf{r} \ n(\mathbf{r})V_{exch}(\mathbf{r}) + \int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = E_{tot}$$
 
 but when we look at an interacting system and compare, we must account for the fact that we have double counted the classical Coulomb energy and over-counted the exchange-correlation energy. This interacting energy includes the corrections to reverse this, as well as $E_{exch}$.
 
@@ -404,14 +404,34 @@ From a set of inputs for the software suite used for a point of the calculation
 Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering the data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file. They are organised into quantum fragment, pseudopotential and Madelung potential sections in a way that is readable by the SEWARD input algorithm. It can be automated by calling it from command line with a separate shell script, with the libraries and basis sets as a third system input file. 
 
 \section{Solving the displacement equation}
-\subsection{Parsing the Born and Hessian files}
-
-Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogenoeous electric field.
-The Born tensor is stored in an output file, each $3\times3$ charge matrix categorised under a number of atoms given by a line specifying the population in the unit cell. Once this is found, we can parse for the charge matrices and diagonalise them into a matrix of dimension $3N\times3N$, where the positions are given in terms of Cartesian coordinates. The same goes for the symmetric Hessian, which needs to be parsed from a separate raw output file and arranged into a diagonally symmetric matrix with 3N diagonal elements.
-
 \subsection{Solving for the atom displacements}
-Once these tensors have been obtained and reformatted into square form, we can solve the linear equation $q.E = -H.d$ using a linear algebra package. Two possible options would be the more simplistic `numpy linalg' module with the `solve' function, that can solve linear equations of the form $\mathbf{Ax} = \mathbf{b}$, or the LAPACK Fortran drivers that are higher accuracy and specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time. When the displacements have been obtained, we can add them to the atom coordinates from the generational env15 program and reformat them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
 
+Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogenoeous electric field.  
+
+
+\subsubsection{Details of Script Mechanisms}
+
+\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. As discussed before, CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. Therefore this output file contains several pieces of information that are required for the next step. 
+
+Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x/a,y/b,z/c for N atoms in the a,b,c lattice vector basis) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centres is zero.
+
+Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
+\begin{equation*}
+q.E = -H.d
+\end{equation*}
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective way.
+
+These displacements are given as a $3N$ dimensional column vector in a.u. and converted to fractional units where $x_n/a,y_n/b,z_n/c = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, and divided by the corresponding lattice vector ($conversion*(Ea/a,Eb/b,Ec/c)$). The various Hessian elements in a.u. are given as
+
+ $$\frac{\partial^2E}{\partial(x_i/a)\partial(y_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(y_i/b)\partial(z_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(x_i/a)\partial(z_k/c)}$$.
+
+In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting.
+%The electric field is converted from kV/m in the a,b,c basis and divided by the corresponding lattice vector length to obtain a fractional unit basis.
+
+\subsubsection{Cell File}
+The initial cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates, and the corresponding charges. If all the required information is stored in this file, the \texttt{unit\_source} parameter `direct' can be called and all unit cell information is parsed from this file. Sometimes the cell file can be generated by CRYSTAL in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, if \texttt{unit\_source} = auto, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by parsing the CRYSTAL output file for the unit cell coordinates and irreducible groups. A new file is then written containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $a,b,c$ directions. A grid of cell files specified by the $E_a,E_b,E_c$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges. 
+
+Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The module used was the symmetric system driver DSYEV, and was ran in tandem with the python script using a batch file so we can compare displacement results. When the optimal displacements have been obtained, we can add them to the atom coordinates from the CRYSTAL output system.cell files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
 \bibliography{reportbib.bib}
 \bibliographystyle{plainurl}
 \end{document}
