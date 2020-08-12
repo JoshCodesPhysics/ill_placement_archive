@@ -17,20 +17,27 @@
 \tableofcontents
 \newpage
 \section{Introduction}
+\subsection{Aims and Methods}
 The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
 
-In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$) where $\vec{\mu}_j$ is the magnetic moment for the jth electron. These responses are of course linear.
+In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$) where $\vec{\mu}_j$ is the magnetic moment for the jth electron. These responses are of course linear. The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of the electronic structure.
 
-The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of the electronic structure.
+This report will discuss specifically how to obtain $\bar{\bar{\alpha}}$. Quantum chemical background theory will be provided, discussing the many body Schrödinger equation, Hartree-Fock methods and density functional theory. This will hopefully generate a better picture of the context surrounding the current model for multiferroic systems. Configurational interactions and the various associated methods will be investigated, including techniques that increase the accuracy and computational speed of the CI calculations. Finally, the development, mechanisms and purpose of the driver algorithms will be explored.
+
+This work was performed under the supervision of Marie-Bernadette Lepetit and Elisa Rebolini in the ILL theory group, in order to increase the automation and convenience of the $\bar{\bar{\alpha}}$ calculation.
+
+\subsection{Possible Applications and Reasons for Investigation}
+
+The understanding and manipulation of this enigmatic magnetoelectric coupling can lead to many possibilities in electronics, for example in data storage. The electrically-induced change in the magnetization of a storage device allows the use of a small voltage rather than a large current in allocating `magnetic information'. The rate of change of the logic state of the device in response to an input can become sub-nanosecond, and due to the low voltage the energy cost is similarly small. The electric polarisation of the material stabilises the allocated data through the displacement of the atoms. There are likely many more applications for this in the future that are yet to be apparent, which is why probing the properties of rare materials is so important. For example, discoveries such as graphene, silicon semiconductors, carbon fiber/nanotubes and metallic foams have been quintessential to modern development and offer vastly more design opportunities than before. Hence the importance placed upon the continuation of research into unique-property materials.   
 
 \section{Relation of the $\bar{\bar{\alpha}}$ tensor to the exchange integral $J$}
 
-Lev Landau introduced a physical theory that attempted to create a general model of continuous and therefore second-order phase transitions. It is versatile in that it can be used in systems that are subject to external fields. Landau proposed that the free energy of any system should be analytic (continuous and therefore differentiable), and obey the same symmetry of the Hamiltonian. This allows the generation of a phenomenological expression for the free energy as a Taylor expansion in the order parameters - electric field and magnetic field \cite{landau1936theory}.
+In order to generate an expression for the magneto electric coupling, one must look to assertions made by soviet physicist Lev Landau. Landau introduced a physical theory that creates a general model of continuous and therefore second-order phase transitions. It is versatile in that it can be used in systems that are subject to external fields. He proposed that the free energy of any system should be analytic (continuous and therefore differentiable), and obey the same symmetry as the Hamiltonian. This allows the generation of a phenomenological expression for the free energy as a Taylor expansion in the order parameters - electric field and magnetic field \cite{landau1936theory}.
 
-Using this theory it is possible to write an expression for $\bar{\bar{\alpha}}$ in terms of the second derivative of the free energy with respect to the electric and magnetic fields ($\vec{\mathcal{E}}$ and $\vec{\mathcal{H}}$ respectively):
+Using this theory it is possible to write an expression for $\bar{\bar{\alpha}}$ in terms of the second derivative of the free energy with respect to the electric and magnetic fields ($\vec{\mathcal{E}}$ and $\vec{\mathcal{B}}$ respectively):
 
 \begin{equation*}
-\bar{\bar{\alpha}} = -\frac{\partial^2 \mathcal{F}}{\partial \vec{\mathcal{E}}\partial\vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}, \vec{\mathcal{H}} = \vec{0}}
+\bar{\bar{\alpha}} = -\frac{\partial^2 \mathcal{F}}{\partial \vec{\mathcal{E}}\partial\vec{\mathcal{B}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}, \vec{\mathcal{B}} = \vec{0}}
 \end{equation*}
 
 For multiferroic systems, low-energy excitations are of a magnetic nature due to the material being a magnetic insulator. This means it is possible to describe this property by implementing an effective Hamiltonian that only takes into account the magnetic degrees of freedom. One of the models that fits these requirements particularly well is the Heisenberg Hamiltonian. For example, let us suppose that a system can be described by this Hamiltonian for the Fermi level (magnetic) properties:
@@ -39,43 +46,34 @@ For multiferroic systems, low-energy excitations are of a magnetic nature due to
 \hat{H} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\hat{\vec{S_i}}\cdot \hat{\vec{S_j}}
 \end{equation}
 
-where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local), $J_{i,j}$ is the magnetic exchange integral between atoms i and j, with atomic spin $\hat{\vec{S_i}}$ and $\hat{\vec{S_j}}$ respectively. By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
+where $E_0$ is the energy associated with all non-magnetic degrees of freedom and $\langle i,j \rangle$ represents nearest neighbour exchanges (since the interaction is local) between the ith and jth magnetic ions, $J_{i,j}$ is the associated magnetic exchange integral between these atoms, each with atomic spin $\hat{\vec{S_i}}$ and $\hat{\vec{S_j}}$ respectively. By observing the polar magnetic phase in which the magneto-electric coupling occurs, it is possible to write a statistical mechanical equation of state for the free energy ($\mathcal{F} = U - TS$ where U is internal energy, T is temperature and S is entropy):
 
 \begin{equation*}
-\mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \vec{S_i}\rangle \cdot \mathcal{\vec{H}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
+\mathcal{F} = E_0 - \sum_{\langle i,j \rangle} J_{i,j}\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle - \sum_{i}g\mu_{B}\langle \vec{S_i}\rangle \cdot \mathcal{\vec{B}} - \vec{P}\cdot \mathcal{\vec{E}} - TS
 \end{equation*}
 
-where $\langle \rangle$ denotes the thermal average of the quantity and $J_{i,j}$ represents the effective magnetic integrals between the ith and jth magnetic ions. 
+where $\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle $ denotes the thermal average of the spin inner product (as seen in equation (1)), $g$ is the g-factor characterising the magnetic moment of the atom, $\mu_{B}$ is the Bohr magneton and P is the polarisation of the system. 
 
-It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ is slightly larger or smaller than the critical temperature of the transition ($T_c$). In the paramagnetic phase ($T > T_c$, where for all magnetic states, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state) all eigenstates have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. 
+It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ becomes slightly larger or smaller than the critical temperature of the transition ($T_c$). The paramagnetic phase is the name assigned to the case where $T > T_c$, where for all magnetic states, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state. In this paramagnetic phase, all magnetic eigenstates and their corresponding energy eigenvalues have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. 
 
 Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
 
 To first order, $\bar{\bar{\alpha}}$ can resultantly be written as:
 
 \begin{equation}
-	\bar{\bar{\alpha}} = \sum_{\langle i,j \rangle} \frac{\partial J_{i,j}}{\partial \vec{\mathcal{E}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}}\otimes\biggr(\frac{\partial \langle \vec{S_i}\rangle}{\partial \vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}} = \vec{0}}\cdot\langle\vec{S_j}\rangle + \langle\vec{S_i}\rangle\cdot\frac{\partial \langle \vec{S_j}\rangle}{\partial\vec{\mathcal{H}}}\biggr\vert_{\vec{\mathcal{H}}=\vec{0}}\biggr)
+	\bar{\bar{\alpha}} = \sum_{\langle i,j \rangle} \frac{\partial J_{i,j}}{\partial \vec{\mathcal{E}}}\biggr\vert_{\vec{\mathcal{E}}=\vec{0}}\otimes\biggr(\frac{\partial \langle \vec{S_i}\rangle}{\partial \vec{\mathcal{B}}}\biggr\vert_{\vec{\mathcal{B}} = \vec{0}}\cdot\langle\vec{S_j}\rangle + \langle\vec{S_i}\rangle\cdot\frac{\partial \langle \vec{S_j}\rangle}{\partial\vec{\mathcal{B}}}\biggr\vert_{\vec{\mathcal{B}}=\vec{0}}\biggr)
 \end{equation}
 
 This means that the derivative of the exchange integrals with respect to the electric field and the derivative of the local magnetic moments with respect to the magnetic field will need to be calculated. The former will require accurate ab-initio evaluation of the $J_{i,j}$ integrals and the latter can be obtained using standard spin wave calculations (see \cite{anderson1951limits,kubo1952spin,oguchi1960theory}). In section 3 we will discuss the details of how these goals will be achieved.
 
 \section{Computing the magnetic exchange term from nuclei displacement}
 
-Iniguez argues that the lattice-mediated part of the linear magnetoelectric response of magnetic insulators is dominant in materials displaying strong magnetoelectric couplings \cite{iniguez2008first}. These insulators allow control of their magnetic properties through the manipulation of an external electric field. The magnetization induced by the application of an electric field is given by:
-
-\begin{equation*}
-\mathcal{M}_j(\mathcal{E}) = \sum_i \bar{\bar{\alpha_{ij}}}\mathcal{E}_i
-\end{equation*}
-
-Where $\alpha$ is the linear magnetoelectric tensor, i and j label spatial directions and $\mathcal{E}$ is the electric field. The magnitude of this response is limited by the magnetic and dielectric susceptibilities as $\alpha^2_{ij} < \chi^m_{jj}\chi^d_{ii}$, suggesting that strong ME coupling occur in materials that demonstrate large dielectric and magnetic responses. This means that large magnetoelectric effects will correlate to significant electronic hybridizations or orbital rearrangements induced by applied electric fields. This is caused by a magnetic response via spin-orbit or exchange-strictive effects. Strong dielectric responses are never purely electric - they are driven by the structural changes induced by the applied field. We can deduce that large ME effects will be based on lattice-mediated mechanisms in systems where the spin-orbit coupling is relatively large. 
-
-The associated magnetoelectric coupling is computed from the first derivative of the exchange integral $J$ as a function of an applied electric field $\mathcal{E}$, as seen in equation (2). The main effect of an electric field on an ionic insulator is to displace the ions (nuclei). This displacement can be computed from:
+The magnetoelectric coupling is computed from the first derivative of the exchange integral $J$ as a function of an applied electric field $\mathcal{E}$, as seen in equation (2). The main effect of an electric field on an ionic insulator is to displace the ions (nuclei). This displacement can be computed from:
 \begin{itemize}
 	\item The Hessian matrix of the
 	energy $\mathcal{H} = \frac{\partial^2 E}{\partial \mathbf{d} ^2} $ obtained
-	from a mean-field DFT calculation (see section 4 for details)
-	\item The Born dynamical effective charges $q^*$ which corresponds to the second
-	derivative of the energy with respect to the field and displacement
+	from a mean-field density functional calculation (see section 4 for details)
+	\item The Born dynamical effective charges $q^*$ which corresponds to the derivative of the energy with respect to the field and displacement: $Z_{ij} = -e\frac{\delta \mathcal{F_i}}{\delta \mathcal{E_j}}$ \cite{lepetit2016compute}
 	\item Newton's 2nd law
 \end{itemize}
 
@@ -89,7 +87,7 @@ $$ d = -\mathcal{H}^{-1} q^* \mathcal{E} $$
 
 This equation also suggests that the main response of a ferroelectric compound to an applied electric field will be a geometry modification that can be evaluated by the displacement of the system ions from their equilibrium position. 
 
-We can evaluate the Hessian and the Born charges with DFT calculations as they both depend on the whole electron density functionals. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with the suitable functionals.
+We can evaluate the Hessian and the Born charges with density function theory (DFT) as they both depend on the electron density functional. The correlation interactions among the Fermi electrons will have only negligible effects on these quantities, and so it is safe to use DFT approximations with the suitable functionals.
 
 In summary our approach is as follows:
 
@@ -106,12 +104,12 @@ In summary our approach is as follows:
 	\item Combine these terms to obtain $\bar{\bar{\alpha}}$
 \end{enumerate}
 
-This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}. The configuration interactions for ligand-to-metal charge transfers and screening effects were included explicitly, and so appropriate embedded fragments were implemented. It was shown that when the electric field was applied perpendicular to the MnO$_3$ planes, $\frac{\partial J}{\partial \mathcal{E}}$  was negligible in value. When the electric field was applied in-plane, the absolute value of J increases when the field is parallel to the Mn-Mn bond. However, the spin-orbit coupling plays a negligible role in the ME response, which suggests there is be a different mechanism that is responsible.
+This method has successfully been applied to YMnO$_3$ using SAS+S to calculate the exchange integral for each value of the displacement, since it was designed specifically for the purpose of precise evaluation of magnetic excitations \cite{varignon2013ab}.
 
 \subsection{The Simulation Environment}
 The embedded fragments are designed to include the configuration states that describe the prioritised physical processes. It has been argued that in wide-gap magnetic insulators, $J$ is determined from strongly local electronic interactions involving two magnetic centers \cite{de1999local}. These fragments were embedded in an environment reproducing the main effects as the rest of the crystal, as discussed towards the end of section 5.1. To achieve this we must include the Pauli exclusion effects of surrounding electrons and the influence of a non-local Madelung potential (nuclei-electron interactions simplified through ions being approximated as a set of point charges). The exclusion effect can be modelled through a surrounding total ionic pseudopotential (TIP, see \cite{winter1987theoretical} for example usage of this method). The Madelung potential can be recreated through an array of renormalised point charges assigned to atomic positions \cite{gelle2008fast}.
 
-\section{Density Functional Theory (DFT)}
+\section{Prerequisite Theories}
 \subsection{Many-Body Schrödinger equation}
 The nonrelativistic time-dependent Schrödinger equation for an individual particle is given by:
 
@@ -119,44 +117,48 @@ The nonrelativistic time-dependent Schrödinger equation for an individual parti
 	\biggr[-\frac{\hbar^2}{2m}\nabla^2+\mathcal{U}(\textbf{r},t)\biggr]\Psi(\textbf{r},t) = i\hbar\frac{\partial}{\partial t}\Psi(\textbf{r},t)
 \end{equation}
 
-where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions and mass of which are denoted by \textbf{$r_n$} and $m_e$ respectively, and $M$ nuclei, whose positions and mass are given by \textbf{$R_{I_n}$} and $m_{I_n}$ respectively. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (4) by adding the many-body terms:
+where $\mathcal{U}(\textbf{r},t)$ is the external potential and $\Psi(\textbf{r},t)$ is the wavefunction of the particle being described. This can be generalised to a system of $N$ electrons, the positions and mass of which are denoted by \textbf{$r_i$} and $m_e$ respectively, and $M$ nuclei, whose positions and mass are given by \textbf{$R_{I_i}$} and $m_{I_i}$ respectively. $i,j$ are indexes of the ith or jth atom, as before. If we use atomic units ($\hbar = m_e = \frac{e^2}{4\pi\epsilon}$) we can expand the Schrödinger equation from equation (4) by adding the many-body terms:
 
 \begin{gather*}
-	\biggr[-\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)+\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
-	+\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}\biggr]\Psi = i\frac{\partial\Psi}{\partial t}
+	\biggr[-\frac{1}{2}\biggr(\sum_i\nabla^2_{\textbf{r}_i}+\sum_{i}\frac{\nabla^2_{\textbf{R}_{I_i}}}{m_{I_i}}\biggr)+\frac{1}{2}\sum_{i\not=j}\frac{1}{|\textbf{r}_i-\textbf{r}_i|}-\sum_{i,j}\frac{Z_{I_j}}{|\textbf{r}_i - \textbf{R}_{I_j}|}\\
+	+\frac{1}{2}\sum_{i\not=j}\frac{Z_{I_i}Z_{I_j}}{|\textbf{R}_{I_i}-\textbf{R}_{I_j}|}\biggr]\Psi = i\frac{\partial\Psi}{\partial t}
 \end{gather*}
 
-where the term $$\hat{T} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}+\sum_{n}\frac{\nabla^2_{\textbf{R}_{I_n}}}{m_{I_n}}\biggr)$$ is the kinetic contribution and $$\hat{V}=\frac{1}{2}\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}-\sum_{n,m}\frac{Z_{I_m}}{|\textbf{r}_n - \textbf{R}_{I_m}|}\\
-+\frac{1}{2}\sum_{n\not=m}\frac{Z_{I_n}Z_{I_m}}{|\textbf{R}_{I_n}-\textbf{R}_{I_m}|}$$ is the potential contribution, taking into account interactions between electrons and other electrons, electrons and nuclei, and nuclei and other nuclei.  $i\frac{\partial}{\partial t}$ is the energy operator, giving energy eigenvalues from the total wavefunction.\\
+where the term $$\hat{T} = -\frac{1}{2}\biggr(\sum_i\nabla^2_{\textbf{r}_i}+\sum_{i}\frac{\nabla^2_{\textbf{R}_{I_i}}}{m_{I_i}}\biggr)$$ is the kinetic contribution and $$\hat{V}=\frac{1}{2}\sum_{i\not=j}\frac{1}{|\textbf{r}_i-\textbf{r}_j|}-\sum_{i,j}\frac{Z_{I_i}}{|\textbf{r}_i - \textbf{R}_{I_j}|}\\
++\frac{1}{2}\sum_{i\not=j}\frac{Z_{I_i}Z_{I_j}}{|\textbf{R}_{I_i}-\textbf{R}_{I_j}|}$$ is the potential contribution, taking into account interactions between electrons and other electrons, electrons and nuclei, and nuclei and other nuclei.  $i\frac{\partial}{\partial t}$ is the energy operator, giving energy eigenvalues from the total wavefunction.\\
 
-For most systems this equation cannot be solved exactly and so we must include firstly the Born Oppenheimer approximation. This uses the fact that an electron is almost 2000 times less massive than the nucleus, and so the positions of the nuclei can be treated as fixed when trying to generate the electron wavefunction, and therefore the source of the Coulomb interaction is always static. The total electron wavefunction becomes separable, with an electronic part $\Psi_e$ and a nuclear part $\Psi_{nu}$ where $R_n$ are treated only as parameters:
+For most systems this equation cannot be solved exactly and so we must include firstly the Born Oppenheimer approximation. This uses the fact that an electron is almost 2000 times less massive than the nucleus, and so the positions of the nuclei can be treated as fixed when trying to generate the electron wavefunction, and therefore the source of the Coulomb interaction is always static. The electron wavefunction for the nth electron becomes separable, with an electronic part $\Psi_e$ and a nuclear part $\Psi_{nu}$ where $R_i$ are treated only as parameters:
 
 \begin{equation*}
-	\Psi_{electron}(\textbf{r}_n,\textbf{R}_n) =  \Psi_e(\textbf{r}_n;\textbf{R}_n)\Psi_{nu}(\textbf{r}_{n})
+	\Psi(\textbf{r}_i,\textbf{R}_i) =  \Psi_e(\textbf{r}_i;\textbf{R}_i)\Psi_{nu}(\textbf{r}_{i})
 \end{equation*}
 
-This allows us to generate two energy eigenvalue equations for each wavefunction and try to solve for $\Psi(\mathbf{r_1},\mathbf{r}_2,...\mathbf{r_n})$ \cite{rebolini2014range}. 
+This allows us to generate two energy eigenvalue equations for each wavefunction and try to solve for the systemic wavefunction $\Psi(\mathbf{r_1},\mathbf{r}_2,...\mathbf{r_N})$ \cite{rebolini2014range}. The next section will discuss how to approach solving the Schrödinger equation in the time independent case.
 
 \subsection{Hartree-Fock Theory}
-The Hartree-Fock method is the basis of molecular orbital theory, which postulates that in a material, each electron's motion can be described by a single-particle function that does not depend explicitly on the neighbouring electron's instantaneous motion. These orbitals are only approximations of reality however; the only exact eigenfunctions of the full electronic Hamiltonian are for hydrogen or He$^+$ where the system contains only one electron. However, as long as we consider these molecules near their geometrical energetic equilibrium (see step one of section 3), Hartree-Fock theory provides a good starting point for more detailed theoretical methods (e.g many-body perturbations, single-reference configuration interactions - see section 5). It is designed to solve the electronic Schrödinger equation resulting from the reduced time independent equation after using the Born-Oppenheimer approximation, as in section 4.1. It starts from `pretending' that in multiple-electron systems, electron-electron interactions can be ignored in order to render the Hamiltonian separable; the electronic wavefunction becomes a product of N orbitals, where N is the number of electrons being considered in the quantum system \cite{sherrill2000introduction}. This is called the Hartree product and can be written generally as:
+The Hartree-Fock method is the basis of molecular orbital theory, which postulates that in a material, each electron's motion can be described by a single-particle function that does not depend explicitly on the neighbouring electron's instantaneous motion. These orbitals are only approximations of reality however; the only exact eigenfunctions of the full electronic Hamiltonian are for hydrogen or He$^+$ where the system contains only one electron. However, as long as we consider these molecules near their geometrical energetic equilibrium (see step one of section 3), Hartree-Fock theory (most of the time) can provides a good starting point for more detailed theoretical methods (e.g many-body perturbations, single-reference configuration interactions - see section 5). 
 
-\begin{equation}
-	\Psi_{HP}(\mathbf{r}_1,\mathbf{r}_2,...,\mathbf{r}_N) = \phi_1(\mathbf{r}_1)\phi_2(\mathbf{r}_2)...\phi_N(\mathbf{r}_N)
-\end{equation}
+It is designed to solve the electronic Schrödinger equation resulting from the reduced time independent equation after using the Born-Oppenheimer approximation, as in section 4.1. %It starts from `pretending' that in multiple-electron systems, electron-electron interactions can be ignored in order to render the Hamiltonian separable; the electronic wavefunction becomes a product of N orbitals, where N is the number of electrons being considered in the quantum system \cite{sherrill2000introduction}. This is called the Hartree product and can be written generally as:
 
-This fails to satisfy the fermionic antisymmetry principle i.e. the wavefunction should be antisymmetric when interchanging any set of spin-space coordinates ($x,y,z$ spatial and $\alpha$ spin where a space-spin vector is given by $\mathbf{x}=(\mathbf{r},\omega)$ where $\omega$ is the general spin coordinate for $\alpha$). We can also change our orbital notation from spatial $\phi(\mathbf{r})$ to spin orbital $\chi(\mathbf{x})$. The spin orbital is usually given by $\chi(\mathbf{x}) = \phi(\mathbf{r})\alpha(\omega)$. This turns equation (5) into:
+%\begin{equation}
+%	\Psi_{HP}(\mathbf{r}_1,\mathbf{r}_2,...,\mathbf{r}_N) = \phi_1(\mathbf{r}_1)\phi_2(\mathbf{r}_2)...\phi_N(\mathbf{r}_N)
+%\end{equation}
 
-\begin{equation*}
-	\Psi_{HP}(\mathbf{x}_1,\mathbf{x}_2,...,\mathbf{x}_N) = \chi_1(\mathbf{x}_1)\chi_2(\mathbf{x}_2)...\chi_N(\mathbf{x}_N)
-\end{equation*}
+%This fails to satisfy the fermionic antisymmetry principle i.e. the wavefunction should be antisymmetric when interchanging any set of spin-space coordinates ($x,y,z$ spatial and $\alpha$ spin where a space-spin vector is given by $\mathbf{x}=(\mathbf{r},\omega)$ where $\omega$ is the general spin coordinate for $\alpha$). We can also change our orbital notation from spatial $\phi(\mathbf{r})$ to spin orbital $\chi(\mathbf{x})$. The spin orbital is usually given by $\chi(\mathbf{x}) = \phi(\mathbf{r})\alpha(\omega)$. This turns equation (5) into:
 
-which is still not antisymmetric in general, as it requires
+%\begin{equation*}
+%	\Psi_{HP}(\mathbf{x}_1,\mathbf{x}_2,...,\mathbf{x}_N) = \chi_1(\mathbf{x}_1)\chi_2(\mathbf{x}_2)...\chi_N(\mathbf{x}_N)
+%\end{equation*}
 
-\begin{equation*}
-	\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1) = -\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})
-\end{equation*}
+%which is still not antisymmetric in general, as it requires
 
-This is where Slater determinants come in. For a two electron system we can write an antisymmetric spin orbital as $$\Psi(\mathbf{x}_1)\Psi(\mathbf{x}_2) = \frac{1}{\sqrt{2}}[\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})-\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1)]$$
+%\begin{equation*}
+%	\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1) = -\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})
+%\end{equation*}
+
+For this we need a mathematical way of satisfying the fundamental physical conditions of a charged fermion inhabiting a mean-field environment (more on mean fields later). This is done by introducing the Slater determinant. Slater determinants satisfy the fermionic antisymmetry principle of a wavefunction while also superimposing all possible occupied states in a `Hartree product'. It also satisfies the normalisation condition $\langle \Psi | \Psi \rangle$ = 1, and since the corresponding Hamiltonian must commute with the spin operators, the wavefunctions must also be eigenfunctions of $\hat{S}_z$ and $\hat{S}^2$. However, except for a few simple cases, Slater determinants are not eigenfunctions of $S^2$ for N-electron systems. Despite some shortcomings, this approach allows for simpler formulas when constructing matrix elements for N-electron Hamiltonians or similar operators between different Slater determinants, and a more intuitive interpretation of the wavefunction.
+
+For a two electron system we can write an antisymmetric spin orbital as $$\Psi(\mathbf{x}_1)\Psi(\mathbf{x}_2) = \frac{1}{\sqrt{2}}[\chi_1(\mathbf{x_1})\chi_2(\mathbf{x_2})-\chi_1(\mathbf{x}_2)\chi_2(\mathbf{x}_1)]$$
 
 This can be written as a determinant:
 
@@ -171,7 +173,7 @@ This can be written as a determinant:
 which can be generalised to:
 
 \begin{equation}
-	\Psi = \frac{1}{\sqrt{N}} =
+	\Psi = \frac{1}{\sqrt{N}}
 	\begin{vmatrix}
 	\chi_1(\mathbf{x}_1) & \chi_2(\mathbf{x}_1) & ... & \chi_N(\mathbf{x}_1) \\
 	\chi_1(\mathbf{x}_2) & \chi_2(\mathbf{x}_2) & ... & \chi_N(\mathbf{x}_2) \\
@@ -180,15 +182,15 @@ which can be generalised to:
 	\end{vmatrix}
 \end{equation}
 
-If you try to put two electrons in the same orbital i.e. set $\chi_1 = \chi_2$ then the wavefunction becomes zero. This is a mathematical form of Pauli's exclusion principle. If we have a list of the occupied orbitals we can shorten this form to ket notation, with the normalisation factor implied: $|ij...k\rangle$; see section 5. This way of writing electron wavefunctions assumes that electrons move independently of the others, and so Hartree-Fock theory is referred to as a `mean field' theory. 
+If you try to put two electrons in the same orbital i.e. set $\chi_1 = \chi_2$ then the wavefunction becomes zero. This is one representation of Pauli's exclusion principle. If we have a list of the occupied orbitals we can shorten this form to Dirac notation, with the normalisation factor implied: $|ij...k\rangle$; see section 5. This way of writing electron wavefunctions assumes that electrons move independently from the others, and so Hartree-Fock theory is referred to as a `mean field' theory. 
 
-Using this ket notation we can shorten the Hamiltonian to the following forms in order to bury some of the complexity in the evaluation of integrals. The singular-electron operator can be written as:
+Using this Dirac notation we can shorten the Hamiltonian to the following forms in order to remove some of the complexity in the evaluation of integrals. The single-electron operator can be written as:
 
 \begin{equation*}
-	h(i) = -\frac{1}{2}\nabla_i^2-\sum_A\frac{Z_a}{r{iA}}
+	h(i) = -\frac{1}{2}\nabla_i^2-\sum_A\frac{Z_a}{r_{iA}}
 \end{equation*}
 
-and the two electron operator can be written as:
+and the two-electron operator can be written as:
 
 \begin{equation*}
 	v(i,j)=\frac{1}{r_{ij}}
@@ -197,16 +199,16 @@ and the two electron operator can be written as:
 so that the Hamiltonian becomes:
 
 \begin{equation*}
-	\hat{H}_{electron} = \sum_i h(i) + \sum_{i<j}v(i,j) + V_{NN}
+	\hat{H} = \sum_i h(i) + \sum_{i<j}v(i,j) + V_{NN}
 \end{equation*}
 
-where $V_{NN}$ is a constant for the fixed set of nuclear coordinates, so we can ignore if for now as this term only shifts the eigenvalues, with no effect on the eigenfunctions. Now we need to approach obtaining the molecular orbitals. If we are looking for a Hartree-Fock wavefunction in normalised Slater determinant form, and assert that the electronic energy is given by:
+where $V_{NN}$ is a constant for the fixed set of nuclear coordinates, so we can ignore it for now as this term only shifts the eigenvalues, with no effect on the eigenfunctions. Now we need an approach to obtaining the molecular orbitals. If we are looking for a Hartree-Fock wavefunction in normalised Slater determinant form, and assert that the electronic energy is given by:
 
 \begin{equation*}
-	E_{electron} = \langle\Psi|\hat{H}_{electron}|\Psi\rangle
+	E_{electron} = \langle\Psi|\hat{H}|\Psi\rangle
 \end{equation*}
 
-For symmetric energy expressions we can use something called the `variational theorem', which asserts that the energy is always an upper bound to the true energy. We can choose a `trial wavefunction' that depends on one or multiple parameters, and finding the parameter configuration that minimises the expectation value of the energy in the observed functional space. This allows for a better approximation of the system wavefunction. This is a key method in the the Hartree-Fock approach. In other words, $E_{electron}$ will be an overestimation of the true ground state energy unless $\Psi$ is equal to the exact ground state wavefunction of the system, but a tighter upper bound can be generated from tuning the trial wavefunction \cite{sakurai1994modern}. The energy-minimising orbital configuration can be obtained as a linear combination of the basis functions (Gaussian-type in LCAO) \cite{sherrill2000introduction}. 
+For symmetric energy expressions we can use something called the `variational theorem', which asserts that the calculated energy for the ground state is always an upper bound to the true minimum. We can choose a `trial wavefunction' that depends on one or multiple parameters, and find the parameter configuration that minimises the expectation value of the energy in the observed functional space. This allows for a better approximation of the system wavefunction. This is a key method in the the Hartree-Fock approach. In other words, $E_{electron}$ will be an overestimation of the true ground state energy unless $\Psi$ is equal to the exact ground state wavefunction of the system, but a tighter upper bound can be generated from tuning the trial wavefunction \cite{sakurai1994modern}.  The energy-minimising orbital configuration can be obtained as a linear combination of the basis functions \cite{sherrill2000introduction}. 
 
 We can rewrite the Hartree-Fock energy to achieve this purpose, by expressing it in terms of the integrals of one and two electron operators:
 
@@ -225,7 +227,7 @@ $$[ij|kl] = \int d\mathbf{x_1} d\mathbf{x_2} \ \chi^*_i(\mathbf{x_1})\chi_j(\mat
 which can be calculated using common existing computer algorithms.
 
 \subsubsection{Hartree Fock Equations}
-The assumption that the wavefunction can be approximated by a single Slater determinant of one spin orbital per electron is core to DFT. This single-reference space can be built upon by a perturbational model to achieve more accurate wavefunction solutions. The Hartree-Fock energy expression is by definition symmetric and so we know that the Slater determinant generating the lowest overall energy is the closest one can get to the true wavefunction in the assumed functional form. We must minimise the value of $E_{electron}$ from equation (7) with respect to the changes in the orbitals $\chi_i$. So far the orbitals $\chi$ have been assumed to be orthonormal, and so we must keep them that way through our variational procedure. This is done by employing `Lagrange's method of undetermined multipliers', where we use a Lagrangian $\mathcal{L}$ such
+We must minimise the value of $E_{electron}$ from equation (7) with respect to the changes in the orbitals $\chi_i$. So far the orbitals $\chi$ have been assumed to be orthonormal, and so we must keep them that way through our variational procedure. This is done by employing `Lagrange's method of undetermined multipliers', where we use a Lagrangian $\mathcal{L}$ such
 that:
 
 \begin{equation*}
@@ -240,87 +242,90 @@ where the coefficients $\epsilon_{ij}$ are undetermined Lagrange multipliers and
 
 where $\epsilon_i$ is the energy eigenvalue corresponding to the ith orbital eigenfunction. This problem can be solved in two ways, the first being numerically, and the second solving it in a space spanned by the basis functions. Both solutions depend on the orbitals, and so we need to guess some initial orbitals and generate increasingly educated guesses iteratively. The first term in equation (8) represents the Coulomb interaction of an electron described by $\chi_i$ with the average charge distribution of the other electrons (mean field). 
 
-\subsection{Hohenberg-Kohn theorems}
+%\subsection{Hohenberg-Kohn theorems}
 
-The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state wavefunction $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state wavefunction for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
+%The electronic part of the Hamiltonian ($\hat{H}=\hat{T}+\hat{V}$) is the same for all N-electron systems after we assert the Born-Oppenheimer approximation. This means that the ground state wavefunction $|\Psi_0\rangle$ is completely determined by N and the electric interactions involving the nuclei. The ground state wavefunction for this Hamiltonian gives rise to a ground-state electronic density $n_o(\mathbf{r})$:
 
-\begin{equation*}
-	n_0(\mathbf{r})=\langle\Psi_0|\hat{n}|\Psi_0\rangle = \int\prod_{n=2}^{N}d\mathbf{r}_n|\Psi_0(\mathbf{r},\mathbf{r}_2,...\mathbf{r}_N)|^2
-\end{equation*}
+%\begin{equation*}
+%	n_0(\mathbf{r})=\langle\Psi_0|\hat{n}|\Psi_0\rangle = \int\prod_{n=2}^{N}d\mathbf{r}_n|\Psi_0(\mathbf{r},\mathbf{r}_2,...\mathbf{r}_N)|^2
+%\end{equation*}
 
-where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential. DFT, introduced by Hohenberg and Kohn in 1964, asserts two statements:
+%where $\hat{n}$ is the density operator. Therefore the ground state and associated density are both functionals of the number of electrons N and the ionic electrostatic potential. DFT, introduced by Hohenberg and Kohn in 1964, asserts two statements:
 
-\begin{itemize}
-	\item The ionic potential is determined uniquely by the ground-state electronic density functional, up to a constant.
-	\item For all densities in an external potential (e.g the nucleic electrostatic potential) $n(\mathbf{r})$, their energy $E_V[n]\geq E_0$ ($E_0$ being the ground state energy), for N electrons in an external potential $V(\mathbf{r})$ \cite{haynes}. 
-\end{itemize}
+%\begin{itemize}
+%	\item The ionic potential is determined uniquely by the ground-state electronic density functional, up to a constant.
+%	\item For all densities in an external potential (e.g the nucleic electrostatic potential) $n(\mathbf{r})$, their energy $E_V[n]\geq E_0$ ($E_0$ being the ground state energy), for N electrons in an external potential $V(\mathbf{r})$ \cite{haynes}. 
+%\end{itemize}
 
-This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V_{ext}$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
+%This means the issue of solving the Schrodinger equation for ground-states can be transformed into a variational problem of minimising the energy functional $E_V[n]$ with respect to the densities in an external potential $V_{ext}$ \cite{hohenberg1964inhomogeneous}. By writing the Hamiltonian in terms of the electronic operator and the external potential operator $\hat{H} = \hat{F}+\hat{V}_{ext}$ where: $$\hat{F} = -\frac{1}{2}\biggr(\sum_n\nabla^2_{\textbf{r}_n}-\sum_{n\not=m}\frac{1}{|\textbf{r}_n-\textbf{r}_m|}\biggr)$$
 
-and defining the universal functional as:
+%and defining the universal functional as:
 
-$$F[n] = \min_{|\Psi\rangle\rightarrow n}\langle\Psi|\hat{F}|\Psi\rangle$$
+%$$F[n] = \min_{|\Psi\rangle\rightarrow n}\langle\Psi|\hat{F}|\Psi\rangle$$
 
-We can define $E_V[n]$ as:
-\begin{equation}
-	E_v[n] = F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = \langle\Psi_n|(\hat{F}+\hat{V}_{ext})|\Psi_n\rangle
-\end{equation}
+%We can define $E_V[n]$ as:
+%\begin{equation}
+%	E_v[n] = F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = \langle\Psi_n|(\hat{F}+\hat{V}_{ext})|\Psi_n\rangle
+%\end{equation}
 
-Using the variational principle to obtain the inequality in statement (2) made in DFT \cite{haynes} we can assert that the ground-state density $n_0(\mathbf{r})$ minimises the functional $E_V[n]$, and the minimum value is the ground-state electronic energy $E_0$. Through this principle we can consider $N$-representable densities, the requirements of which are much weaker and satisfied by any well-behaved density. These are densities where the domain of the density is larger than the external potential. We do not know at face value if this density $n(\mathbf{r})$ arises from an antisymmetric N-body wavefunction, but it has been proven that any non-negative function can be written in terms of some $\Psi(\mathbf{r}_1,\mathbf{r}_2,...\mathbf{r}_n)$ \cite{gilbert1975hohenberg} The only condition for these densities is that: $$\int dr \biggr|\nabla n^{1/2}(\mathbf{r})\biggr|^2$$ is real and finite, or in other words the density is properly differentiable.
+%Using the variational principle to obtain the inequality in statement (2) made in DFT \cite{haynes} we can assert that the ground-state density $n_0(\mathbf{r})$ minimises the functional $E_V[n]$, and the minimum value is the ground-state electronic energy $E_0$. Through this principle we can consider $N$-representable densities, the requirements of which are much weaker and satisfied by any well-behaved density. These are densities where the domain of the density is larger than the external potential. We do not know at face value if this density $n(\mathbf{r})$ arises from an antisymmetric N-body wavefunction, but it has been proven that any non-negative function can be written in terms of some $\Psi(\mathbf{r}_1,\mathbf{r}_2,...\mathbf{r}_n)$ \cite{gilbert1975hohenberg} The only condition for these densities is that: $$\int dr \biggr|\nabla n^{1/2}(\mathbf{r})\biggr|^2$$ is real and finite, or in other words the density is properly differentiable.
 
-\subsection{Reduction of degrees of freedom}
+%\subsection{Reduction of degrees of freedom}
 
-Recalling the universal functional $F[n]$, we can reduce the number of function variables needed from 3N (N sets of cartesian coordinates) to 3 ($x,y,z$) in the density function $n(\mathbf{r})$ and as a result the complexity of the problem reduces drastically. However, the exact form of the universal functional is not currently known, and so must be approximated. For a system of free-moving electrons the exchange-correlation effects must be accounted for, since it is inaccurate to simply model a literal solid where the electrons are non-interacting. This is where the Kohn-Sham equations come in.
+%Recalling the universal functional $F[n]$, we can reduce the number of function variables needed from 3N (N sets of cartesian coordinates) to 3 ($x,y,z$) in the density function $n(\mathbf{r})$ and as a result the complexity of the problem reduces drastically. However, the exact form of the universal functional is not currently known, and so must be approximated. For a system of free-moving electrons the exchange-correlation effects must be accounted for, since it is inaccurate to simply model a literal solid where the electrons are non-interacting. This is where the Kohn-Sham equations come in.
 
-\subsection{Kohn-Sham Equations}
+%\subsection{Kohn-Sham Equations}
 
-So that we can utilise DFT without sacrificing precision, we follow approach of Kohn and Sham \cite{kohn1965self} to transform the system of interacting electrons into a fictitious system of non-interacting pseudo-electrons. We can write the variational problem for the HK density-functional in equation (5), introducing a Lagrange multiplier $\mu$ to constrain the number of electrons to population N:
+%So that we can utilise DFT without sacrificing precision, we follow approach of Kohn and Sham \cite{kohn1965self} to transform the system of interacting electrons into a fictitious system of non-interacting pseudo-electrons. We can write the variational problem for the HK density-functional in equation (5), introducing a Lagrange multiplier $\mu$ to constrain the number of electrons to population N:
 
-\begin{equation}
-	\delta\biggr[F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) - \mu\biggr(\int d\mathbf{r} \ n(\mathbf{r}) - N\biggr)\biggr]
-\end{equation}
+%\begin{equation}
+%	\delta\biggr[F[n]+\int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) - \mu\biggr(\int d\mathbf{r} \ n(\mathbf{r}) - N\biggr)\biggr]
+%\end{equation}
 
-The Lagrange multiplier is introduced to convert a constrained problem into a form so that the critical points of the system can be found, which usually requires a system that is unconstrained. However, the reformulation of the problem generates a Lagrangian function that gives the relationship between the gradient of the sytem and the gradients of the constraints. This is important for what follows.
+%The Lagrange multiplier is introduced to convert a constrained problem into a form so that the critical points of the system can be found, which usually requires a system that is unconstrained. However, the reformulation of the problem generates a Lagrangian function that gives the relationship between the gradient of the sytem and the gradients of the constraints. This is important for what follows.
 
-The functional $F[n]$ can be separated into three categories:
+%The functional $F[n]$ can be separated into three categories:
 
-\begin{equation*}
-	F[n] = T[n]+\frac{1}{2}\int d\mathbf{r} \ d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+E_{exch}
-\end{equation*}
+%\begin{equation*}
+%	F[n] = T[n]+\frac{1}{2}\int d\mathbf{r} \ d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+E_{exch}
+%\end{equation*}
 
-where $T[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same density as that of the interacting system, the second term is the continuous classical Coulomb energy, and the final term represents the exchange-correlation interaction energy. The separation of these terms is to demonstrate that the first two parts can be tackled in a relatively easy way, whereas dealing with the last term proves to be more complicated, but actually only represents a small fraction of the system's total energy. Now equation (10) can be rewritten as:
+%where $T[n]$ is the kinetic energy of a non-interacting gas with associated density $n(\mathbf{r})$, which is not the same density as that of the interacting system, the second term is the continuous classical Coulomb energy, and the final term represents the exchange-correlation interaction energy. The separation of these terms is to demonstrate that the first two parts can be tackled in a relatively easy way, whereas dealing with the last term proves to be more complicated, but actually only represents a small fraction of the system's total energy. Now equation (10) can be rewritten as:
 
-\begin{equation}
-	\frac{\delta T[n]}{\delta n(\mathbf{r})} + V_{KS}(\mathbf{r}) = \mu
-\end{equation}
+%\begin{equation}
+%	\frac{\delta T[n]}{\delta n(\mathbf{r})} + V_{KS}(\mathbf{r}) = \mu
+%\end{equation}
 
-where the Kohn-Sham potential is given by:
+%where the Kohn-Sham potential is given by:
 
-\begin{equation*}
-	V_{KS}(\mathbf{r}) = \int d\mathbf{r}' \ \frac{n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+V_{exch}+V_{ext}(\mathbf{r})
-\end{equation*}
+%\begin{equation*}
+%	V_{KS}(\mathbf{r}) = \int d\mathbf{r}' \ \frac{n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|}+V_{exch}+V_{ext}(\mathbf{r})
+%\end{equation*}
 
-and the exchange-correlation potential is given by:
+%and the exchange-correlation potential is given by:
 
-$$V_{exch}(\mathbf{r}) = \frac{\delta E_{exch}[n]}{\delta n(\mathbf{r})}$$
+%$$V_{exch}(\mathbf{r}) = \frac{\delta E_{exch}[n]}{\delta n(\mathbf{r})}$$
 
-Equation (11)) can be obtained from evaluating a non-interacting system of particles moving in an external potential $V_{KS}(\mathbf{r})$. To find the ground state density we solve the N/2 (N must be even in this case) one-electron Schrödinger equations featuring the Kohn-Sham potential, constructing the density from the solutions via the twice sum of N/2 wavefunction probability amplitudes:
+%Equation (11)) can be obtained from evaluating a non-interacting system of particles moving in an external potential $V_{KS}(\mathbf{r})$. To find the ground state density we solve the N/2 (N must be even in this case) one-electron Schrödinger equations featuring the Kohn-Sham potential, constructing the density from the solutions via the twice sum of N/2 wavefunction probability amplitudes:
 
-$$n(\mathbf{r}) = 2\sum_{i=1}^{N/2}|\Psi_i(\mathbf{r})|^2$$
+%$$n(\mathbf{r}) = 2\sum_{i=1}^{N/2}|\Psi_i(\mathbf{r})|^2$$
 
-where the factor of 2 comes from spin degeneracy, and kinetic energy from:
+%where the factor of 2 comes from spin degeneracy, and kinetic energy from:
 
-$$T[n] = -\sum_{i=1}^{N/2}\int d\mathbf{r} \ \Psi_i^*(\mathbf{r})\nabla^2\Psi_i(\mathbf{r})$$
+%$$T[n] = -\sum_{i=1}^{N/2}\int d\mathbf{r} \ \Psi_i^*(\mathbf{r})\nabla^2\Psi_i(\mathbf{r})$$
 
-as you would expect.
+%as you would expect.
 
-The energy of the non-interacting system is given by the twice sum of the one electron eigenvalues from their Schrödinger equations:
+%The energy of the non-interacting system is given by the twice sum of the one electron eigenvalues from their Schrödinger equations:
 
-$$2\sum_{i=1}^{N/2}\epsilon_i = T[n]+\int d\mathbf{r}d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|} +\int d\mathbf{r} \ n(\mathbf{r})V_{exch}(\mathbf{r}) + \int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = E_{tot}$$
+%$$2\sum_{i=1}^{N/2}\epsilon_i = T[n]+\int d\mathbf{r}d\mathbf{r}' \ \frac{n(\mathbf{r})n(\mathbf{r}')}{|\mathbf{r}-\mathbf{r}'|} +\int d\mathbf{r} \ n(\mathbf{r})V_{exch}(\mathbf{r}) + \int d\mathbf{r} \ n(\mathbf{r})V_{ext}(\mathbf{r}) = E_{tot}$$
 
-but when we look at an interacting system and compare, we must account for the fact that we have double counted the classical Coulomb energy and over-counted the exchange-correlation energy. This interacting energy includes the corrections to reverse this, as well as $E_{exch}$.
+%but when we look at an interacting system and compare, we must account for the fact that we have double counted the classical Coulomb energy and over-counted the exchange-correlation energy. This interacting energy includes the corrections to reverse this, as well as $E_{exch}$.
 
-The calculation of the exchange-correlation energy will be discussed later on. It is treated using correlation functionals. DFT has been proved reliable in many cases, as long as the electron-electron interaction energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
+\subsection{Why and when to use DFT}
+In systems where the investigative focus is not on the correlation interactions of the Fermi-level electrons, density functional theory presents a convenient workaround for the computational complexity of solving the many-body Schrodinger equation analytically (see section 4.1). It can generate the total energy of the system by calculating a unique functional of the electron density. The exact dependence of the energy on this functional is still unknown, however attempts have been made to approximate these relations. Kohn and Sham transformed the problem of computing the ground state density of an N-electron system into a set of N linear Schrödinger equations corresponding to each electron. 
+
+Exchange correlation energy is a term in the Kohn Sham equations that can be interpreted as the contributions of detailed correlation and exchange to the system energy i.e. specific interactions between electrons in the electronic structure of the system. There are Pauli and Coulomb correlations as well as the correlation-kinetic effects are included in this term \cite{kohn1965self,refson2006variational}. The calculation of the exchange-correlation energy between atoms is treated using correlation functionals. DFT has been proved reliable in many cases, as long as the electron-electron interaction energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
 
 The domination of these interaction energies result in charge, spin or orbital occupation fluctuations that come from the competition between the different configurations in the electronic structure. The multi-configurational nature of the ground state system means that the ab-initio single-determinant method encounters accuracy issues. A different model must therefore be used to describe the effects that are dominated by these electrons \cite{gelle2009accurate}. However, for most cases, lattice geometry, dynamics and many other properties are still approximated effectively by DFT.
 
