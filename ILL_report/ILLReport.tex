@@ -8,6 +8,7 @@
 \usepackage{subfig}
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{fancyvrb}
 
 \author{Joshua Horswill}
 \title{ILL internship report}
@@ -54,7 +55,7 @@ where $E_0$ is the energy associated with all non-magnetic degrees of freedom an
 
 where $\langle \hat{\vec{S_i}}\cdot \hat{\vec{S_j}} \rangle $ denotes the thermal average of the spin inner product (as seen in equation (1)), $g$ is the g-factor characterising the magnetic moment of the atom, $\mu_{B}$ is the Bohr magneton and P is the polarisation of the system. 
 
-It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ becomes slightly larger or smaller than the critical temperature of the transition ($T_c$). The paramagnetic phase is the name assigned to the case where $T > T_c$, where for all magnetic states, thermal energy $k_B T \gg E_I - E_0$, where $E_I$ is the energy of the Ith magnetic state. In this paramagnetic phase, all magnetic eigenstates and their corresponding energy eigenvalues have an equivalent probability $P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$ where N is the number of magnetic eigenstates and Z is the partition function for the system. 
+It is known that the thermal probability of a state being occupied, in an energetically gapped system such as this, is varying very quickly as soon as the temperature $T$ becomes slightly larger or smaller than the critical temperature of the transition ($T_c$). The paramagnetic phase is the name assigned to the case where $T > T_c$, where for all magnetic states, thermal energy $$E_{th} = k_B T \gg E_I - E_0$$ where $E_I$ is the energy of the Ith magnetic state. In this paramagnetic phase, all magnetic eigenstates and their corresponding energy eigenvalues have an equivalent probability $$P(E = E_I) = \exp(-\beta E_I)/Z \simeq 1/N$$ where N is the number of magnetic eigenstates and Z is the partition function for the system. 
 
 Consequently, the free energy $\mathcal{F}$ is dominated by the entropy term. However, in the phase where the system is magnetically ordered ($T < T_c$), the probability $P(E = E_{ground})$ dominates so that $\mathcal{F}$ is dominated not by entropy but by the energetic term $U$. Now we can neglect the entropy contribution in the calculation of $\bar{\bar{\alpha}}$ as soon as the temperature is slightly smaller than $T_c$.
 
@@ -227,7 +228,7 @@ $$[ij|kl] = \int d\mathbf{x_1} d\mathbf{x_2} \ \chi^*_i(\mathbf{x_1})\chi_j(\mat
 which can be calculated using common existing computer algorithms.
 
 \subsubsection{Hartree Fock Equations}
-We must minimise the value of $E_{electron}$ from equation (7) with respect to the changes in the orbitals $\chi_i$. So far the orbitals $\chi$ have been assumed to be orthonormal, and so we must keep them that way through our variational procedure. This is done by employing `Lagrange's method of undetermined multipliers', where we use a Lagrangian $\mathcal{L}$ such
+We must minimise the value of $E_{electron}$ from equation (6) with respect to the changes in the orbitals $\chi_i$. So far the orbitals $\chi$ have been assumed to be orthonormal, and so we must keep them that way through our variational procedure. This is done by employing `Lagrange's method of undetermined multipliers', where we use a Lagrangian $\mathcal{L}$ such
 that:
 
 \begin{equation*}
@@ -240,7 +241,7 @@ where the coefficients $\epsilon_{ij}$ are undetermined Lagrange multipliers and
 	h(\mathbf{x_1})\chi_i(\mathbf{x_1})+\sum_{j \not= i}\biggr(\int d\mathbf{x_2} \ |\chi_j(\mathbf{x_2})|^2r_{12}^{-1}\biggr)\chi_i(\mathbf{x_1})-\sum_{j \not= i}\biggr(\int d\mathbf{x_2} \ \chi_j^*(\mathbf{x_2})\chi_i(\mathbf{x_2})r_{12}^{-1}\biggr)\chi_j(\mathbf{x_1}) = \epsilon_i\chi_i(\mathbf{x_1})
 \end{equation}
 
-where $\epsilon_i$ is the energy eigenvalue corresponding to the ith orbital eigenfunction. This problem can be solved in two ways, the first being numerically, and the second solving it in a space spanned by the basis functions. Both solutions depend on the orbitals, and so we need to guess some initial orbitals and generate increasingly educated guesses iteratively. The first term in equation (8) represents the Coulomb interaction of an electron described by $\chi_i$ with the average charge distribution of the other electrons (mean field). 
+where $\epsilon_i$ is the energy eigenvalue corresponding to the ith orbital eigenfunction. This problem can be solved in two ways, the first being numerically, and the second solving it in a space spanned by the basis functions. Both solutions depend on the orbitals, and so we need to guess some initial orbitals and generate increasingly educated guesses iteratively. The first term in equation (7) represents the Coulomb interaction of an electron described by $\chi_i$ with the average charge distribution of the other electrons (mean field). These concepts and systems of equations can be a good starting point for employing DFT in a practical case, where the correlations between electrons are not the highest priority. This means we can employ this orthonormal orbital, mean field approach to modelling the ground state energy of the electronic structure of a multiferroic material.
 
 %\subsection{Hohenberg-Kohn theorems}
 
@@ -323,17 +324,19 @@ where $\epsilon_i$ is the energy eigenvalue corresponding to the ith orbital eig
 %but when we look at an interacting system and compare, we must account for the fact that we have double counted the classical Coulomb energy and over-counted the exchange-correlation energy. This interacting energy includes the corrections to reverse this, as well as $E_{exch}$.
 
 \subsection{Why and when to use DFT}
-In systems where the investigative focus is not on the correlation interactions of the Fermi-level electrons, density functional theory presents a convenient workaround for the computational complexity of solving the many-body Schrodinger equation analytically (see section 4.1). It can generate the total energy of the system by calculating a unique functional of the electron density. The exact dependence of the energy on this functional is still unknown, however attempts have been made to approximate these relations. Kohn and Sham transformed the problem of computing the ground state density of an N-electron system into a set of N linear Schrödinger equations corresponding to each electron. 
+In systems where the investigative focus is not on the correlation interactions of the Fermi-level electrons, density functional theory presents a convenient workaround for the computational complexity of solving the many-body Schrodinger equation analytically (see section 4.1). It can generate the total energy of the system by calculating a unique functional of the electron density. The exact dependence of the energy on this functional is still unknown, however attempts have been made to approximate these relations. Kohn and Sham transformed the problem of computing the ground state density of an N-electron system into a set of N linear Schrödinger equations corresponding to each electron \cite{kohn1965self}. 
 
-Exchange correlation energy is a term in the Kohn Sham equations that can be interpreted as the contributions of detailed correlation and exchange to the system energy i.e. specific interactions between electrons in the electronic structure of the system. There are Pauli and Coulomb correlations as well as the correlation-kinetic effects are included in this term \cite{kohn1965self,refson2006variational}. The calculation of the exchange-correlation energy between atoms is treated using correlation functionals. DFT has been proved reliable in many cases, as long as the electron-electron interaction energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
+Exchange correlation energy is a term in the Kohn Sham equations that can be interpreted as the contributions of detailed correlation and exchange to the system energy i.e. specific interactions between electrons in the electronic structure of the system. There are Pauli and Coulomb correlations as well as the correlation-kinetic effects are included in this term \cite{kohn1965self,refson2006variational}. The calculation of the exchange-correlation energy between atoms is treated using correlation functionals. DFT has been proved reliable in many cases, as long as the correlation energy is considerably less than the kinetic energy. This is not the case for strongly correlated systems i.e. when the exchange-correlation energy is dominant \cite{pickett1989electronic}. This is the property of Fermi-level electrons and their magnetic interactions. In transition metal oxides, they are localised practically on the d-orbitals of the metal ions. The Coulomb and exchange interaction energies in this case are of a larger magnitude than the electron's kinetic energy.
 
-The domination of these interaction energies result in charge, spin or orbital occupation fluctuations that come from the competition between the different configurations in the electronic structure. The multi-configurational nature of the ground state system means that the ab-initio single-determinant method encounters accuracy issues. A different model must therefore be used to describe the effects that are dominated by these electrons \cite{gelle2009accurate}. However, for most cases, lattice geometry, dynamics and many other properties are still approximated effectively by DFT.
+The domination of these interaction energies result in charge, spin or orbital occupation fluctuations that come from the competition between the different configurations in the electronic structure. The multi-configurational nature of the ground state system means that the ab-initio single-determinant method encounters accuracy issues. A different model must therefore be used to describe the effects that are dominated by these electrons \cite{gelle2009accurate}. However, for most cases, lattice geometry, dynamics and many other properties are still approximated effectively by DFT. In the next section we will discuss the cases where the property that we are investigating relies on a strongly correlated system, and the alternative techniques that are used to deal with this. 
 
 \section{Accurately Employing Wavefunction Correlated Methods (WCMs)}
 
-Strongly correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants. Since all of the orbital configurations are strongly coupled, we need a model that doesn't represent the electron distribution as a non-interacting, single-determinant density functional if we want to accurately calculate effects that result from the Fermi level electrons. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
+Strongly correlated systems are characterised by strong Coulomb repulsions, which result in wavefunctions (for ground and low lying excited states) involving many Slaters determinants (SD's). With weakly correlated systems there can also be many SD's, but there is one main reference configuration with the largest weighting. A reference configuration is a convenient baseline where all subsequent configurations are referenced from (see below for diagrams of ground state reference configurations and their subsequent excitations). The non-reference SD's have a much smaller weighting in the configuration. In strongly correlated systems each SD possesses the same weighting and we must consider them all equally (there is not a dominant SD like in the former case).
 
-One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments. Look at figures (1) and (2) for examples of configuration + excitement diagrams of a 6 electron system, with 4 electrons in the ground state, 2 active atoms and 2 virtual orbitals.
+When all of the orbital configurations are strongly coupled, a model that represents the electron distribution as a non-interacting, single-determinant density functional is not optimal if we want to accurately calculate effects that result from the Fermi level electron's correlation effects. This means we must rely on wavefunction correlated methods that are specifically designed for these mechanisms. 
+
+One such example is the difference-dedicated configuration interaction method (DDCI). This was born from the fact that many methods of determining the molecular properties of the ground state had difficulty treating excited states in an accurate way. Methods similar to the `full configuration interaction' (FCI) approach (such as cluster methods, which include the effect of triple excitations), where all Slater determinants of the proper symmetry are included in the virtual procedure, have been extended to deal with excitation energy calculations. In other words, FCI-type methods determine the model Hamiltonian using exact diagonalization of selected configuration spaces, which can be done on embedded fragments. Figures (1) and (2) are useful examples of configuration + excitement diagrams of a 6 electron system, with 4 electrons in the ground state, 2 active atoms and 2 virtual orbitals.
 
 \begin{figure}
 	\centering
@@ -363,74 +366,117 @@ DDCI solves these problems by building a configuration interaction with a small 
 
 \subsection{Modifications of the Standard WCMs and Effective Hamiltonian Criteria}
 
-Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge transfer configurations were removed from the reference part of the wavefunction (a ligand is a core electron; the charges being transferred are electrons between ions). When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn III ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion, to 20 million, respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
+Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge transfer configurations were removed from the reference part of the wavefunction (a ligand is an ion or molecule bound to a central metal atom; the charges being transferred are electrons between these bodies). When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn III ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion, to 20 million, respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
 
 %%%%%%% Here is wherre my understanding starts to become less than 100%
 
-With both methods a dynamical correlation correction on each reference determinant is included, independent of whether they are based on either the CAS or a zeroth-order multi-reference space retaining the dominant configurations for low-lying states. Highly accurate spectra are consequently obtained, from which effective-exchange integrals can be extracted using an effective Hamiltonian method. This is a Hamiltonian that acts in a reduced space and only describes a part of the eigenvalue spectrum of the true Hamiltonian. The Heisenberg Hamiltonian of equation (1) works on fictitious electron spin variables of magnetic subsystems, describing only low-lying energy states. However, these evaluations yield energy values within the error bar of experimental inelastic neutron scattering results.
+%With both methods a dynamical correlation correction on each reference determinant is included, independent of whether they are based on either the CAS or a zeroth-order multi-reference space retaining the dominant configurations for low-lying states. Highly accurate spectra are consequently obtained, from which effective-exchange integrals can be extracted using an effective Hamiltonian method. This is a Hamiltonian that acts in a reduced space and only describes a part of the eigenvalue spectrum of the true Hamiltonian. The Heisenberg Hamiltonian of equation (1) works on fictitious electron spin variables of magnetic subsystems, describing only low-lying energy states. However, these evaluations yield energy values within the error bar of experimental inelastic neutron scattering results.
 
-The ground and low-lying energy state eigenvalues and wavefunctions provided by these calculations are for a set of fragments designed to suit all the crystallographically independent effective interactions. One can use the described effective Hamiltonian theory to obtain a spin Hamiltonian separate from the Heisenberg one, that also works on fictitious effective electron variables but also nuclear spin variables. It typically only describes the $(2s+1)(2l+1)$ magnetic sublevels of the complete spectrum, where s and l are the spin and orbital angular momentum quantum numbers, respectively. \cite{mostafanejad2014basics}. The objective for the solutions of this spin Hamiltonian is that on each fragment it mimics the eigenvalues of the system that the fragment is embedded within, and that it's eigenvectors reproduce the main configurations of the ab-initio wavefunctions. The projection must be onto a subset of the zeroth-order multi-reference space chosen for the ab-initio calculation, as seen in this equation for the system wavefunction\cite{gelle2009accurate}:
+%The ground and low-lying energy state eigenvalues and wavefunctions provided by these calculations are for a set of fragments designed to suit all the crystallographically independent effective interactions. One can use the described effective Hamiltonian theory to obtain a spin Hamiltonian separate from the Heisenberg one, that also works on fictitious effective electron variables but also nuclear spin variables. It typically only describes the $(2s+1)(2l+1)$ magnetic sublevels of the complete spectrum, where s and l are the spin and orbital angular momentum quantum numbers, respectively. \cite{mostafanejad2014basics}. The objective for the solutions of this spin Hamiltonian is that on each fragment it mimics the eigenvalues of the system that the fragment is embedded within, and that it's eigenvectors reproduce the main configurations of the ab-initio wavefunctions. The projection must be onto a subset of the zeroth-order multi-reference space chosen for the ab-initio calculation, as seen in this equation for the system wavefunction\cite{gelle2009accurate}:
 
-\begin{equation*}
-	|\psi_m\rangle = |\psi^0_m\rangle + |\psi^{ct}_m\rangle + |\psi^*_m\rangle
-\end{equation*}
+%\begin{equation*}
+%	|\psi_m\rangle = |\psi^0_m\rangle + |\psi^{ct}_m\rangle + |\psi^*_m\rangle
+%\end{equation*}
 
-where $|\psi^0_m\rangle = \sum_{I}C^0_{I,m}|\Phi^0_I\rangle$, and $|\Phi^0_I\rangle$ represents the zeroth order CAS reference configuration. The coefficients for each determinant are found by diagonalising the effective Hamiltonian. This projection must represent at least $\sim90\%$ of the wave function of all involved states. Once the projection operator that accommodates these requirements is chosen, it is possible to achieve this in minimising the Lagrangian with respect to the fictional effective Hamiltonian variables:
+%where $|\psi^0_m\rangle = \sum_{I}C^0_{I,m}|\Phi^0_I\rangle$, and $|\Phi^0_I\rangle$ represents the zeroth order CAS reference configuration. The coefficients for each determinant are found by diagonalising the effective Hamiltonian. This projection must represent at least $\sim90\%$ of the wave function of all involved states. Once the projection operator that accommodates these requirements is chosen, it is possible to achieve this in minimising the Lagrangian with respect to the fictional effective Hamiltonian variables:
 
-\begin{equation*}
-	\min_{J_{ij}} \mathcal{L}(J_{ij}) = \min_{J_{ij}} \sum_I ||\hat{H}(J_{ij})\hat{P}|\Psi_I\rangle-E_I\hat{P}|\Psi_I\rangle||^2
-\end{equation*}
+%\begin{equation*}
+%	\min_{J_{ij}} \mathcal{L}(J_{ij}) = \min_{J_{ij}} \sum_I ||\hat{H}(J_{ij})\hat{P}|\Psi_I\rangle-E_I\hat{P}|\Psi_I\rangle||^2
+%\end{equation*}
 
-$\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments. 
+%$\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments. 
 
 \section{Calculation of the Displacement with Crystal}
 Crystal performs ab initio calculations of the ground state energy as well as the energy gradient. It also has the potential do generate the electron wavefunctions and consequently their behaviour in a periodic system. Hartree-Fock and Kohn-Sham Hamiltonians are typically used (using postulates of DFT). Periodic systems are approximated by expansion of the single-particle wavefunctions as a linear combination of Bloch functions; a wave function that can be written as a plane wave modulated by a periodic function is a Bloch wave, typically used to describe crystallographic electrons. These Bloch functions are modulated by local functions or `Atomic Orbitals'. These are linear `Gaussian type functions' used in the `Linear Combination of Atomic Orbitals' (LCAO) method, which you may know as an approximation that generates a system wavefunction from superposed electronic wavefunctions belonging to individual atoms. The various molecular symmetries (s,p,d,f,sp e.t.c) of the structure are used to modulate these LCAO orbitals \cite{dovesi2017crystal17}.
 
-From a DFT calculation with Crystal, when the optimal geometry is obtained, print the Hessian matrix to file with the option \verb|PRINTHESS|. 
+From a DFT calculation with Crystal, when the optimal geometry is obtained, we can print the Hessian matrix to file with the option \verb|PRINTHESS|. 
 
 
-\subsection{Calculation of the J}
+%\subsection{Calculation of the J}
 
-From a set of inputs for the software suite used for a point of the calculation
-\begin{itemize}
-	\item env15
-	\item seward
-	\item rasscf
-	\item localisation
-	\item matrec
-	\item kinorb
-	\item rasscf - ci only
-	\item motra
-	\item sass
-	\item prop
-\end{itemize}
+%From a set of inputs for the software suite used for a point of the calculation
+%\begin{itemize}
+%	\item env15
+%	\item seward
+%	\item rasscf
+%	\item localisation
+%	\item matrec
+%	\item kinorb
+%	\item rasscf - ci only
+%	\item motra
+%	\item sass
+%	\item prop
+%\end{itemize}
 
 \section{Env2Seward}
-Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering the data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file. They are organised into quantum fragment, pseudopotential and Madelung potential sections in a way that is readable by the SEWARD input algorithm. It can be automated by calling it from command line with a separate shell script, with the libraries and basis sets as a third system input file. 
+Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
+
+Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the ENV output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in this third system input file. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells. Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
+
+
+\begin{figure}
+\centering
+\begin{BVerbatim}[fontsize=\small]
+\&SEWARD
+Title
+Excerpt
+
+Expert
+Verbose
+
+*** Fragment ***************************************************
+Basis set
+Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.
+spherical
+Mn01       0.000000000000       0.000000000000       2.749761859316        Bohr
+Mn02       0.000000000000       0.000000000000      -2.749761859316        Bohr
+End of basis
+****
+Basis set
+O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f
+spherical
+O203       2.231731397024      -0.875526023191       0.000000000000        Bohr
+O204      -2.231731397024       0.875526023191       0.000000000000        Bohr
+O305       2.118901193775      -1.064763543958      -5.367483621542        Bohr
+O306      -2.119040147228       1.064763543958      -5.367483621542        Bohr
+O407       1.412183935493       3.326902091439      -2.642519536557        Bohr
+O408       1.412183935493       3.326902091439       2.642519536557        Bohr
+O409      -1.412183935493      -3.326902091439       2.642519536557        Bohr
+O410      -1.412183935493      -3.326902091439      -2.642626886230        Bohr
+O311       2.118901193775      -1.064763543958       5.367483621542        Bohr
+O312      -2.119040147228       1.064763543958       5.367483621542        Bohr
+End of basis
+****
+\end{BVerbatim}
+\caption{Excerpt of fragment coordinates from env2seward output file generated for SEWARD input. No specified library so the default is used.}
+\end{figure}
+
 
 \section{Solving the displacement equation}
 \subsection{Solving for the atom displacements}
 
-Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogenoeous electric field.  
+Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogeneous electric field.  
 
 
 \subsubsection{Details of Script Mechanisms}
 
-\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. As discussed before, CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. Therefore this output file contains several pieces of information that are required for the next step. 
+\texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. As discussed before, CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information that are required for the next step. 
 
 Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x/a,y/b,z/c for N atoms in the a,b,c lattice vector basis) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centres is zero.
 
-Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $H$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
+Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $\mathcal{H}$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
 \begin{equation*}
-q.E = -H.d
+q.E = -\mathcal{H}.d
 \end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective way.
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective method.  The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, which includes the division of the vector element by the corresponding lattice vector given in atomic units ($conversion*(Ea/a,Eb/b,Ec/c)$). Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting. This is because the three possible Hessian elements in a.u. are given as:
 
-These displacements are given as a $3N$ dimensional column vector in a.u. and converted to fractional units where $x_n/a,y_n/b,z_n/c = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, and divided by the corresponding lattice vector ($conversion*(Ea/a,Eb/b,Ec/c)$). The various Hessian elements in a.u. are given as
+$$\frac{\partial^2E}{\partial(x_i/a)\partial(y_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(y_i/b)\partial(z_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(x_i/a)\partial(z_k/c)}$$.
 
- $$\frac{\partial^2E}{\partial(x_i/a)\partial(y_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(y_i/b)\partial(z_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(x_i/a)\partial(z_k/c)}$$.
+Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
 
-In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting.
+The displacements are given as a $3N$ dimensional column vector in a.u. and converted to fractional units where $x_n/a,y_n/b,z_n/c = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. 
+
+
 %The electric field is converted from kV/m in the a,b,c basis and divided by the corresponding lattice vector length to obtain a fractional unit basis.
 
 \subsubsection{Cell File}
