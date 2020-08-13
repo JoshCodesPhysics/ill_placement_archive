@@ -278,12 +278,15 @@ def convert_coords(output_file):
 
 def conv_hessian(hess_matrix, output_file):
     """Converts Hessian from fractional units to atomic units"""
-    
+ 
+    ANG2BOHR = float(1.889725989) 
     conv_data = convert_coords(output_file)
     conv_matrix = conv_data[0]
-    lat_param = [float(i) for i in conv_data[2].split()[:3]]
+    # Convert lattice parameters into atomic units for
+    # matrix element division
+    lat_param = [float(ANG2BOHR*float(i))
+                 for i in conv_data[2].split()[:3]]
     mdim = len(hess_matrix)
-    # ANG2BOHR = float(1.889725989) 
     
     for i in range(mdim):
         for j in range(mdim):
@@ -459,8 +462,9 @@ def evec(ea, eb, ec, lat_param, mdim):
     """Generates electric field vector from a,b,c inputs and
     the lattice parameters Ea/a,Eb/b,Ec/c
     """
-    
-    CONVERSION = float(1000/(5.14220674763e11))
+     
+    ANG2BOHR = float(1.889725989) 
+    CONVERSION = float((1000/(5.14220674763e11))*(1/ANG2BOHR))
     e_vector = np.zeros((mdim))
     
     for i in range(mdim):
@@ -992,10 +996,12 @@ def read_input(input_file):
     
     
     if unit_source == "charge":
+        print("Grid is being generated...")
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source, charge_dict)
     
     elif unit_source == "auto" or unit_source == "direct":
+        print("Grid is being generated...")
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source)
     
@@ -1081,13 +1087,14 @@ def read_prompt():
         
         print("###########################END OF INPUT###################"+\
                 "##########")
-        
+        print("Grid is being generated...")
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source, element_charge)
     
     else:
         print("###########################END OF INPUT##################"+\
                 "###########")
+        print("Grid is being generated...")
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source)
 
