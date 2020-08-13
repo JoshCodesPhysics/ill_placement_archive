@@ -69,7 +69,7 @@ The prompt option allows you to enter the information directly into the terminal
 	
 	Same again, name if local, full path if non-local.
 	
-	\item start,stop,step separated by commas for $E_a$ ($E_b$, $E_c$ are done sequentially after).
+	\item start,stop,step separated by commas for $E_a$ ($E_b$, $E_c$ are done sequentially after) in units of kV/m.
 	
 	Simply input starting electric field value, final value and size of step as a tuple.
 	
@@ -93,10 +93,15 @@ We have the following rules:
 
 \begin{itemize}
 	\item Each line element is separated by a space i.e. there is a space either side of the `$=$' sign.
+	
 	\item \texttt{crystal\_file} is the variable assigned to the relative/full path directory of the crystal output file.
+	
 	\item \texttt{cell\_init} is assigned to the relative/full path directory of the initial cell file.
-	\item The \texttt{ea, eb, ec} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values.
+	
+	\item The \texttt{ea, eb, ec} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values given in kV/m also.
+	
 	\item \texttt{unit\_source} is the variable assigned to the unit cell generator parameter (charge,auto,direct).
+	
 	\item If \texttt{charge} is passed, a dictionary in python format must assign each atom to a charge value. The general format is \texttt{\{"key":value\}}. See section 2.3 for more examples.
 	
 \end{itemize}

@@ -11,10 +11,9 @@
 \subsubsection{How to compile and run the script}
 \begin{itemize}
 	\item A {\bf python 3} distribution such as `Anaconda' or `Active Python' can be downloaded, which provides the option of using integrated development environments (IDE) such as `Spyder' for programming in the python language
-	\item Before running the file, make sure the script is in the same directory as the input files described below
 	\item If you are using an IDE, open the file (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal
 	\item If you want to install python directly, see \url{https://realpython.com/installing-python/}
-	\item Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. The new file will appear in the same directory as the python script.
+	\item Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. If you want to call the script from full path, just replace the \texttt{env2seward.py} with it's full path directory. The new file will appear in the same directory as the python script.
 \end{itemize} 
 \subsection{Prompt entry}
 \subsubsection{Inputs and outputs}
@@ -34,7 +33,7 @@ In summary the files and data required for this program are:
 	\item Pseudopotential basis sets and library locations.
 	\item Name of the prefix.
 \end{itemize}
-Remember that for the prompt option, the input files must be in the same directory as the env2seward script.
+Remember that for the prompt option, the input files must be in the same directory as the env2seward script. If you want the files to be called from a different relative or full path directory, it is recommended to employ the input method below.
 
 \subsubsection{Prefix, Title and Basis Set Formatting}
 
@@ -78,7 +77,7 @@ Here is an example for a GdMn2O5 input file, where the fragment dictionary (\tex
 \end{lstlisting}
 Make sure that all variables are on the {\bf same line} as the string/dictionary they are being assigned to. There also must be spacing between the variable, the $=$ sign and the data, so that the parsing algorithm can identify the data and write it to the output file.
 
-Make sure this file is in the same directory as the python script if you are giving the relative path (filename) or if not, quote the full path in the command line when calling it as explained below. This is also the case for the ENV files. Write the full path of these files instead of their filenames in the input file being passed to the command line, if they are not local. 
+If you are giving the relative path (filename), make sure this user-generated input file is in the same directory as the python script, and if not, quote the full path in the command line when calling it instead of the filename. This is also the case for the ENV files. If the \texttt{sew0} and \texttt{psd} files are non-local, replace the file name with the full path directory.
 
 \begin{itemize}
 	\item \texttt{python3 env2seward.py chosen\_input\_filename}
