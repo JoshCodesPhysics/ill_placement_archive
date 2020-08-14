@@ -9,6 +9,12 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{fancyvrb}
+\usepackage{a4}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+
+%\usepackage[subpreambles]{standalone}
 
 \author{Joshua Horswill}
 \title{ILL internship report}
@@ -368,6 +374,8 @@ DDCI solves these problems by building a configuration interaction with a small 
 
 Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge transfer configurations were removed from the reference part of the wavefunction (a ligand is an ion or molecule bound to a central metal atom; the charges being transferred are electrons between these bodies). When comparing to the CAS+DDCI, the multiple metal-to-metal charge transfer configurations and associated screening configurations were removed. Additionally, double excitations were restricted to screening excitations on the ligand-to-metal charge transfers. This meant that the number of configurations in a magnetic interaction between two high-spin Mn III ions, for CAS+DDCI and LCAS+S, were reduced from approximately 10 billion and 60 billion, to 20 million, respectively. This new approach is called the `selected active space' method (SAS+S); see \cite{gelle2009accurate} for more on this approach. This optimised, embedded fragment, quantum chemical {\it ab initio} method allows for analysis of the local fluctuations of magnetic couplings in manganites, which were known to be influential in the macroscopic magneto-resistance effects but not accessible experimentally.
 
+After the system geometry optimisation in CRYSTAL, ENV takes the positions of a chosen quantum fragment in the ground state and prepares it for embedding. The results are fed through a program called Env2Seward (see section 7). Then the MOLCAS chain (another ab initio computational chemistry program) handles the SAS+S method in the particular case of this project to describe the correlation interactions and leads us closer to discovering the magnetoelectric properties of a system. 
+
 %%%%%%% Here is wherre my understanding starts to become less than 100%
 
 %With both methods a dynamical correlation correction on each reference determinant is included, independent of whether they are based on either the CAS or a zeroth-order multi-reference space retaining the dominant configurations for low-lying states. Highly accurate spectra are consequently obtained, from which effective-exchange integrals can be extracted using an effective Hamiltonian method. This is a Hamiltonian that acts in a reduced space and only describes a part of the eigenvalue spectrum of the true Hamiltonian. The Heisenberg Hamiltonian of equation (1) works on fictitious electron spin variables of magnetic subsystems, describing only low-lying energy states. However, these evaluations yield energy values within the error bar of experimental inelastic neutron scattering results.
@@ -387,7 +395,7 @@ Compared to the LCAS+S, the multiple metal-to-metal and ligand-to-metal charge t
 %$\hat{H}(J_{ij})$ is the spin Hamiltonian, $|\Psi_I\rangle$ is the wave function for the $I$th excited state and $E_I$ its energy, and $\hat{P}$ is the aforementioned projection operator. The accuracy of this chosen $\hat{H}(J_{ij})$ is insured by the fact that $\sqrt{\mathcal{L}(J_{ij})} << J_{ij}$ and about $90\%$ of the \textit{ab initio} wavefunctions are represented for all fragments. 
 
 \section{Calculation of the Displacement with Crystal}
-Crystal performs ab initio calculations of the ground state energy as well as the energy gradient. It also has the potential do generate the electron wavefunctions and consequently their behaviour in a periodic system. Hartree-Fock and Kohn-Sham Hamiltonians are typically used (using postulates of DFT). Periodic systems are approximated by expansion of the single-particle wavefunctions as a linear combination of Bloch functions; a wave function that can be written as a plane wave modulated by a periodic function is a Bloch wave, typically used to describe crystallographic electrons. These Bloch functions are modulated by local functions or `Atomic Orbitals'. These are linear `Gaussian type functions' used in the `Linear Combination of Atomic Orbitals' (LCAO) method, which you may know as an approximation that generates a system wavefunction from superposed electronic wavefunctions belonging to individual atoms. The various molecular symmetries (s,p,d,f,sp e.t.c) of the structure are used to modulate these LCAO orbitals \cite{dovesi2017crystal17}.
+Crystal performs ab initio calculations of the ground state energy as well as the energy gradient. It also has the potential do generate the electron wavefunctions and consequently their behaviour in a periodic system. Hartree-Fock and Kohn-Sham Hamiltonians are typically used (using postulates of DFT). Periodic systems are approximated by expansion of the single-particle wavefunctions as a linear combination of Bloch functions; a wave function that can be written as a plane wave modulated by a periodic function is a Bloch wave, typically used to describe crystallographic electrons. These Bloch functions are modulated by local functions or `Atomic Orbitals'. These are linear `Gaussian type functions' used in the `Linear Combination of Atomic Orbitals' (LCAO) method, which you may know as an approximation that generates a system wavefunction from superposed electronic wavefunctions belonging to individual atoms. The various molecular symmetries (s, p, d, f, sp e.t.c) of the structure are used to modulate these LCAO orbitals \cite{dovesi2017crystal17}.
 
 From a DFT calculation with Crystal, when the optimal geometry is obtained, we can print the Hessian matrix to file with the option \verb|PRINTHESS|. 
 
@@ -409,7 +417,7 @@ From a DFT calculation with Crystal, when the optimal geometry is obtained, we c
 %\end{itemize}
 
 \section{Env2Seward}
-Env2Seward is a driver script that written in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
+Env2Seward is the first driver script that I wrote in the earlier stages of my time at ILL, to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
 
 Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the ENV output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in this third system input file. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells. Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
 
@@ -451,14 +459,15 @@ End of basis
 \caption{Excerpt of fragment coordinates from env2seward output file generated for SEWARD input. No specified library so the default is used.}
 \end{figure}
 
+The appendix contains an instruction manual that goes into more depth about specifically how to use this software. 
 
 \section{Solving the displacement equation}
 \subsection{Solving for the atom displacements}
 
-Once we have optimised the geometry of a system in order to minimise the total energy i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogeneous electric field.  
+Once we have optimised the geometry of a system in CRYSTAL in order to minimise the total energy, i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogeneous electric field. 
 
 
-\subsubsection{Details of Script Mechanisms}
+\subsection{Details of Script Mechanisms}
 
 \texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. As discussed before, CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information that are required for the next step. 
 
@@ -468,21 +477,31 @@ Once the Born tensor has been generated, the lower triangular symmetric Hessian 
 \begin{equation*}
 q.E = -\mathcal{H}.d
 \end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective method.  The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, which includes the division of the vector element by the corresponding lattice vector given in atomic units ($conversion*(Ea/a,Eb/b,Ec/c)$). Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting. This is because the three possible Hessian elements in a.u. are given as:
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective method.  The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, which includes the division of the vector element in Angstrom by the corresponding lattice vector given in atomic units ($conversion*(Ea/a,Eb/b,Ec/c)$). The conversion is given as follows: $$\text{conversion} = \frac{kV/m}{E_h/ea_0}\times\frac{1}{\text{Angstrom to Bohr conv.}} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)}\times \frac{1}{1.889725989}$$ 
+
+where ${E_h/ea_0}$ are the atomic field units given in terms of the Hartree energy.
+
+Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting. This is because the three possible Hessian elements in a.u. are given as:
 
 $$\frac{\partial^2E}{\partial(x_i/a)\partial(y_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(y_i/b)\partial(z_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(x_i/a)\partial(z_k/c)}$$.
 
-Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
+If the Hessian matrix element of the ith row and jth column is given by $a_{ij}$ then $a_{11}$ becomes $a_{11}/a^2$, $a_{12}$ becomes $a_{12}/ab$, $a_{13}$ becomes $a_{13}/ac$ e.t.c. It depends on the modulus of the i or j index with 3: $mod(i,3) \ \text{or} \ i \ \% \ 3 = 0,1,2$ corresponds to a division by a,b,c respectively. Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
 
 The displacements are given as a $3N$ dimensional column vector in a.u. and converted to fractional units where $x_n/a,y_n/b,z_n/c = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. 
 
 
 %The electric field is converted from kV/m in the a,b,c basis and divided by the corresponding lattice vector length to obtain a fractional unit basis.
 
-\subsubsection{Cell File}
+\subsection{Cell File}
 The initial cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates, and the corresponding charges. If all the required information is stored in this file, the \texttt{unit\_source} parameter `direct' can be called and all unit cell information is parsed from this file. Sometimes the cell file can be generated by CRYSTAL in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, if \texttt{unit\_source} = auto, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by parsing the CRYSTAL output file for the unit cell coordinates and irreducible groups. A new file is then written containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $a,b,c$ directions. A grid of cell files specified by the $E_a,E_b,E_c$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges. 
 
 Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The module used was the symmetric system driver DSYEV, and was ran in tandem with the python script using a batch file so we can compare displacement results. When the optimal displacements have been obtained, we can add them to the atom coordinates from the CRYSTAL output system.cell files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
+
+Again, please see the appendix for an instruction manual that covers more detail how to use this software.
+
+\section*{Software Manual Appendix}
+\input{/home/joshhorswill10/Documents/git_new/joshua_3/manuals/e2s_disp_manual/driver_manual.tex}
+
 \bibliography{reportbib.bib}
 \bibliographystyle{plainurl}
 \end{document}
