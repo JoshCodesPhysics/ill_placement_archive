@@ -6,7 +6,7 @@ from a CRYSTAL simulation to generate the necessary matrices for this displaceme
 
 ## Installing python 3
 
-A **python 3** distribution must be installed. Either Anaconda or direct installation [here]https://realpython.com/installing-python/ are the best options. 
+A **python 3** distribution must be installed. Either Anaconda or direct installation [here](https://realpython.com/installing-python/) are the best options. 
 
 ## Correct packages
 
@@ -68,7 +68,7 @@ charge_dict = {"Y":3.0, "MN":3.0, "O1":-2.0, "O2":-2.0}
 - Crystal and cell file relative or full path directories are assigned to crystal\_file and cell\_init respectively
 - ea, eb, ec are the ranges for E\_a, E\_b, E\_c respectively in the format \[start,stop,step\]
 - unit_source is assigned to either direct, auto or charge
-- If charge is chosen above, give each atom's charge in the [python dictionary format]https://www.w3schools.com/python/python_dictionaries.asp
+- If charge is chosen above, give each atom's charge in the [python dictionary format](https://www.w3schools.com/python/python_dictionaries.asp)
 
 ## Output
 
