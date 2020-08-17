@@ -277,7 +277,23 @@ def convert_coords(output_file):
 
 
 def conv_hessian(hess_matrix, output_file):
-    """Converts Hessian from fractional units to atomic units"""
+    """Converts Hessian from fractional units to atomic units
+
+    Parameters
+    ----------
+    hess_matrix: array
+        Contains non-converted Hessian matrix, symmetrised
+        along the diagonal
+    output_file: str
+        Contains path to CRYSTAL output file containing
+        necessary conversion matrix and lattice parameter data
+    
+    Returns:
+    ----------
+    hess_matrix: array
+        Contains Hessian matrix converted to fractional atomic units?
+        In the a,b,c lattice vector basis? Yes this may be changed.
+    """
  
     ANG2BOHR = float(1.889725989) 
     conv_data = convert_coords(output_file)
@@ -306,7 +322,25 @@ def conv_hessian(hess_matrix, output_file):
 
 
 def hessian(born_file, hess_file):
-    """Returns L Hessian matrix as a square matrix"""
+    """Returns Hessian data from input file as a square symmetric matrix
+
+    Parameters
+    ----------
+    born_file: str
+        Path of file containing born charge data
+    hess_file: str
+        Path of file containing Hessian data
+
+    Returns
+    ----------
+    l_matrix: array
+        Square L matrix containing values appended from hess_file
+        Top right values are all zero
+    conv_hess: array
+        Processed Hessian, mirrored so it is symmetric. Converted
+        from Hartree energy to fractional a.u., still in a,b,c
+        basis
+    """
     
     # Determines dimensions of Hessian
     m_dim = 3*num_atoms(born_file)
@@ -417,6 +451,19 @@ def hessian(born_file, hess_file):
 def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
     vectors in cartesian coordinates
+    
+    Parameters
+    ----------
+    out_file: str
+        CRYSTAL output file to be parsed for data to supplement non-general
+        conversion of a unit cell
+
+    Returns
+    ----------
+    lattice_vectors: list
+        List of lattice vectors generated from lattice parameter data
+    unit_vectors: list
+        List of unit lattice vectors to be used for a basis
     """
     
     # This function isn't very general so is not used
@@ -459,10 +506,28 @@ def convert_coords2(out_file):
 
 
 def evec(ea, eb, ec, lat_param, mdim):
-    """Generates electric field vector from a,b,c inputs and
-    the lattice parameters Ea/a,Eb/b,Ec/c
+    """Generates electric field vector from kV/m a,b,c inputs and
+    the converts into a.u., dividing by corresponding 
+    lattice parameters as conversion*(Ea/a,Eb/b,Ec/c)
+    
+    Parameters
+    ----------
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+    lat_param: list
+        List containing lattice parameter values [a,b,c]
+    mdim: int
+        Number of rows in vector / dimension of qE = -Hd equation
+
+    Returns:
+        E vector in fractional atomic units with mdim sets of
+        Ea, Eb, Ec coordinates (uniform field)
     """
-     
+    
     ANG2BOHR = float(1.889725989) 
     CONVERSION = float((1000/(5.14220674763e11))*(1/ANG2BOHR))
     e_vector = np.zeros((mdim))
@@ -480,6 +545,27 @@ def evec(ea, eb, ec, lat_param, mdim):
 def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
     """Writes arrays to binary files for fortran processing
     Enter electric field components in kV/m
+    
+    Parameters
+    ----------
+    born_file: str
+        Path of file containing Born charge data
+    hess_file: str
+        Path of file containing Hessian data
+    lat_param: list
+        List containing lattice parameter values [a,b,c]
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+
+    Returns
+    ----------
+    None
+        Writes Hessian, Born and E vector binary files 
+        for Fortran script input
     """
     
     h_tensor = hessian(born_file, hess_file)[1]
@@ -502,9 +588,32 @@ def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
 
 
 def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
-    """Using numpy.linalg.solve for an ax = b equation
-    give electric field in terms of kV/m and it will
-    be converted into atomic electric field units
+    """Generates all arrays necessary for qE = -Hd equation and
+    solves for d (displacement). Equation occurs in a.u. and the
+    displacements are in the same units in the same lattice vector
+    basis
+    
+    Parameters
+    ----------
+    born_file: str
+        Path of file containing Born charge data
+    hess_file: str
+        Path of file containing Hessian data
+    lat_param: list
+        List containing lattice parameter values [a,b,c]
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+
+    Returns
+    ----------
+    displacement: array
+        Contains displacments of each unit cell atom in a.u.
+        Each group of three numbers e.g index 0,1,2 is a set
+        of 3D displacement coordinates in a,b,c space
     """
     
     q_tensor = born_tensor(born_file)
