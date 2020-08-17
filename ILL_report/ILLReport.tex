@@ -22,7 +22,6 @@
 \begin{document}
 \maketitle
 \tableofcontents
-\newpage
 \section{Introduction}
 \subsection{Aims and Methods}
 The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
@@ -471,34 +470,68 @@ Once we have optimised the geometry of a system in CRYSTAL in order to minimise 
 
 \texttt{disp\_solve.py} is a python script that parses the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. As discussed before, CRYSTAL is a quantum chemistry ab initio program for calculations on 1,2 and 3 dimensional crystal structures using translational symmetry. This output file contains several pieces of information that are required for the next step. 
 
-Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or x/a,y/b,z/c for N atoms in the a,b,c lattice vector basis) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centres is zero.
+Firstly, it stores the number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or $a_i/a,\ b_j/b,\ c_k/c$ for N atoms in the a,b,c lattice vector basis) of the Born and Hessian matrices so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centres is zero.
 
-Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $\mathcal{H}$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand:
+Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $\mathcal{H}$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand (recall equation (3)):
 \begin{equation*}
 q.E = -\mathcal{H}.d
 \end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place in Hartree atomic units as this is the most effective method.  The electric field is input as $Ea,Eb,Ec$ and converted from kV/m to atomic units, which includes the division of the vector element in Angstrom by the corresponding lattice vector given in atomic units ($conversion*(Ea/a,Eb/b,Ec/c)$). The conversion is given as follows: $$\text{conversion} = \frac{kV/m}{E_h/ea_0}\times\frac{1}{\text{Angstrom to Bohr conv.}} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)}\times \frac{1}{1.889725989}$$ 
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place uniformly in Hartree atomic units as this is the most effective method.
 
-where ${E_h/ea_0}$ are the atomic field units given in terms of the Hartree energy.
+\subsubsection{Conversion derivations}
+In order to achieve this format for equation (3), we must convert the CRYSTAL outputs to the correct Hartree units, and do the same to the user's electric field inputs. The electric field is entered into the above equation as $E_1,E_2,E_3$ in the a,b,c lattice vector basis, in units of $kV/m$ and are to be converted to atomic units in the same basis. We must also include the division of the electric field vector element by the corresponding lattice vector given in atomic units: 
 
-Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting. This is because the three possible Hessian elements in a.u. are given as:
+\begin{equation}
+	(Ea, Eb, Ec) = conversion*(E_1/a, E_2/b, E_3/c)
+\end{equation}
 
-$$\frac{\partial^2E}{\partial(x_i/a)\partial(y_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(y_i/b)\partial(z_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(x_i/a)\partial(z_k/c)}$$.
+ so that the coordinates are fractional in the lattice vector basis. The electric field a.u. is given as:
 
-If the Hessian matrix element of the ith row and jth column is given by $a_{ij}$ then $a_{11}$ becomes $a_{11}/a^2$, $a_{12}$ becomes $a_{12}/ab$, $a_{13}$ becomes $a_{13}/ac$ e.t.c. It depends on the modulus of the i or j index with 3: $mod(i,3) \ \text{or} \ i \ \% \ 3 = 0,1,2$ corresponds to a division by a,b,c respectively. Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
+$$\frac{E_h}{ea_0} = 5.142...\times 10^{11} (V/m)$$
 
-The displacements are given as a $3N$ dimensional column vector in a.u. and converted to fractional units where $x_n/a,y_n/b,z_n/c = 3n, 3n+1, 3n+2$ for the nth atom ($0\leq n \leq N-1)$. 
+where $E_h$ is the Hartree energy, $e$ is the unit electric charge and $a_0$ is the Bohr radius. To convert from kV/m to these atomic field units, we must multiply our input values by $1000$ to obtain the same base SI units ($V/m$) as the atomic field units so that the conversion value is dimensionless, and then divide by $E_h/ea_0$:
 
+$$\text{Input units to a.u. conversion} = \frac{kV/m}{E_h/ea_0} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)} = 1.94...\times10^{-9}$$
 
-%The electric field is converted from kV/m in the a,b,c basis and divided by the corresponding lattice vector length to obtain a fractional unit basis.
+but when we need to divide by the lattice parameters, these are given in Angstrom from the crystal file data being used. Therefore an Angstrom to Bohr conversion must be included:
 
-\subsection{Cell File}
+$$\text{Total conversion} = \frac{kV/m}{E_h/ea_0}\times\frac{1}{\text{Angstrom to Bohr conv.}} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)}\times \frac{1}{1.889725989}$$ 
+
+where ${E_h/ea_0}$ are the atomic field units given in terms of the Hartree energy. If this conversion is included in equation (8), the correct units will be obtained for the electric field vector to be used in equation (3).
+\\
+% I'm not sure why everything needs to be fractional though. The exact reason for this will have to be discovered through Marie. Same with why we want E_h/L^2 where L is a lattice parameter a,b or c in a.u for each Hessian index. How does this make it a.u.?
+
+Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. Since each element is a second derivative, the change between the output units as the units we need are generally derived as follows:
+
+Let $x$ be a length in one unit systems and $u$ a length in a different unit system. $x=C_{xu}\cdot u$ where $C_{xu}$ is the conversion factor between the two length scales. Taking derivative of a quantity $E$ with respect to $x$ we obtain:
+$$\frac{\partial E}{\partial x} = \frac{\partial E}{\partial u}\frac{\partial u}{\partial x} = \frac{1}{C_{xu}}\frac{\partial E}{\partial u}$$
+
+A similar method can be use to obtain the second derivative with respect to another coordinate, to a different unit scale ($y = C_{yv}v$):
+
+$$\frac{\partial^2 E}{\partial x \partial y} = \frac{1}{C_{xu}C_{yv}}\frac{\partial^2 E}{\partial u \partial v}$$
+
+In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting ($C_{xu}$ and $C_{yv}$ in our more general example). This is because the three possible Hessian elements in a.u. are given as:
+
+% Is this an ok notation for the Hessian elements?
+
+$$\frac{\partial^2E}{\partial(a_i/a)\partial(b_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(b_i/b)\partial(c_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(a_i/a)\partial(c_k/c)}$$
+
+If the Hessian matrix element of the ith row and jth column is given by $\mathcal{H}_{ij}$ then:
+$$\mathcal{H}_{11} \ \text{becomes} \ \mathcal{H}_{11}/a^2, \ \mathcal{H}_{12} \ \text{becomes} \ \mathcal{H}_{12}/ab, \ \mathcal{H}_{13} \ \text{becomes} \ \mathcal{H}_{13}/ac \ \text{e.t.c.}$$ 
+
+The division depends upon the modulus of the i or j index with 3: $mod(i,3) \ \text{or} \ i \ \% \ 3 = 0,1,2$ corresponds to a division by a,b,c respectively. Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
+
+This means the total conversion depends upon the matrix element's index but will always be divided by lattice parameters in Bohr units in the $a, b, c$ basis. The Born tensor is given in $e$ units in the a,b,c basis and so no conversion or transformation is required. Consequently, the displacements are output from the calculation as a $3N$ dimensional column vector in a.u. and converted to fractional units where $a_n/a, \ b_n/b,\ c_n/c = 3n,\ 3n+1,\ 3n+2$ for the nth atom ($0\leq n \leq N-1)$.
+
+\subsection{The Cell File}
+
 The initial cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates, and the corresponding charges. If all the required information is stored in this file, the \texttt{unit\_source} parameter `direct' can be called and all unit cell information is parsed from this file. Sometimes the cell file can be generated by CRYSTAL in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, if \texttt{unit\_source} = auto, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by parsing the CRYSTAL output file for the unit cell coordinates and irreducible groups. A new file is then written containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $a,b,c$ directions. A grid of cell files specified by the $E_a,E_b,E_c$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges. 
 
-Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The module used was the symmetric system driver DSYEV, and was ran in tandem with the python script using a batch file so we can compare displacement results. When the optimal displacements have been obtained, we can add them to the atom coordinates from the CRYSTAL output system.cell files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
+Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The trialled module was the symmetric system driver DSYEV, that was ran in tandem with the python script using a batch file so the displacement results could be compared. When the optimal displacements have been obtained, we can add them to the atom coordinates from the CRYSTAL output system.cell files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
 
 Again, please see the appendix for an instruction manual that covers more detail how to use this software.
 
+\newpage
 \section*{Software Manual Appendix}
 \input{/home/joshhorswill10/Documents/git_new/joshua_3/manuals/e2s_disp_manual/driver_manual.tex}
 
