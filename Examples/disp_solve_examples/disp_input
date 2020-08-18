@@ -1,5 +1,7 @@
-crystal_file = ../../Examples/disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out
-cell_init = ../../Examples/disp_solve_examples/ymno3.new.cell
+# crystal_file = ../../Examples/disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out
+# cell_init = ../../Examples/disp_solve_examples/ymno3.new.cell
+crystal_file = ht.frequence.B1PW_PtBs.loto.out
+cell_init = ymno3.new.cell
 ea = [0,150,5]
 eb = [0,150,5]
 ec = [0,150,5]

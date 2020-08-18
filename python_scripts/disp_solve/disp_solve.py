@@ -1128,17 +1128,17 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
             unit_source, *args, **kwargs)
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
+   
     
     # New file name including electric field parameters
     fsplit = cell_file.split('.')
-    fsplit[1:1] = ['(%s,%s,%s)'%(str(round(ea,3)), str(round(eb,3)),
+    fsplit[-1:-1] = ['(%s_%s_%s)'%(str(round(ea,3)), str(round(eb,3)),
                    str(round(ec,3)))]
-    
     fnew = '.'.join(fsplit).split("/")[-1]
-    
     # Directory of initial cell file and output file
     cell_dir = "/".join(cell_file.split("/")[:-1])
     out_dir = "/".join(output_file.split("/")[:-1])
+    
     
     # If file input is a full/relative path directory rather than filename
     # generate output files in that directory
@@ -1151,6 +1151,7 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
     else:
         # Else use the current working directory
         cd = os.getcwd()
+    
     
     # Resultant filename given in full path
     completeName = os.path.join(cd+"/"+dirname+"/"+fnew)
@@ -1277,14 +1278,14 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     
     # Generating new folder for results, named after ranges of E coordinates
     if len(ea_array) == 1 or len(eb_array) == 1 or len(ec_array) == 1:
-        dirname = "Ea(%s,%s)Eb(%s,%s)Ec(%s,%s)"%\
+        dirname = "Ea_%s-%s_Eb_%s-%s_Ec_%s-%s"%\
                 (str(round(ea_array[0], 3)),
                  str(round(ea_array[-1], 3)),str(round(eb_array[0], 3)),
                  str(round(eb_array[-1], 3)),str(round(ec_array[0], 3)),
                  str(round(ec_array[-1], 3)))
     
     else:
-        dirname = "Ea(%s,%s,%s)Eb(%s,%s,%s)Ec(%s,%s,%s)"\
+        dirname = "Ea_%s-%s-%s_Eb_%s-%s-%s_Ec_%s-%s-%s"\
                 %(str(round(ea_array[0], 3)),str(round(ea_array[-1], 3)),
                   str(round(abs(ea_array[0]-ea_array[1]), 3)),
                   str(round(eb_array[0], 3)), str(round(eb_array[-1], 3)),
@@ -1292,13 +1293,14 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
                   str(round(ec_array[0], 3)), str(round(ec_array[-1], 3)),
                   str(round(abs(ec_array[0]-ec_array[1]), 3)))
     
-    # Make new folder in target directory from modify_cell, and print location
+    # Make new folder in target directory from modify_cell,
+    # and print location
     out_dir = "/".join(output_file.split("/")[:-1])
     cell_dir = "/".join(cell_file.split("/")[:-1])
     
     # Determining where to write the files to
-    # If inputs are paths, use them as the file destination in priority order
-    # specified below
+    # If inputs are paths, use them as the file destination in
+    # priority order specified below
     if os.path.isdir(cell_dir):
         cd = cell_dir
         print("Files output to cell file directory")
