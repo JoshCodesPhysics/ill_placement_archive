@@ -20,7 +20,19 @@ np.set_printoptions(precision=15)
 
 
 def num_atoms(born_file):
-    """Determines number of atoms in the unit cell from parse"""
+    """Determines number of atoms in the unit cell from parsing 
+    the CRYSTAL output file
+    
+    Parameters
+    ----------
+    born_file: str
+        The path of the file containing the Born charge data
+    
+    Returns
+    ----------
+    atom_num: int
+        The number of atoms in the unit cell for the system
+    """
     
     born = open(born_file).readlines()
     for i in range(len(born)):
@@ -34,6 +46,17 @@ def num_atoms(born_file):
 def matrix_data(born_file):
     """Stores matrix data for each atom as 3x3 matrix corresponding
     to the atom key
+    
+    Parameters
+    ----------
+    born_file: str
+        The path of the file containing the Born charge data
+    
+    Returns
+    ----------
+    matrix_dict: dict
+        Dictionary containing 3x3 born charge matrices assigned to
+        each atom in the unit cell
     """
     
     atom_num = num_atoms(born_file)
@@ -72,8 +95,18 @@ def matrix_data(born_file):
 
 
 def born_tensor(born_file):
-    """Appends this matrix data to a larger matrix where each
+    """Appends Born matrix data to a larger matrix where each
     3x3 matrix is a diagonal element of the larger matrix
+    
+    Parameters
+    ----------
+    born_file: str
+        The path of the file containing the Born charge data
+    
+    Returns
+    ----------
+    atom_num: int
+        The number of atoms in the unit cell for the system
     """
     
     # Defining matrix data
@@ -96,7 +129,24 @@ def born_tensor(born_file):
 
 
 def parse_hessian(hess_file, thresh):
-    """Parses Hessian to find index of pairs and diagonal elements"""
+    """Parses Hessian to find index of pairs and diagonal elements
+    
+    Parameters
+    ----------
+    hess_file: str
+        The path of the file containing the symmetric Hessian data
+    thresh: float
+        Maximum difference between two values for a pair to be mapped
+    
+    Returns
+    ----------
+    hess_pairs: list
+        Paired values in tuples
+    hess_diag: list
+        Diagonal values with no matches
+    hess_copy: list
+        All values, unpaired and unsorted with zeros included
+    """
     
     hess_data = []
     hess = open(hess_file).readlines()
@@ -162,7 +212,20 @@ def parse_hessian(hess_file, thresh):
 
 
 def print_indexes(hess_file, thresh):
-    "Prints all paired and unique values with their indexes"
+    """Prints all paired and unique values with their indexes
+
+    Parameters
+    ----------
+    hess_file: str
+       Path for file containing symmatrix Hessian data
+    thresh: float
+       Threshold for maximum difference between pairs for them
+       to be coupled
+
+    Returns
+    ----------
+    None
+    """
     
     print("Pair indexes")
     print([i[1:] for i in parse_hessian(hess_file, thresh)[0]])
@@ -173,6 +236,22 @@ def print_indexes(hess_file, thresh):
 def print_diag(hess_file, thresh, rev):
     """Writes diagonal elements to a text file in either ascending
     or descending order depending on rev boolean
+    
+    Parameters
+    ----------
+    hess_file: str
+       Path for file containing symmatrix Hessian data
+    thresh: float
+       Threshold for maximum difference between pairs for them
+       to be coupled
+    rev: bool
+       True = descending diagonal elements in file
+       False = ascending
+
+    Returns
+    ----------
+    None
+
     """
     
     with open("diagonal.txt",'w') as diag:
@@ -188,7 +267,22 @@ def print_diag(hess_file, thresh, rev):
 def num_diag(hess_file, nthresh, threshstart):
     """Prints a dictionary containing number of diagonal elements for a range 
     of thresholds nthresh gives number of thresholds to test,
-    and threshstart gives starting value
+    and threshstart gives starting value that gets smaller and smaller.
+    
+    Parameters
+    ----------
+    hess_file: str
+       Path for file containing symmatrix Hessian data
+    nthresh: int
+        Number of thresholds to measure diagonal element number
+    threshstart: float
+       Starting value for threshold to be made increasingly smaller
+       for every input into parse_hessian
+
+    Returns
+    ----------
+    None
+
     """
     
     thresh_range = np.ones((nthresh))
@@ -216,7 +310,24 @@ def num_diag(hess_file, nthresh, threshstart):
 
 def convert_coords(output_file):
     """Finds conversion matrix and transposes it. Also parses for
-    fractional coordinate data
+    unit cell fractional coordinate data
+    
+    Parameters
+    ----------
+    output_file: str
+        Path for CRYSTAL output file containing conversion matrix
+        and unit cell fractional coordinate data
+
+    Returns
+    ----------
+    conv_matrix: array
+        Conversion matrix parsed from CRYSTAL ouput file and transposed
+    frac_data: list
+        Fractional coordinate unit cell data parsed from CRYSTAL output
+        separated by line
+    lat_param_data: str
+        Line containing all lattice parameter data
+
     """
     
     # Allocating number of unit cell atoms and conversion matrices
@@ -293,6 +404,7 @@ def conv_hessian(hess_matrix, output_file):
     hess_matrix: array
         Contains Hessian matrix converted to fractional atomic units?
         In the a,b,c lattice vector basis? Yes this may be changed.
+        Not sure yet.
     """
  
     ANG2BOHR = float(1.889725989) 
@@ -646,8 +758,35 @@ def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
 
 
 def convert_disp(output_file, ea, eb, ec):
-    """Applies conversion matrix to displacement solutions"
-    change of basis (x,y,z -> a,b,c in fractional units)
+    """Applies conversion matrix to displacement solutions.
+    Operation takes place in Angstrom, so all displacement coordinates
+    are converted to Angstrom. Output coordinates are fractional units
+    in the lattice vector basis (a,b,c).
+    
+    Parameters
+    ----------
+    output_file: str
+        Path of CRYSTAL output file containing the conversion matrix,
+        the lattice parameters for the electric field input into
+        solve_equation, and the unit cell fractional coordinates
+        for output into functions further down the chain.
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+    
+    Returns
+    -----------
+    convdisp: array
+        List of N sets of fractional unit coordinates converted
+        from the solve_equation displacements, where N is the number
+        of atoms in the unit cell.
+    frac: list
+        List containing each line of the unit cell coordinates
+        so we can later generate a cell file and add the displacements
+        to it if needed.
     """
     
     # Calling all necessary data
@@ -678,11 +817,58 @@ def convert_disp(output_file, ea, eb, ec):
 
 def unit_cell(output_file, cell_file, ea, eb, ec,
               unit_source, *args, **kwargs):
-    """Generates unit cell data in a dictionary
-    Takes 'direct' cell file data or
-    'auto'mates data from crystal output completely or
-    Automates from crystal output but allows for 'charge' input
-    Moderated by unit_source input and cell_file type
+    """Generates the unit cell data in a dictionary
+    There are 3 input options:
+
+    1) Takes 'direct' cell file data - use if initial cell file
+    matches spatial group/number of atoms in the CRYSTAL output
+    unit cell 
+    
+    2) 'auto'mates data from crystal output completely - If the
+    spatial groups do not match, i.e. the initial cell file has
+    more or less atoms than the CRYSTAL unit cell, take charge
+    data from the initial cell file but use the CRYSTAL unit cell
+    to build a cell file to which we can add our converted 
+    displacements
+    
+    3) Automates from crystal output as with 2) but allows
+    for 'charge' input from user, so no data is taken from the
+    initial cell file
+
+    Moderated by unit_source input (direct,auto,charge) 
+    and chosen according to cell_file type
+
+    Parameters
+    ----------
+    output_file: str
+        Path of CRYSTAL output file containing the unit cell data
+    cell_file: str
+        Path of initial cell file containing a form of unit cell
+        data and charge data. Can be generated by CRYSTAL or user.
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+    unit_source: str
+        Three key words that determine the source of the initial
+        non-disturbed unit cell fractional coordinates and the
+        associated charge with each atom type
+    *args: dict
+        Charge data dictionary e.g {"Y":3.0,"MN":3.0,"O1":-2.0,
+        "O2",-2.0}. This is the argument for when unit_source =
+        'charge' is chosen, for manual user input
+
+    Returns
+    ------
+    atom_dict: dict
+        Dictionary containing atoms categorised according to the
+        irreducible groups, with their respective
+        fractional coordinates and charges.
+    convdisp: array
+        Converted displacements to add to the dictionary coordinates
+        later down the function chain.
     """
     
     # Generating preliminary storage lists and required data
@@ -759,8 +945,8 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
     else:
         # Else unit data is taken from crystal output file
         # rather than the cell file
-        # Another branching will occur when deciding to automate charge data
-        # or obtain it manually
+        # Another branching will occur when deciding to automate
+        # charge data or obtain it manually
         num_groups = len(frac_data) - atom_num+1
         
         # Group keys
@@ -795,7 +981,8 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
         
         # Automatic charge data generation from initial cell file,
         # potentially from different space group
-        # Different spatial group cell file is reason for using auto and charge
+        # Different spatial group cell file is reason for using auto and
+        # charge
         if unit_source == "auto":
             element_charge = {}
             for i in range(len(cell)):
@@ -840,7 +1027,8 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
                                     "element":atom,
                                     "charge":element_charge[atom]}
                 
-                # Charge data not included until element data is reformulated
+                # Charge data not included until element data is 
+                # reformulated
                 elif unit_source == "charge":
                     atom_dict["group %d"%(i+1)]["atom %d"
                             %(int(coords_split[0]))] = {"coords":
@@ -862,7 +1050,8 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
                     
                     elif atom not in dist_atoms:
                         dist_atoms[atom] = 2
-                        prev_dict = atom_dict["group %d"%parsed_atoms[atom]]
+                        prev_dict = atom_dict["group %d"
+                                              %parsed_atoms[atom]]
                         
                         for k in prev_dict:
                             #print("prev_dict being written for %s"%k)
@@ -886,7 +1075,8 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
             for group in atom_dict:
                 for atom in atom_dict[group]:
                     atom_dict[group][atom]["charge"] =\
-                            element_charge[atom_dict[group][atom]["element"]]
+                            element_charge[atom_dict[group][atom]\
+                                          ["element"]]
         
         # This is for a function later one where we only require
         # the element labels (O1,O2 e.t.c)
@@ -901,7 +1091,37 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
 def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
         *args, **kwargs):
     """This function adds converted displacements to the formulated
-    unit cell dictionary and writes the results to a new file
+    unit cell dictionary and writes the results to a new separate
+    cell file
+    
+    Parameters
+    ----------
+    output_file: str
+        Path of CRYSTAL output file containing the unit cell data
+    cell_file: str
+        Path of initial cell file containing a form of unit cell
+        data and charge data. Can be generated by CRYSTAL or user.
+    dirname: str
+        Name of folder created to store new displaced unit cell files
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+    unit_source: str
+        Three key words that determine the source of the initial
+        non-disturbed unit cell fractional coordinates and the
+        associated charge with each atom type
+    *args: dict
+        Charge data dictionary e.g {"Y":3.0,"MN":3.0,"O1":-2.0,
+        "O2",-2.0}. This is the argument for when unit_source =
+        'charge' is chosen, for manual user input
+
+    Returns
+    ----------
+    None
+        Writes edited coordinates to new file
     """
     
     unit_data = unit_cell(output_file, cell_file, ea, eb, ec,
@@ -970,6 +1190,25 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
 def modify_existing_cell(output_file, cell_file, ea, eb, ec):
     """This function adds displacements to cell files already 
     displaced by another field - increases error so not used
+    
+    Parameters
+    ----------
+    output_file: str
+        Path of CRYSTAL output file containing the unit cell data
+    cell_file: str
+        Path of initial cell file containing a form of unit cell
+        data and charge data. Can be generated by CRYSTAL or user.
+    ea: float
+        Input for electric field in 'a' vector axis (Ea)
+    eb: float
+        Input for electric field in 'b' vector axis (Eb)
+    ec: float
+        Input for electric field in 'c' vector axis (Ec)
+    
+    Returns
+    ----------
+    None
+        Writes to file, no returned output within python
     """
     
     displacements = convert_disp(output_file, ea, eb, ec)
@@ -1004,8 +1243,37 @@ def modify_existing_cell(output_file, cell_file, ea, eb, ec):
 
 def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
               unit_source, *args, **kwargs):
-    "This function generates a grid of displaced cell files"
-    "in the target directory. Uses range of Ex, Ey, Ez values"
+    """This function generates a grid of displaced cell files
+    in the target directory. Uses range of Ex, Ey, Ez values. As before,
+    coordinates are in fractional units in the a,b,c basis.
+
+    Parameters
+    ----------
+    output_file: str
+        Path of CRYSTAL output file containing the unit cell data
+    cell_file: str
+        Path of initial cell file containing a form of unit cell
+        data and charge data. Can be generated by CRYSTAL or user.
+    ea_array: array
+        Range of values for electric field input in 'a' vector axis (Ea)
+    eb_array: array
+        Range of values for electric field input in 'b' vector axis (Eb)
+    ec_array: array
+        Range of values for electric field input in 'c' vector axis (Ec)
+    unit_source: str
+        Three key words that determine the source of the initial
+        non-disturbed unit cell fractional coordinates and the
+        associated charge with each atom type
+    *args: dict
+        Charge data dictionary e.g {"Y":3.0,"MN":3.0,"O1":-2.0,
+        "O2",-2.0}. This is the argument for when unit_source =
+        'charge' is chosen, for manual user input
+    
+    Returns
+    ----------
+    None
+        Writes grid to target directory, no python output
+    """
     
     # Generating new folder for results, named after ranges of E coordinates
     if len(ea_array) == 1 or len(eb_array) == 1 or len(ec_array) == 1:
@@ -1028,6 +1296,9 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     out_dir = "/".join(output_file.split("/")[:-1])
     cell_dir = "/".join(cell_file.split("/")[:-1])
     
+    # Determining where to write the files to
+    # If inputs are paths, use them as the file destination in priority order
+    # specified below
     if os.path.isdir(cell_dir):
         cd = cell_dir
         print("Files output to cell file directory")
@@ -1057,8 +1328,23 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
 
 
 def read_input(input_file):
-    "Scans input file and calls cell_grid based on the contained info"
+    """Scans input file and calls cell_grid based on the contained info
     
+    Parameters
+    ----------
+    input_file: str
+        Path of user-generated input file containing required information
+        to generate the cell file grid for a range of electric fields and
+        displacements with cell_grid
+
+    Returns
+    ----------
+    None
+        Cell grid written from input_file parsed info, not direct python
+        output
+    """
+    
+    # Parse for key words and take inputs for cell_grid
     inp = open(input_file).readlines()
     for i in range(len(inp)):
         inp_split = inp[i].split()
@@ -1101,7 +1387,7 @@ def read_input(input_file):
     else:
         ec_array = np.arange(ec_list[0], ec_list[1]+ec_list[2], ec_list[2])
     
-    
+    # Charge unit_source requires separate option including charge_dict
     if unit_source == "charge":
         print("Grid is being generated...")
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
@@ -1118,12 +1404,31 @@ def read_input(input_file):
 
 
 def return_atoms(output_file, cell_file, unit_source):
-    "Lists atoms in the system"
+    """Lists atoms in the system to be used in the
+    command line prompts
 
+    Parameters
+    ----------
+    output_file: str
+        Path to Crystal output file containing unit cell data
+    cell_file: str
+        Path to initial cell_file which can be used to generate coordinate
+        and charge data for each atom
+    unit_source: str
+        Key word to determine source of unit cell information
+
+    Returns
+    ----------
+    atoms: list
+        Contains list of all atoms in the unit cell to be prompted for.
+    """
+
+    # Generate the atom dictionary to scan for atoms
     atom_dict = unit_cell(output_file, cell_file, 0, 0, 0, unit_source)[0]
     # print(atom_dict)
     atoms = []
     
+    # Append the atoms to the atoms list
     for group in atom_dict:
         for atom in atom_dict[group]:
             elem = atom_dict[group][atom]["element"]
@@ -1133,35 +1438,47 @@ def return_atoms(output_file, cell_file, unit_source):
 
 
 def read_prompt():
-    """Prompt entry of data required to call cell_grid"""
+    """Prompt entry of data required to call cell_grid
+
+    No parameters or returns. Files are written and saved
+    to a target directory
+    """
     
     print("####################PROMPT INPUT#####################")
     print("Please enter file names if local to script directory,"+\
           "or full path if non-local")
     
+    # Unit source prompt
     unit_source = input("Please give unit cell generator parameter"+\
                         " (direct,charge,auto): ").lower().split()[0]
     
+    # If not recognised, end process
     if unit_source not in ["auto","charge","direct"]:
         sys.exit("Unit cell generator parameter not recognised")
     
+    # Output and cell file path prompt
     crystal_file = input("Name/directory of crystal output file: ")
     cell_init = input("Name/directory of initial cell file containing"+\
                       " the unit cell data: ")
     
+    # Electric field prompts in tuples
     print("Parameters for Ea array: ")
     ea_list = input("Please enter start,stop,step separated by commas"+\
                     " for Ea: ").split(",")
+    
     print("Parameters for Eb array: ")
     eb_list = input("Please enter start,stop,step separated by commas"+\
                     " for Eb: ").split(",")
+    
     print("Parameters for Ec array: ")
     ec_list = input("Please enter start,stop,step separated by commas"+\
                     " for Ec: ").split(",")
-
+    
+    # If zero list, make zero for whole grid
     if ea_list == ["0", "0", "0"]:
         ea_array = np.array([0])
     
+    # Else generate input arrays
     else:
         ea_array = np.arange(float(ea_list[0]),
                              float(ea_list[1])+float(ea_list[2]),
@@ -1195,6 +1512,8 @@ def read_prompt():
         print("###########################END OF INPUT###################"+\
                 "##########")
         print("Grid is being generated...")
+        
+        # Generate grid
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source, element_charge)
     
@@ -1202,25 +1521,32 @@ def read_prompt():
         print("###########################END OF INPUT##################"+\
                 "###########")
         print("Grid is being generated...")
+        
+        # Generate grid
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source)
 
 
 def input_or_prompt():
     """Logic for receiving input file or prompting user"""
+    
+    # If an input file argument is passed on the command line
+    # run read_input
     if len(sys.argv) >= 2:
         read_input(sys.argv[1])
     
+    # Else prompt the user with read_prompt
     else:
         read_prompt()
 
+# Testing functions and calling input_or_prompt
 
-input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
-        "disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
+# input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
+#              "disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
 # cell_first = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
-#        disp_solve_examples/ymno3.new.cell"
+#               disp_solve_examples/ymno3.new.cell"
 # ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01),\
-#        np.arange(0,1.2,0.2)
+#              np.arange(0,1.2,0.2)
 # print(solve_equation(input_file,input_file,100,0,0))
 # return_atoms(input_file,cell_first,"charge")
 # unit_cell(input_file,cell_first,.1,.1,.1,"direct")
