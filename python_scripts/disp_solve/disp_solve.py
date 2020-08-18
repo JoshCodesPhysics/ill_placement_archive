@@ -1278,14 +1278,14 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     
     # Generating new folder for results, named after ranges of E coordinates
     if len(ea_array) == 1 or len(eb_array) == 1 or len(ec_array) == 1:
-        dirname = "Ea_%s-%s_Eb_%s-%s_Ec_%s-%s"%\
+        dirname = "Ea_%s_%s__Eb_%s_%s__Ec_%s_%s"%\
                 (str(round(ea_array[0], 3)),
                  str(round(ea_array[-1], 3)),str(round(eb_array[0], 3)),
                  str(round(eb_array[-1], 3)),str(round(ec_array[0], 3)),
                  str(round(ec_array[-1], 3)))
     
     else:
-        dirname = "Ea_%s-%s-%s_Eb_%s-%s-%s_Ec_%s-%s-%s"\
+        dirname = "Ea_%s_%s_%s__Eb_%s_%s_%s__Ec_%s_%s_%s"\
                 %(str(round(ea_array[0], 3)),str(round(ea_array[-1], 3)),
                   str(round(abs(ea_array[0]-ea_array[1]), 3)),
                   str(round(eb_array[0], 3)), str(round(eb_array[-1], 3)),
