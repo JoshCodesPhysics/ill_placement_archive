@@ -702,11 +702,27 @@ def fileinput(input_file):
     finalwrite(filename, title, sew0_file, psd_file, lib_frag, lib_pseudo)
 
 
-def input_jupyter_or_prompt():
-   """Logic for taking prompt inputs, or command line input argument"""
+def input_jupyter_or_prompt(crys2sew_bool):
+   """Logic for taking prompt inputs, or command line input argument
+
+   Parameters
+   ----------
+   crys2sew_bool: bool
+       True: using python script as package, don't want to run
+       anything by default, stop the function
+       False: Python script being used directly, run either the
+       prompt or parsing of the third input file
    
+   Returns
+   ----------
+   None
+   """
+   
+   if crys2sew_bool:
+       pass
+
    # If there is a command line argument, run fileinput
-   if len(sys.argv) >= 2:
+   elif len(sys.argv) >= 2:
        fileinput(sys.argv[1])
    
    # If not then run finalprompt
@@ -715,4 +731,4 @@ def input_jupyter_or_prompt():
           finalprompt()
 
 
-input_jupyter_or_prompt()
+input_jupyter_or_prompt(True)

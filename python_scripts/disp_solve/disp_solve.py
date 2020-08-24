@@ -1529,12 +1529,28 @@ def read_prompt():
                   unit_source)
 
 
-def input_or_prompt():
-    """Logic for receiving input file or prompting user"""
+def input_or_prompt(crys2sew_bool):
+    """Logic for receiving input file or prompting user
     
+    Parameters
+    ----------
+    crys2sew_bool: bool
+        True: using python script as package, don't want to run
+        anything by default, stop the function
+        False: Python script being used directly, run either the
+        prompt or parsing of the third input file
+
+    Returns
+    ----------
+    None
+    """
+    
+    if crys2sew_bool:
+        pass
+
     # If an input file argument is passed on the command line
     # run read_input
-    if len(sys.argv) >= 2:
+    elif len(sys.argv) >= 2:
         read_input(sys.argv[1])
     
     # Else prompt the user with read_prompt
@@ -1542,7 +1558,7 @@ def input_or_prompt():
         read_prompt()
 
 
-# Testing functions and calling input_or_prompt
+# Test inputs for functions and calling input_or_prompt
 
 # input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
 #              "disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
@@ -1550,11 +1566,5 @@ def input_or_prompt():
 #               disp_solve_examples/ymno3.new.cell"
 # ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01),\
 #              np.arange(0,1.2,0.2)
-# print(solve_equation(input_file,input_file,100,0,0))
-# return_atoms(input_file,cell_first,"charge")
-# unit_cell(input_file,cell_first,.1,.1,.1,"direct")
 # {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
-# modify_cell(input_file,cell_first,"test",.2,.2,.2,"direct")
-# cell_grid(input_file,cell_first,ex,ey,ez,"direct")
-# print(hessian(input_file,input_file)[1])
-input_or_prompt()
+input_or_prompt(True)
