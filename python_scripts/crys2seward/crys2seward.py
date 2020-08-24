@@ -81,10 +81,111 @@ def change_cell(envin, cell_file):
     with open(envin, 'w') as file:
         file.writelines(env)
 
+
+def cell_list(disp_input_file):
+    """Generates cell grid from input file in directory priority of:
+
+    1) Quoted relative or full path for cell file
+    2) Quoted relative or full path for crystal output file
+    3) Current working directory
+
+    From this directory, a parsed list of all cell file names is generated
+
+    Parameters
+    ----------
+    disp_input_file: str
+        Relative, absolute or full path of the disp_solve input file
+        containing crystal and cell file outputs as well as designated
+        electric field ranges and data input method (direct, auto, charge)
+
+    Returns
+    ----------
+    grid_dir: str
+        Directory of cell file grid
+    cell_files: list
+        List containing strings detailing the filenames of each cell file
+        in the grid
+    """
+
+    # This line generates the grid using disp_solve.py and assigns
+    # the grid's target directory to the grid_dir variable
+    grid_dir = dsolve.read_input(disp_input_file)
+
+    # Cell file list, make sure to only take files and not directories
+    # for the list
+    cell_files = [f for f in os.listdir(grid_dir)
+                  if os.path.isfile(os.path.join(grid_dir, f))]
+
+    return grid_dir, cell_files
+
+
+def sim_cells(envin, envout, disp_input_file, sew0_file, psd_file):
+    """Generates cell grid for cell_list, and runs xenv15 using
+    each cell file from the disp_solve.py output as an input.
+    Each output sew0 and psd file is renamed according to the
+    displacement field.
+
+    Parameters
+    ----------
+    envin: str
+        Absolute path of envin or env.in file for xenv15
+    envout: str
+        Absolute path of env.out file for xenv15
+    disp_input_file: str
+        Full, relative or absolute path of the input file for
+        disp_solve.py
+    sew0_file: str
+        The absolute path of the xenv sew0 output file:
+        e.g ymno3_d1.sew0 or TbMn2O5_J2.env.sew0
+    psd_file: str
+        The absolute path of the xenv psd output file:
+        e.g ymno3_d1.psd or TbMn2O5_J2.env.psd
+        
+    Returns
+    ----------
+    """
+
+    cell_data = cell_list(disp_input_file)
+    grid_dir = cell_data[0]
+    cell_list = cell_data[1]
+
+    for i in range(len(cell_list)):
+        fname = cell_list[i]
+        cell_dir = grid_dir + "/" + fname
+        change_cell(envin, cell_dir)
+        run_xenv(envin, envout)
+        
+        field = fname.split(".")[0]
+        sew0_name = sew0_file.split(".")
+        psd_name = psd_file.split(".")
+        
+        if sew0_name[-2] != "env":
+            sew0_name.insert(-1,"env")
+
+        if psd_name[-2] != "env":
+            psd_name.insert(-1,"env")
+
+        sew0_name.insert(-2,field)
+        sew0_name = ".".join(sew0_name)
+
+        psd_name.insert(-2,field)
+        psd_name = ".".join(psd_name)
+        
+        os.rename(sew0_file, sew0_name)
+        os.rename(psd_file, psd_name)
+        print(sew0_name, psd_name)
+
+
+
 # Test inputs for bug checking functions
 envin = "ymno3_d1.envin"
 envout = "ymno3_d1.env.out"
 cell_file = "../ymno3.new.cell"
+disp_input = "../disp_input"
+sew0_file = "ymno3_d1.sew0"
+psd_file = "ymno3_d1.psd"
 
 # run_xenv(envin, envout)
 # change_cell(envin, cell_file)
+# cell_list(disp_input)
+sim_cells(envin, envout, disp_input, sew0_file, psd_file)

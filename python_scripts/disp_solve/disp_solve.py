@@ -1132,7 +1132,7 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
     
     # New file name including electric field parameters
     fsplit = cell_file.split('.')
-    fsplit[-1:-1] = ['(%s_%s_%s)'%(str(round(ea,3)), str(round(eb,3)),
+    fsplit[-1:-1] = ['%s_%s_%s'%(str(round(ea,3)), str(round(eb,3)),
                    str(round(ec,3)))]
     fnew = '.'.join(fsplit).split("/")[-1]
     # Directory of initial cell file and output file
@@ -1272,8 +1272,9 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     
     Returns
     ----------
-    None
-        Writes grid to target directory, no python output
+    directory: str
+        Writes grid to target directory, output is the grid directory
+        for crys2seward
     """
     
     # Generating new folder for results, named after ranges of E coordinates
@@ -1327,6 +1328,7 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
                             *args, **kwargs)
 
     print("Grid written")
+    return directory
 
 
 def read_input(input_file):
@@ -1341,9 +1343,9 @@ def read_input(input_file):
 
     Returns
     ----------
-    None
-        Cell grid written from input_file parsed info, not direct python
-        output
+    cd: str
+        Cell grid written from input_file parsed info, output is the
+        directory of this grid for crys2seward
     """
     
     # Parse for key words and take inputs for cell_grid
@@ -1392,18 +1394,19 @@ def read_input(input_file):
     # Charge unit_source requires separate option including charge_dict
     if unit_source == "charge":
         print("Grid is being generated...")
-        cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
+        cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source, charge_dict)
     
     elif unit_source == "auto" or unit_source == "direct":
         print("Grid is being generated...")
-        cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
+        cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source)
     
     else:
         # Invalid unit_source again, cancel run
         sys.exit("unit_source is invalid, see documentation")
 
+    return cd
 
 def return_atoms(output_file, cell_file, unit_source):
     """Lists atoms in the system to be used in the
