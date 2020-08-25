@@ -1,13 +1,18 @@
 import numpy as np
 import os
 import sys
+import shutil
+
 # env2seward full or relative path goes in sys.path.insert
 sys.path.insert(1, '../../../python_scripts/env2seward')
 import env2seward as e2s
+
 # Same for disp_solve, generating the scripts as packages
 # (requires __init__.py in both directories)
 sys.path.insert(1, '../../../python_scripts/disp_solve')
 import disp_solve as dsolve
+
+from pathlib import Path
 
 
 def run_xenv(envin, envout):
@@ -119,7 +124,8 @@ def cell_list(disp_input_file):
     return grid_dir, cell_files
 
 
-def sim_cells(envin, envout, disp_input_file, sew0_file, psd_file):
+def sim_cells(envin, envout, disp_input_file, sew0_file,
+              psd_file, cell_init):
     """Generates cell grid for cell_list, and runs xenv15 using
     each cell file from the disp_solve.py output as an input.
     Each output sew0 and psd file is renamed according to the
@@ -140,52 +146,152 @@ def sim_cells(envin, envout, disp_input_file, sew0_file, psd_file):
     psd_file: str
         The absolute path of the xenv psd output file:
         e.g ymno3_d1.psd or TbMn2O5_J2.env.psd
-        
+    cell_init: str
+        Path of initial cell file to be used as input for xenv
+
     Returns
     ----------
+    directory: str
+        Full path of folder containing the sew0/psd grid
     """
 
+    # Defining old grid directory and list of cell files
     cell_data = cell_list(disp_input_file)
-    grid_dir = cell_data[0]
-    cell_list = cell_data[1]
 
-    for i in range(len(cell_list)):
-        fname = cell_list[i]
+    grid_dir = cell_data[0]
+    list_cell = cell_data[1]
+
+    # Name of new grid folders for sew0 and psd files
+    grid_sew0 = grid_dir.split("/")[-1] + "_sew0"
+    directory_sew0 = os.getcwd() + "/" + grid_sew0
+
+    grid_psd = grid_dir.split("/")[-1] + "_psd"
+    directory_psd = os.getcwd() + "/" + grid_psd
+
+    
+    # Generating new grid folder
+    Path(directory_sew0).mkdir(parents=True, exist_ok=True)
+    Path(directory_psd).mkdir(parents=True, exist_ok=True)
+
+    # Running xenv15
+    for i in range(len(list_cell)):
+        fname = list_cell[i]
         cell_dir = grid_dir + "/" + fname
         change_cell(envin, cell_dir)
         run_xenv(envin, envout)
-        
-        field = fname.split(".")[0]
+
+        field = fname.split(".")[1]
         sew0_name = sew0_file.split(".")
         psd_name = psd_file.split(".")
-        
+
         if sew0_name[-2] != "env":
-            sew0_name.insert(-1,"env")
+            sew0_name.insert(-1, "env")
 
         if psd_name[-2] != "env":
-            psd_name.insert(-1,"env")
+            psd_name.insert(-1, "env")
 
-        sew0_name.insert(-2,field)
+        sew0_name.insert(-2, field)
         sew0_name = ".".join(sew0_name)
 
-        psd_name.insert(-2,field)
+        psd_name.insert(-2, field)
         psd_name = ".".join(psd_name)
-        
+
         os.rename(sew0_file, sew0_name)
         os.rename(psd_file, psd_name)
-        print(sew0_name, psd_name)
+        
+        shutil.move(os.path.join(os.getcwd(), sew0_name),
+                    os.path.join(directory_sew0, sew0_name))
+        shutil.move(os.path.join(os.getcwd(), psd_name),
+                    os.path.join(directory_psd, psd_name))
+    
+    return directory_sew0, directory_psd
 
 
+def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
+                sew0_file, psd_file, cell_init):
+    """This function uses the grid of xenv15 outputs (prefix.env.sew0
+    and prefix.env.psd) to generate a grid of corresponding
+    prefix.sew.in files
+
+    Parameters
+    ----------
+    envin: str
+        Absolute path of envin or env.in file for xenv15
+    envout: str
+        Absolute path of env.out file for xenv15
+    disp_input_file: str
+        Full, relative or absolute path of the input file for
+        disp_solve.py
+    env2sew_input_file: str
+        Full, relative or absolute path of the input file for
+        env2seward.py
+    sew0_file: str
+        The absolute path of the xenv sew0 output file:
+        e.g ymno3_d1.sew0 or TbMn2O5_J2.env.sew0
+    psd_file: str
+        The absolute path of the xenv psd output file:
+        e.g ymno3_d1.psd or TbMn2O5_J2.env.psd
+    cell_init: str
+        Path of initial cell file to be used as input for xenv
+
+    Returns
+    ----------
+
+    """
+
+    # Directory of sew0 and psd grids
+    new_grid_dirs = sim_cells(envin, envout, disp_input_file, sew0_file,
+                             psd_file, cell_init)
+
+    dir_sew0 = new_grid_dirs[0]
+    dir_psd = new_grid_dirs[1]
+
+    # List of sew0 and psd files generated in the above directory
+    sew_list = [f for f in os.listdir(dir_sew0)
+                if os.path.isfile(os.path.join(dir_sew0, f))]
+    sew_list.sort()
+    
+    psd_list = [f for f in os.listdir(dir_psd)
+                if os.path.isfile(os.path.join(dir_psd, f))]
+    psd_list.sort()
+
+    with open(env2sew_input_file, 'r') as file:
+        e2s_input = file.readlines()
+
+    for i in range(len(e2s_input)):
+        if e2s_input[i].split()[0] == "filename":
+            sewin_name = e2s_input[i].split()[-1]
+            break
+    
+    for i in range(len(sew_list)):
+        
+        """
+        for j in range(len(e2s_input)):
+            e2s_split = e2s_input.split()
+
+            if e2s_split[0] == "sew0_file":
+                e2s_split[-1] = sew_list[i]
+                e2s_input[j] = " ".join(e2s_split)
+            
+            elif e2s_split[0] == "psd_file":
+                e2s_split[-1] = psd_list[i]
+                e2s_input[j] = " ".join(e2s_split)
+
+        with open('new_e2s_input', 'w') as file:
+            file.writelines(e2s_input)
+        """
 
 # Test inputs for bug checking functions
 envin = "ymno3_d1.envin"
 envout = "ymno3_d1.env.out"
-cell_file = "../ymno3.new.cell"
+cell_file = "../ymno3.cell"
 disp_input = "../disp_input"
 sew0_file = "ymno3_d1.sew0"
 psd_file = "ymno3_d1.psd"
+e2s_input = "ymno3_d1.in"
 
 # run_xenv(envin, envout)
 # change_cell(envin, cell_file)
 # cell_list(disp_input)
-sim_cells(envin, envout, disp_input, sew0_file, psd_file)
+# sim_cells(envin, envout, disp_input, sew0_file, psd_file, cell_file)
+sew_in_grid(envin, envout, disp_input, e2s_input, sew0_file, psd_file, cell_file)

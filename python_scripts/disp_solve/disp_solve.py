@@ -1088,6 +1088,7 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
     # print(atom_dict)
     return atom_dict,convdisp
 
+
 def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
         *args, **kwargs):
     """This function adds converted displacements to the formulated
@@ -1129,12 +1130,14 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
    
-    
     # New file name including electric field parameters
     fsplit = cell_file.split('.')
-    fsplit[-1:-1] = ['%s_%s_%s'%(str(round(ea,3)), str(round(eb,3)),
-                   str(round(ec,3)))]
+    fsplit.insert(-1, '%s_%s_%s'%(str(round(ea,3)), str(round(eb,3)),
+                  str(round(ec,3))))
+    
+
     fnew = '.'.join(fsplit).split("/")[-1]
+
     # Directory of initial cell file and output file
     cell_dir = "/".join(cell_file.split("/")[:-1])
     out_dir = "/".join(output_file.split("/")[:-1])
@@ -1157,6 +1160,7 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
     completeName = os.path.join(cd+"/"+dirname+"/"+fnew)
     cell_new = open(completeName,'w+')
     
+
     # Add displacements to unit cell dictionary
     for group in atom_dict:
         for i in range(int(len(convdisp)/3)):
@@ -1304,15 +1308,15 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     # priority order specified below
     if os.path.isdir(cell_dir):
         cd = cell_dir
-        print("Files output to cell file directory")
+        print("New cell files output to initial cell file directory")
     
     elif os.path.isdir(out_dir):
         cd = out_dir
-        print("Files output to crystal output file directory")
+        print("New cell files output to crystal output file directory")
     
     else:
         cd = os.getcwd()
-        print("Files output to current working directory")
+        print("New cell files output to current working directory")
     
     directory = cd+"/"+dirname
     
@@ -1327,7 +1331,7 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
                             eb_array[j], ec_array[k], unit_source,
                             *args, **kwargs)
 
-    print("Grid written")
+    print("Cell Grid written")
     return directory
 
 
@@ -1393,12 +1397,12 @@ def read_input(input_file):
     
     # Charge unit_source requires separate option including charge_dict
     if unit_source == "charge":
-        print("Grid is being generated...")
+        print("Cell grid is being generated...")
         cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source, charge_dict)
     
     elif unit_source == "auto" or unit_source == "direct":
-        print("Grid is being generated...")
+        print("Cell grid is being generated...")
         cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
                   unit_source)
     
@@ -1516,7 +1520,7 @@ def read_prompt():
         
         print("###########################END OF INPUT###################"+\
                 "##########")
-        print("Grid is being generated...")
+        print("Cell grid is being generated...")
         
         # Generate grid
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
@@ -1525,7 +1529,7 @@ def read_prompt():
     else:
         print("###########################END OF INPUT##################"+\
                 "###########")
-        print("Grid is being generated...")
+        print("Cell grid is being generated...")
         
         # Generate grid
         cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
@@ -1570,4 +1574,5 @@ def input_or_prompt(crys2sew_bool):
 # ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01),\
 #              np.arange(0,1.2,0.2)
 # {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
+
 input_or_prompt(True)
