@@ -1,7 +1,6 @@
 #########crystal2seward input########################
 envin = ymno3_d1.envin
 envout = ymno3_d1.env.out
-disp_input = ../disp_input
 xenv_sew0 = ymno3_d1.sew0
 xenv_psd = ymno3_d1.psd
 #########disp_solve input############################
