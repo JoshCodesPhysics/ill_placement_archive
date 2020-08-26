@@ -60,6 +60,9 @@ def change_cell(envin, cell_file):
     with open(envin, 'r') as file:
         env = file.readlines()
 
+    with open(cell_file, 'r') as file:
+        no_atoms = len(file.readlines())
+
     # Editing the cell file absolute path
     for i in range(len(env)):
 
@@ -73,15 +76,13 @@ def change_cell(envin, cell_file):
             env_split[1] = cell_file
             env[i] = '"'.join(env_split) + '\n'
             ch_index = i
-            break
 
         elif env[i].split()[0] == "fcell":
             env[i+1] = cell_file + '\n'
             ch_index = i+1
-            break
 
-        elif i == len(env)-1:
-            sys.exit("cell file variable not found")
+        elif env[i].split()[0] == "nch":
+            env[i+1] = " %d\n"%no_atoms
 
     with open(envin, 'w') as file:
         file.writelines(env)
@@ -120,6 +121,8 @@ def cell_list(disp_input_file):
     # for the list
     cell_files = [f for f in os.listdir(grid_dir)
                   if os.path.isfile(os.path.join(grid_dir, f))]
+    
+    cell_files.sort()
 
     return grid_dir, cell_files
 
@@ -170,7 +173,6 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
     grid_psd = grid_dir.split("/")[-1].replace("_cell", "_psd")
     directory_psd = os.getcwd() + "/" + grid_psd
 
-    
     # Generating new grid folder
     Path(directory_sew0).mkdir(parents=True, exist_ok=True)
     Path(directory_psd).mkdir(parents=True, exist_ok=True)
@@ -183,7 +185,7 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
         run_xenv(envin, envout)
 
         field = ".".join(fname.split(".")[-5:-1])
-        
+
         sew0_name = sew0_file.split(".")
         psd_name = psd_file.split(".")
 
@@ -201,14 +203,15 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
 
         os.rename(sew0_file, sew0_name)
         os.rename(psd_file, psd_name)
+        
         print("#####################################################")
         print("xenv15 generated files: %s, %s"%(sew0_name, psd_name))
-        
+
         shutil.move(os.path.join(os.getcwd(), sew0_name),
                     os.path.join(directory_sew0, sew0_name))
         shutil.move(os.path.join(os.getcwd(), psd_name),
                     os.path.join(directory_psd, psd_name))
-    
+
     return directory_sew0, directory_psd
 
 
@@ -241,12 +244,13 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
 
     Returns
     ----------
-
+    None
+        sew.in file grid
     """
 
     # Directory of sew0 and psd grids
     new_grid_dirs = sim_cells(envin, envout, disp_input_file, sew0_file,
-                             psd_file, cell_init)
+                              psd_file, cell_init)
 
     dir_sew0 = new_grid_dirs[0]
     dir_psd = new_grid_dirs[1]
@@ -254,7 +258,7 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
     for i in range(len(dir_sew0)):
         if dir_sew0[i:i+2] == "Ea":
             start = i
-        
+
         elif dir_sew0[i:i+4] == "sew0":
             end = i-1
 
@@ -266,7 +270,7 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
     sew_list = [f for f in os.listdir(dir_sew0)
                 if os.path.isfile(os.path.join(dir_sew0, f))]
     sew_list.sort()
-    
+
     psd_list = [f for f in os.listdir(dir_psd)
                 if os.path.isfile(os.path.join(dir_psd, f))]
     psd_list.sort()
@@ -275,7 +279,7 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
         e2s_input = file.readlines()
 
     for i in range(len(sew_list)):
-        sewin_name = sew_list[i].replace(".env.sew0",".sew.in")
+        sewin_name = sew_list[i].replace(".env.sew0", ".sew.in")
 
         for j in range(len(e2s_input)):
             e2s_split = e2s_input[j].split()
@@ -288,24 +292,76 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
             elif e2s_split[0] == "sew0_file":
                 e2s_split[-1] = dir_sew0 + "/" + sew_list[i]
                 e2s_input[j] = " ".join(e2s_split) + "\n"
-            
+
             elif e2s_split[0] == "psd_file":
                 e2s_split[-1] = dir_psd + "/" + psd_list[i]
                 e2s_input[j] = " ".join(e2s_split) + "\n"
 
         with open('new_e2s_input', 'w') as file:
             file.writelines(e2s_input)
-        
+
         print("#####################################################")
         print("env2seward generated output file: %s" % sewin_name)
-        
+
         e2s.fileinput('new_e2s_input')
 
         os.rename(sewin_file, sewin_name)
 
         shutil.move(os.path.join(os.getcwd(), sewin_name),
                     os.path.join(os.path.join(os.getcwd(),
-                                 dir_sewin),sewin_name))
+                                 dir_sewin), sewin_name))
+    print("#####################################################")
+    print("sew.in grid generated")
+
+
+def read_input_file(c2s_input):
+    """This function reads the master input file containing info
+    required for sew_in_grid, disp_solve and env2seward inputs
+
+    Parameters
+    ----------
+    c2s_input: str
+        Full, relative or absolute path to input file containing
+        paths to envin, envout, initial cell file, disp_solve input
+        file, names of xenv15 system output files and the contents
+        of the disp_solve and env2seward input files, separated for
+        readability
+
+    Returns
+    ----------
+    None
+        Outputs sew.in grid to the current working directory
+    """
+    
+    # Opening c2s input file for reading
+    with open(c2s_input, 'r') as file:
+        c2s = file.readlines()
+
+    # Parese c2s input file for variables
+    for i in range(len(c2s)):
+        c2s_split = c2s[i].split()
+
+        if c2s_split[0] == "envin":
+            envin = " ".join(c2s_split[2:])
+
+        if c2s_split[0] == "envout":
+            envout = " ".join(c2s_split[2:])
+
+        if c2s_split[0] == "cell_init":
+            cell_init = " ".join(c2s_split[2:])
+
+        if c2s_split[0] == "disp_input":
+            disp_input = " ".join(c2s_split[2:])
+
+        if c2s_split[0] == "xenv_sew0":
+            xenv_sew0 = " ".join(c2s_split[2:])
+
+        if c2s_split[0] == "xenv_psd":
+            xenv_psd = " ".join(c2s_split[2:])
+
+    # Calling grid generation function with the parsed variables
+    sew_in_grid(envin, envout, c2s_input, c2s_input,
+                xenv_sew0, xenv_psd, cell_init) 
 
 
 # Test inputs for bug checking functions
@@ -322,4 +378,7 @@ c2s_input = "../ymno3_d1.c2s.in"
 # change_cell(envin, cell_file)
 # cell_list(disp_input)
 # sim_cells(envin, envout, disp_input, sew0_file, psd_file, cell_file)
-sew_in_grid(envin, envout, c2s_input, c2s_input, sew0_file, psd_file, cell_file)
+# sew_in_grid(envin, envout, c2s_input, c2s_input,
+#             sew0_file, psd_file, cell_file)
+
+read_input_file(c2s_input)

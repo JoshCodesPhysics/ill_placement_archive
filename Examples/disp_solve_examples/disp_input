@@ -1,9 +1,9 @@
 crystal_file = ../ht.frequence.B1PW_PtBs.loto.out
 cell_init = ../ymno3.cell
 # crystal_file = ht.frequence.B1PW_PtBs.loto.out
-# cell_init = ymno3.cell
-ea = [0,150,150]
-eb = [0,150,150]
-ec = [0,150,150]
-unit_source = charge
+# cell_init = ymno3.new.cell
+ea = [0,.15,.15]
+eb = [0,.15,.15]
+ec = [0,.15,.15]
+unit_source = direct
 charge_dict = {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}

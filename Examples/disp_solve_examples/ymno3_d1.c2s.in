@@ -1,12 +1,16 @@
+#########crystal2seward input########################
+envin = ymno3_d1.envin
+envout = ymno3_d1.env.out
+disp_input = ../disp_input
+xenv_sew0 = ymno3_d1.sew0
+xenv_psd = ymno3_d1.psd
 #########disp_solve input############################
 crystal_file = ../ht.frequence.B1PW_PtBs.loto.out
-cell_init = ../ymno3.cell
-# crystal_file = ht.frequence.B1PW_PtBs.loto.out
-# cell_init = ymno3.new.cell
+cell_init = ../ymno3.new.cell
 ea = [0,.15,.15]
 eb = [0,.15,.15]
 ec = [0,.15,.15]
-unit_source = auto
+unit_source = direct
 charge_dict = {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
 ##########env2seward input###########################
 filename = ymno3_d1.0.0_0.0_0.0.sew.in

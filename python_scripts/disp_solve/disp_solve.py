@@ -1132,10 +1132,13 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
    
     # New file name including electric field parameters
     fsplit = cell_file.split('.')
-    fsplit.insert(-1, '%s_%s_%s'%(str(round(ea,3)), str(round(eb,3)),
-                  str(round(ec,3))))
+    if "new" not in fsplit:
+        fsplit.insert(-1, '%s_%s_%s'%(str(round(ea, 3)), str(round(eb, 3)),
+                      str(round(ec, 3))))
+    else:
+        fsplit = [i.replace("new",'%s_%s_%s'%(str(round(ea, 3)),
+                  str(round(eb, 3)), str(round(ec, 3)))) for i in fsplit]
     
-
     fnew = '.'.join(fsplit).split("/")[-1]
 
     # Directory of initial cell file and output file
