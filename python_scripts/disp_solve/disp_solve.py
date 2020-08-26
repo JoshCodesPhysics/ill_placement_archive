@@ -934,7 +934,7 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
                     coords_split[k] = coords_split[k].replace("D+", "e+")\
                                       .replace("D-", "e-")
                 
-                atom = coords_split[0]
+                atom = coords_split[0].upper()
                 atom_dict["group %d"%(i+1)]["atom %d"%(count)] =\
                         {"coords":[float(coords_split[k+1])
                             for k in range(3)],"element":atom,
@@ -1017,7 +1017,7 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
 
-                atom = coords_split[4]
+                atom = coords_split[4].upper()
                 # Charge data included for auto
                 if unit_source == "auto":
                     atom_dict["group %d"%(i+1)]["atom %d"
@@ -1039,7 +1039,7 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
-                atom = coords_split[4]
+                atom = coords_split[4].upper()
 
                 if atom not in parsed_atoms and j == 0:
                         parsed_atoms[atom] = i+1
@@ -1283,14 +1283,14 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     
     # Generating new folder for results, named after ranges of E coordinates
     if len(ea_array) == 1 or len(eb_array) == 1 or len(ec_array) == 1:
-        dirname = "Ea_%s_%s__Eb_%s_%s__Ec_%s_%s"%\
+        dirname = "Ea_%s_%s__Eb_%s_%s__Ec_%s_%s_cell"%\
                 (str(round(ea_array[0], 3)),
                  str(round(ea_array[-1], 3)),str(round(eb_array[0], 3)),
                  str(round(eb_array[-1], 3)),str(round(ec_array[0], 3)),
                  str(round(ec_array[-1], 3)))
     
     else:
-        dirname = "Ea_%s_%s_%s__Eb_%s_%s_%s__Ec_%s_%s_%s"\
+        dirname = "Ea_%s_%s_%s__Eb_%s_%s_%s__Ec_%s_%s_%s_cell"\
                 %(str(round(ea_array[0], 3)),str(round(ea_array[-1], 3)),
                   str(round(abs(ea_array[0]-ea_array[1]), 3)),
                   str(round(eb_array[0], 3)), str(round(eb_array[-1], 3)),

@@ -91,19 +91,15 @@ def atom_find(sew0_file, psd_file):
         
         for j in range(len(element)):
             
-            if element[j].isdigit():
+            if element[j].isdigit() or element[j] == "_"\
+                                    or element[j] == "*":
+                
                 atom = element[0:j]
                 
                 if atom not in frag_list:
                     frag_list.append(atom)
                 break
-            
-            elif element[j] == '_':
-                atom = element[0:j]
-                
-                if atom not in frag_list:
-                    frag_list.append(atom)
-    
+
     # Parse the pseudopotential data for atom types
     for i in range(len(pseudo_data)):
         
@@ -194,9 +190,11 @@ def frag_basis(new_file, sew0_file, psd_file, lib):
            # Checking atom type at the start of the line
            for j in range(len(atom_item)):
                
-               if atom_item[j].isdigit():
-                   atom = atom_item[:j]
+               if atom_item[j] == "_" or atom_item[j] == "*"\
+                                      or atom_item[j].isdigit():
                    
+                   atom = atom_item[:j]
+               
                    # If the atom is new, create a new dictionary
                    # key later and add the coordinates to that
                    if atom not in atom_check:
@@ -305,9 +303,16 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                 pass
             
             # If the atom is one character, it's a lot more simple
-            elif pseudo_sew0[j].split()[0][1].isdigit():
-                atom = pseudo_sew0[j].split()[0][0:2]
+            elif pseudo_sew0[j].split()[0][1].isdigit() or\
+                 pseudo_sew0[j].split()[0][1] == "_" or\
+                 pseudo_sew0[j].split()[0][1] == "*":
                 
+                if pseudo_sew0[j].split()[0][1].isdigit():
+                    atom = pseudo_sew0[j].split()[0][0:2]
+                
+                else:
+                    atom = pseudo_sew0[j].split()[0][0]
+
                 # Is it new? Generate new key in atom dictionary
                 # and append later on
                 if atom not in atom_check:
@@ -336,7 +341,7 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                 # second half of data from the file
                 for i in range(len(psd_whole)):
                     
-                    if psd_whole[i].split() != []:    
+                    if len(psd_whole[i].split()):    
                         psd_split = psd_whole[i].split()
                         
                         if psd_split == ['En','symetrie'] or psd_split ==\
@@ -354,8 +359,12 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                     if psd_whole[i].split()[0] == 'Atom':
                         pass
                     
-                    elif psd_whole[i].split()[0][1].isdigit() == False:
-                        psd.append(psd_whole[i])
+                    elif len(psd_whole[i].split()[0]) > 1:
+                        if psd_whole[i].split()[0][1] == "_" or\
+                           psd_whole[i].split()[0][1] == "*":
+                               pass
+                        elif psd_whole[i].split()[0][1].isdigit() == False:
+                            psd.append(psd_whole[i])
 
                 elem = pseudo_sew0[j].split()[0][0:2]
                 
@@ -379,8 +388,12 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                     separation = ((psd_coords[0]-coords[0])**2\
                                    +(psd_coords[1]-coords[1])**2\
                                    +(psd_coords[2]-coords[2])**2)**0.5
-                    
-                    if separation <= 1e-1 and elem \
+
+                    # print("sew0 index: ", j, " psd index: ", i,
+                    #      "sew0 elem: ", elem, " psd elem: ", psd[i].split()[0][0:2],
+                    #      " separation: ", separation)
+
+                    if abs(separation) <= 1e-1 and elem \
                                               == psd[i].split()[0][0:2]:
                         
                         # Contingencies for different atom codes
@@ -394,7 +407,7 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                                                     [0].index('*')]
                         
                         else:
-                            atom = psd[i].split()[0][0:3]
+                            atom = psd[i].split()[0]
                         break
                 
                 # Is it new? Make a new key and append
@@ -420,18 +433,35 @@ def pseudos(new_file, sew0_file, psd_file, lib):
             
             for k in range(len(pseudo_dict[atom_list[i]])):
                 
-                if pseudo_dict[atom_list[i]][k].split()[0][1].isdigit():
+                if pseudo_dict[atom_list[i]][k].split()[0][1].isdigit() or\
+                   pseudo_dict[atom_list[i]][k].split()[0][1] == "_" or\
+                   pseudo_dict[atom_list[i]][k].split()[0][1] == "*":
                     
+
                     if pseudo_dict[atom_list[i]][k].split()[0][0:2]\
-                                  != atom_list[i]:
-                        
-                        sys.exit("Atoms have been grouped incorrectly."+\
-                                 " Check that .sew0 and .psd"+\
-                                 " match properly.")
+                       != atom_list[i] and len(atom_list[i]) > 1:
+
+                           print("Single atom did not match")
+                           print("Pseudo_dict key: ",
+                                 pseudo_dict[atom_list[i]][k]\
+                                 .split()[0][0:2],
+                                 " atom list key: ", atom_list[i])
+                           sys.exit("Atoms have been grouped incorrectly."+\
+                                    " Check that .sew0 and .psd"+\
+                                    " match properly.")
+                    
+                    elif len(atom_list[i]) == 1:
+                        if pseudo_dict[atom_list[i]][k].split()[0][0]\
+                           != atom_list[i]:
+                               sys.exit("Atoms have been grouped"\
+                                       + " incorrectly. Check that .sew0"\
+                                       + "and .psd match properly.")
                 
                 else:
                     if pseudo_dict[atom_list[i]][k].split()[0][:2]\
                                   != atom_list[i][:2]:
+
+                        print("Double atom did not match")
                         sys.exit("Atoms have been grouped incorrectly."+\
                                  " Check that .sew0 and .psd"+\
                                  " match properly.")
@@ -535,7 +565,7 @@ def finalwrite(new_file,title_input,sew0_file,psd_file,lib_frag,lib_pseud):
     
     xfield(new_file, sew0_file)
     
-    print("File has been created")
+    print("sew.in data has been written")
 
 
 def ask_user(question):
@@ -582,6 +612,7 @@ def atom_print(atoms):
     None
         Prints fragment and pseudopotential atom lists separately
     """
+    print("Atoms to be processed by env2seward: ")
     print("Fragment atoms: ",atoms[0], "TIP atoms: ", atoms[1])
 
 
