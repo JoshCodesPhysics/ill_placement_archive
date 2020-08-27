@@ -1,6 +1,6 @@
 # Crys2Seward
 
-Crys2seward is a python program that links the output from the CRYSTAL geometry optimisation to `disp\_solve`, `env15` and `env2seward` to produce a grid of input files for the program SEWARD.
+Crys2seward is a python program that links the output from the CRYSTAL geometry optimisation to `disp_solve`, `env15` and `env2seward` to produce a grid of input files for the program SEWARD.
 
 ## Installing python 3
 
@@ -17,15 +17,17 @@ The following packages must be installed with your distribution for the program 
 - env2seward
 - disp\_solve
 
-Install packages you don't have with `pip install <module_name>` or check that you have it with `pip list | grep <module_name_you_want_to_check>`
+Install packages you don't have with `pip install <module_name>` or check that you have it with `pip list | grep <module_name_you_want_to_check>`, unless they are packages available only in this repository such as env2seward and disp\_solve.
+
+In that case you will need to download both the script and the `__init__.py` files, and reference their path in crys2seward.py when declaring used packages (unless they are located in the same relative path as the repository, then no changes are required).
 
 ## Input files
 
 The program requires the following inputs:
 
-- CRYSTAL output file of a phonon calculation of your system including IR intensities(Born charges) and Hessian matrix printed in fractional coordinates
+- CRYSTAL output file of a phonon calculation of your system including IR intensities (Born charges) and Hessian matrix printed in fractional coordinates
 - The initial system.cell file of the ENV code corresponding to the undistorted system
-- The envin file for the env15 program `xenv15` (+ the desired name of the env.out file, more on that later).
+- The envin file for the env15 program `xenv15` after executing the necessary `make` command in the Env15 folder (see the local tools manual written by M. B. Lepetit for how to install env15).
 - The prefix.c2s.in input file containing all the paths pointing to the aforementioned files, as well as the inputs for `disp_solve` and `env2seward`
 
 ## Executing the script
@@ -77,21 +79,21 @@ lib_pseudo = {'MN': {'key': 'MN_pseudo_basis', 'loc': 'MN_pseudo_library'}, 'O1'
 ## Output
 
 Each grid of files is stored in an appropriately named folder. The sew0, psd and sew.in files are generated in separate folders but in the same current working directory with the xenv15 files as discussed before.
-The disp\_solve cell files are generated in the same way, but in the same directory as the initial cell file or the CRYSTAL output file if their relative or full paths are specified.
-They are **not** generated in the local directory unless the paths are not specified. Every grid folder name features the start, stop, step for Ea, Eb, Ec chosen in the c2s.in file in the disp\_solve input section.
+The disp\_solve cell files are generated in the same way, but stored in the same directory as the initial cell file or the CRYSTAL output file if their relative or full paths are specified.
+They are **not** generated in the local directory unless the disp\_solve input file paths are not specified. Every grid folder name features the start, stop, step for Ea, Eb, Ec chosen in the c2s.in file in the disp\_solve input section.
 
 ## How does it work?
 
-The CRYSTAL output contains the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters.
+The CRYSTAL optimised geometry output files contains the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters.
 CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a **cell file**.
 
-This data is used to calculate the displacements from an induced uniform electric field by `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
+This data is used to calculate the displacements from an induced uniform electric field by `disp_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
 
 Crys2seward edits the xenv15 'envin' or 'env.in' input files so that the env15 program can take cell files of different displacements and produces a grid of output files named `prefix.env.sew0` and `prefix.env.psd`.
 These are the input files of the env2seward program, where the prefix corresponds to the simulated system.
 
 Crys2seward modifies the env2seward input data so that each set of sew0 and psd file coordinates are categorised into a prefix.sew.in format.
 
-Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype. The names of each grid file includes the associated incident electric field.
+Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype. The names of each grid file include the associated incident electric field.
 
 
