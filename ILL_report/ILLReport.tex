@@ -421,53 +421,6 @@ From a DFT calculation with Crystal, when the optimal geometry is obtained, we c
 %	\item prop
 %\end{itemize}
 
-\section{Env2Seward}
-Env2Seward is the first driver script that I wrote my time at ILL, created to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
-
-Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the ENV output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library, if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in a third system input file. This command line input file can be generated automatically by the program through user input, or manually by the user. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells.
-
-Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
-
-
-\begin{figure}
-\centering
-\begin{BVerbatim}[fontsize=\small]
-\&SEWARD
-Title
-Excerpt
-
-Expert
-Verbose
-
-*** Fragment ***************************************************
-Basis set
-Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.
-spherical
-Mn01       0.000000000000       0.000000000000       2.749761859316        Bohr
-Mn02       0.000000000000       0.000000000000      -2.749761859316        Bohr
-End of basis
-****
-Basis set
-O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f
-spherical
-O203       2.231731397024      -0.875526023191       0.000000000000        Bohr
-O204      -2.231731397024       0.875526023191       0.000000000000        Bohr
-O305       2.118901193775      -1.064763543958      -5.367483621542        Bohr
-O306      -2.119040147228       1.064763543958      -5.367483621542        Bohr
-O407       1.412183935493       3.326902091439      -2.642519536557        Bohr
-O408       1.412183935493       3.326902091439       2.642519536557        Bohr
-O409      -1.412183935493      -3.326902091439       2.642519536557        Bohr
-O410      -1.412183935493      -3.326902091439      -2.642626886230        Bohr
-O311       2.118901193775      -1.064763543958       5.367483621542        Bohr
-O312      -2.119040147228       1.064763543958       5.367483621542        Bohr
-End of basis
-****
-\end{BVerbatim}
-\caption{Excerpt of fragment coordinates from env2seward output file generated for SEWARD input of the GdMn2O5 system. No specified library so the default is used.}
-\end{figure}
-
-The appendix contains an instruction manual that goes into more depth about specifically how to use this software. 
-
 \section{Solving the displacement equation}
 \subsection{Solving for the atom displacements}
 
@@ -539,7 +492,71 @@ A new unit cell file is then written for the disturbed system containing double-
 
 Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The trialled module was the symmetric system driver DSYEV, that was ran in tandem with the python script using a batch file so that the displacement results could be compared. When the optimal displacement calculation has been chosen, we can add the calculated displacements to the atom coordinates from the CRYSTAL output files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
 
-Again, please see the appendix for an instruction manual that covers more detail how to use this software.
+Please see the appendix for an instruction manual that covers more detail how to use this software.
+
+\section{Processing Env output into Seward}
+Env2Seward is the first driver script that I wrote my time at ILL, created to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
+
+Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the ENV output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library, if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in a third system input file. This command line input file can be generated automatically by the program through user input, or manually by the user. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells.
+
+Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
+
+
+\begin{figure}
+	\centering
+	\begin{BVerbatim}[fontsize=\small]
+	\&SEWARD
+	Title
+	Excerpt
+	
+	Expert
+	Verbose
+	
+	*** Fragment ***************************************************
+	Basis set
+	Mn.ano-rcc.Roos.21s15p10d6f4g2h.6s4p3d1f0g.
+	spherical
+	Mn01       0.000000000000       0.000000000000       2.749761859316        Bohr
+	Mn02       0.000000000000       0.000000000000      -2.749761859316        Bohr
+	End of basis
+	****
+	Basis set
+	O.ano-rcc.Roos.14s9p4d3f2g.4s3p1d0f
+	spherical
+	O203       2.231731397024      -0.875526023191       0.000000000000        Bohr
+	O204      -2.231731397024       0.875526023191       0.000000000000        Bohr
+	O305       2.118901193775      -1.064763543958      -5.367483621542        Bohr
+	O306      -2.119040147228       1.064763543958      -5.367483621542        Bohr
+	O407       1.412183935493       3.326902091439      -2.642519536557        Bohr
+	O408       1.412183935493       3.326902091439       2.642519536557        Bohr
+	O409      -1.412183935493      -3.326902091439       2.642519536557        Bohr
+	O410      -1.412183935493      -3.326902091439      -2.642626886230        Bohr
+	O311       2.118901193775      -1.064763543958       5.367483621542        Bohr
+	O312      -2.119040147228       1.064763543958       5.367483621542        Bohr
+	End of basis
+	****
+	\end{BVerbatim}
+	\caption{Excerpt of fragment coordinates from env2seward output file generated for SEWARD input of the GdMn2O5 system. No specified library so the default is used.}
+\end{figure}
+
+Again, the appendix contains an instruction manual that goes into more depth about specifically how to use this software.
+
+\section{Linking CRYSTAL output, Disp\_Solve, ENV and Env2Seward}
+
+The CRYSTAL optimised geometry output files contains the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}.
+
+This data can be used to calculate the displacements from an induced uniform electric field using `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
+
+Another program that I wrote for this project is \texttt{crys2seward.py}. Crys2Seward edits the xenv15 \texttt{envin} or \texttt{env.in} input files so that the env15 program can take cell files of different displacements from the disp\_solve outputs and produces a grid of output files named: 
+
+\begin{itemize}
+	\item \texttt{prefix.<field\_values>.env.sew0}
+	\item \texttt{prefix.<field\_values>.env.psd}
+\end{itemize}
+
+These are the new input files of the Env2Seward program (the prefix corresponds to the simulated system). Crys2Seward modifies the Env2Seward input data to take specific inputs from each file in the grid. This allows each set of sew0 and psd file coordinates to be categorised into a prefix.sew.in format, to be input into SEWARD.
+
+Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype.
 
 \newpage
 \section*{Software Manual Appendix}
