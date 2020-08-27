@@ -40,7 +40,7 @@ The program has optional input:
 There are two options:
 
 1. `python3 disp_solve.py` (no input file: command line will prompt you for direct inputs. Can use full or relative path for script)
-2. `python3 disp solve.py <input_file_path>` (Input file is passed as a command line argument. Can be relative or full path.)
+2. `python3 disp_solve.py <input_file_path>` (Input file is passed as a command line argument. Can be relative or full path.)
 
 If you choose 1. you will be prompted for 3-4 different things:
 

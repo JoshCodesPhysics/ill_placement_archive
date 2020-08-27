@@ -5,15 +5,15 @@ xenv_sew0 = ymno3_d1.sew0
 xenv_psd = ymno3_d1.psd
 #########disp_solve input############################
 crystal_file = ../ht.frequence.B1PW_PtBs.loto.out
-cell_init = ../ymno3.new.cell
-ea = [0,.15,.15]
-eb = [0,.15,.15]
-ec = [0,.15,.15]
-unit_source = direct
+cell_init = ../ymno3.cell
+ea = [0,.15,.03]
+eb = [0,.15,.03]
+ec = [0,.15,.03]
+unit_source = auto
 charge_dict = {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
 ##########env2seward input###########################
 filename = ymno3_d1.0.0_0.0_0.0.sew.in
-title = Initial ymno3_d1 input file
+title = <insert title here>
 sew0_file = ymno3_d1.0.0_0.0_0.0.env.sew0
 psd_file = ymno3_d1.0.0_0.0_0.0.env.psd
 lib_frag = {'O': {'key': 'O_frag_basis', 'loc': ''}, 'Y': {'key': 'Y_frag_basis', 'loc': ''}, 'MN': {'key': 'MN_frag_basis', 'loc': ''}}

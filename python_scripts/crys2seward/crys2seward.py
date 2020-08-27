@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import sys
 import shutil
@@ -82,7 +81,7 @@ def change_cell(envin, cell_file):
             ch_index = i+1
 
         elif env[i].split()[0] == "nch":
-            env[i+1] = " %d\n"%no_atoms
+            env[i+1] = " %d\n" % no_atoms
 
     with open(envin, 'w') as file:
         file.writelines(env)
@@ -121,7 +120,7 @@ def cell_list(disp_input_file):
     # for the list
     cell_files = [f for f in os.listdir(grid_dir)
                   if os.path.isfile(os.path.join(grid_dir, f))]
-    
+
     cell_files.sort()
 
     return grid_dir, cell_files
@@ -159,7 +158,8 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
     """
 
     # Defining old grid directory and list of cell files
-    print("###################Generating grid###############################")
+
+    print("###################Generating grid#############################")
 
     cell_data = cell_list(disp_input_file)
 
@@ -184,8 +184,9 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
         change_cell(envin, cell_dir)
         run_xenv(envin, envout)
 
-        field = ".".join(fname.split(".")[-5:-1])
+        field = ".".join(fname.split(".")[1:-1])
 
+        # Generating new names for the output files
         sew0_name = sew0_file.split(".")
         psd_name = psd_file.split(".")
 
@@ -201,12 +202,14 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
         psd_name.insert(-2, field)
         psd_name = ".".join(psd_name)
 
+        # Renaming output files
         os.rename(sew0_file, sew0_name)
         os.rename(psd_file, psd_name)
-        
-        print("#####################################################")
-        print("xenv15 generated files: %s, %s"%(sew0_name, psd_name))
 
+        print("#####################################################")
+        print("xenv15 generated files: %s, %s" % (sew0_name, psd_name))
+
+        # Moving output files to the desired folder
         shutil.move(os.path.join(os.getcwd(), sew0_name),
                     os.path.join(directory_sew0, sew0_name))
         shutil.move(os.path.join(os.getcwd(), psd_name),
@@ -262,11 +265,13 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
         elif dir_sew0[i:i+4] == "sew0":
             end = i-1
 
+    # Naming and generating new directory for the sew.in grid
     dir_sewin = dir_sew0[start:end]+"_sew.in"
 
     Path(dir_sewin).mkdir(parents=True, exist_ok=True)
 
-    # List of sew0 and psd files generated in the above directory
+    # List of sew0 and psd files generated in the dir_sew0
+    # and dir_psd directories
     sew_list = [f for f in os.listdir(dir_sew0)
                 if os.path.isfile(os.path.join(dir_sew0, f))]
     sew_list.sort()
@@ -275,9 +280,11 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
                 if os.path.isfile(os.path.join(dir_psd, f))]
     psd_list.sort()
 
+    # Reading env2seward input for editing
     with open(env2sew_input_file, 'r') as file:
         e2s_input = file.readlines()
 
+    # Making a new env2seward input file to process each sew0 and psd file
     for i in range(len(sew_list)):
         sewin_name = sew_list[i].replace(".env.sew0", ".sew.in")
 
@@ -303,13 +310,17 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
         print("#####################################################")
         print("env2seward generated output file: %s" % sewin_name)
 
+        # Writing new sew.in file from new env2seward input file
         e2s.fileinput('new_e2s_input')
 
+        # Renaming the sew.in file
         os.rename(sewin_file, sewin_name)
 
+        # Moving it to the desired directory
         shutil.move(os.path.join(os.getcwd(), sewin_name),
                     os.path.join(os.path.join(os.getcwd(),
                                  dir_sewin), sewin_name))
+
     print("#####################################################")
     print("sew.in grid generated")
 
@@ -332,12 +343,12 @@ def read_input_file(c2s_input):
     None
         Outputs sew.in grid to the current working directory
     """
-    
+
     # Opening c2s input file for reading
     with open(c2s_input, 'r') as file:
         c2s = file.readlines()
 
-    # Parese c2s input file for variables
+# Parse c2s input file for variables
     for i in range(len(c2s)):
         c2s_split = c2s[i].split()
 
@@ -350,9 +361,6 @@ def read_input_file(c2s_input):
         if c2s_split[0] == "cell_init":
             cell_init = " ".join(c2s_split[2:])
 
-        if c2s_split[0] == "disp_input":
-            disp_input = " ".join(c2s_split[2:])
-
         if c2s_split[0] == "xenv_sew0":
             xenv_sew0 = " ".join(c2s_split[2:])
 
@@ -361,18 +369,29 @@ def read_input_file(c2s_input):
 
     # Calling grid generation function with the parsed variables
     sew_in_grid(envin, envout, c2s_input, c2s_input,
-                xenv_sew0, xenv_psd, cell_init) 
+                xenv_sew0, xenv_psd, cell_init)
+
+
+def command_line():
+    """Allows for command line input - pass input path as:
+    python3 <crys2seward.py_path> <input_file_path>
+
+    No parameters or returns.
+    """
+    if len(sys.argv) >= 2:
+        read_input_file(sys.argv[1])
 
 
 # Test inputs for bug checking functions
-envin = "ymno3_d1.envin"
-envout = "ymno3_d1.env.out"
-cell_file = "../ymno3.new.cell"
-disp_input = "../disp_input"
-sew0_file = "ymno3_d1.sew0"
-psd_file = "ymno3_d1.psd"
-e2s_input = "ymno3_d1.new.in"
-c2s_input = "../ymno3_d1.c2s.in"
+
+# envin = "ymno3_d1.envin"
+# envout = "ymno3_d1.env.out"
+# cell_file = "../ymno3.new.cell"
+# disp_input = "../disp_input"
+# sew0_file = "ymno3_d1.sew0"
+# psd_file = "ymno3_d1.psd"
+# e2s_input = "ymno3_d1.new.in"
+# c2s_input = "../ymno3_d1.c2s.in"
 
 # run_xenv(envin, envout)
 # change_cell(envin, cell_file)
@@ -380,5 +399,6 @@ c2s_input = "../ymno3_d1.c2s.in"
 # sim_cells(envin, envout, disp_input, sew0_file, psd_file, cell_file)
 # sew_in_grid(envin, envout, c2s_input, c2s_input,
 #             sew0_file, psd_file, cell_file)
+# read_input_file(c2s_input)
 
-read_input_file(c2s_input)
+command_line()
