@@ -1,6 +1,0 @@
-filename = ymno3_d1.sew.in
-title = ymno3_test
-sew0_file = ymno3_d1.env.sew0
-psd_file = ymno3_d1.env.psd
-lib_frag = {'Y: {'key': 'Y_frag_basis', 'loc': ''}, 'O': {'key': 'O_frag_basis', 'loc': ''}}
-lib_pseudo = {'Mn': {'key': 'Mn_pseudo_basis', 'loc': 'Mn_lib'}, 'O1': {'key': 'O1_pseudo_basis', 'loc': 'O1_lib'}, 'O2': {'key': 'O2_pseudo_basis', 'loc': 'O2_lib'}, 'O3': {'key': 'O3_pseudo_basis', 'loc': 'O3_lib'}, 'O4': {'key': 'O4_pseudo_basis', 'loc': 'O4_lib'}, 'Y1': {'key': 'Y1_pseudo_basis', 'loc': 'Y1_lib'}, 'Y2': {'key': 'Y2_pseudo_basis', 'loc': 'Y2_lib'}}
