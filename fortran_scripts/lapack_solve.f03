@@ -1,10 +1,10 @@
 program lapack_solve
-      !Purpose: To solve a set of linear equations: -H.d = qE
-      !Format is Ax = B where A = -H, x = d and B = qE
+      ! Purpose: To solve a set of linear equations: -H.d = qE
+      ! Format is Ax = B where A = -H, x = d and B = qE
       use iso_c_binding
       implicit none
 
-      !Generating hessian and born matrices for extraction from .npy files
+      ! Generating hessian and born matrices for extraction from .npy files
       integer, parameter :: DPR = selected_real_kind(p=15), nout = 14
       
       character(len=*), parameter :: hess_data = 'hess_matrix', &
@@ -13,19 +13,19 @@ program lapack_solve
       
       logical :: exist
       
-      !Defining variables required for calling dysv
+      ! Defining variables required for calling dysv
       
-      !Integers
+      ! Integers
       integer :: N, i,j
       integer :: INFO, NRHS, LDA, LDB, LWORK
       
-      !Arrays
+      ! Arrays
       double precision, allocatable, dimension(:,:) :: h_tensor, b_tensor
       !real(DPR), allocatable, dimension(:,:) :: h_tensor, b_tensor
       integer, allocatable, dimension(:) :: IPIV
       integer, dimension(1) :: nlist
       double precision, allocatable, dimension(:,:) :: A, q
-      double precision, allocatable, dimension(:) :: E, B, B_COPY,DIFF, WORK
+      double precision, allocatable, dimension(:) :: E, B, B_COPY, DIFF, WORK
       
       open(10, file = n_file, status='old',access = 'stream',&
               form = 'unformatted')
@@ -57,8 +57,8 @@ program lapack_solve
       read(13) E
       close(13,status = 'delete')
       
-      !Generating the A and q matrices
-      !Have to transpose q, but not A since it is symmetric
+      ! Generating the A and q matrices
+      ! Have to transpose q, but not A since it is symmetric
       do i = 1,N
         do j = 1,N
                 A(i,j) = dble(-1.0*h_tensor(i,j))
@@ -66,7 +66,7 @@ program lapack_solve
         end do
       end do
 
-      !Generating B matrix
+      ! Generating B matrix
       B = matmul(q,E)
       B_COPY = matmul(q,E)
       !write(*,*) B
@@ -83,7 +83,7 @@ program lapack_solve
 
       call dsysv(UPLO,N,NRHS,A,LDA,IPIV,B,LDB,WORK,LWORK,INFO)
 
-      !print *, "after: ", B
+      ! print *, "after: ", B
 
       !Difference error matrix
       DIFF = abs(matmul(A,B) - B_COPY)
@@ -102,12 +102,12 @@ program lapack_solve
               write (nout,*) 'Solutions'
               write (nout,100) B(1:N)
 
-              !Print factorization details
+              ! Print factorization details
 
               write (nout, *)
               flush (nout)
 
-              !Print pivot indices
+              ! Print pivot indices
               write (nout,*)
               write (nout, *) 'Pivot Indices'
               write (nout,110) ipiv(1:n)

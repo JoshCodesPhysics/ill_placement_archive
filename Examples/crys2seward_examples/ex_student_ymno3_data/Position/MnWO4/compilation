@@ -1,0 +1,2 @@
+gfortran position.f -o position -L/home/varignon/Librairie/ATLAS/Construction/lib  -llapack  -lcblas -latlas -lf77blas
+

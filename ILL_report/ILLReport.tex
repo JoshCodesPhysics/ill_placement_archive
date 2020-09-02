@@ -422,7 +422,7 @@ From a DFT calculation with Crystal, when the optimal geometry is obtained, we c
 %\end{itemize}
 
 \section{Solving the displacement equation}
-\subsection{Solving for the atom displacements}
+\subsection{Generating the atomic displacements}
 
 Once we have optimised the geometry of a system in CRYSTAL in order to minimise the total energy, i.e. finding the Hessian or minimum critical point of the $3N$ dimensional vector space, where $N$ is the number of atoms in the unit cell, we can generate the output files to be processed in order to solve the displacement of each atom for a given homogeneous electric field. 
 
@@ -502,8 +502,8 @@ Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to con
 Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
 
 
-\begin{figure}
-	\centering
+\begin{figure}[htbp]
+	\hspace*{-2.5cm}
 	\begin{BVerbatim}[fontsize=\small]
 	\&SEWARD
 	Title
@@ -541,9 +541,9 @@ Regardless of the input approach taken, the coordinate sets are organised into q
 
 Again, the appendix contains an instruction manual that goes into more depth about specifically how to use this software.
 
-\section{Linking CRYSTAL output, Disp\_Solve, ENV and Env2Seward}
+\section{Linking CRYSTAL output, Disp\_Solve, Env15 and Env2Seward}
 
-The CRYSTAL optimised geometry output files contains the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}.
+As discussed before, the CRYSTAL optimised geometry output files contain the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}.
 
 This data can be used to calculate the displacements from an induced uniform electric field using `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
 

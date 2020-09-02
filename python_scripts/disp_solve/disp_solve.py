@@ -128,6 +128,46 @@ def born_tensor(born_file):
     return tensor
 
 
+def born_dat(born_file):
+    """Reads BORN.DAT file from crystal output directly, initally
+    written to compare the data between the old displacements and
+    new displacements. Outputs (3N, 3N) dimension diagonalised Born
+    tensor with reduced error"
+
+    Parameters
+    ----------
+    born_file: str
+        BORN.DAT path to read born tensor data directly
+
+    Returns
+    ----------
+    born_tensor: array
+        Born charge tensor array
+    """
+
+    with open(born_file, 'r') as file:
+        born_data = file.readlines()
+
+    atom_num = int(len(born_data) / 3)
+    atom_array = np.arange(1, atom_num+1, 1)
+    born_tensor = np.zeros((3*atom_num,3*atom_num))
+
+    m_number = 0
+    for i in range(len(born_data)):
+        if i % 3 == 0:
+            for j in range(3):
+                for k in range(3):
+                    if abs(float(born_data[i + j].split()[k])) <= 1e-12:
+                        pass
+                    
+                    else:
+                        born_tensor[m_number + j, m_number + k]\
+                            = float(born_data[i + j].split()[k])
+            
+            m_number += 3
+
+    return born_tensor
+
 def parse_hessian(hess_file, thresh):
     """Parses Hessian to find index of pairs and diagonal elements
     
@@ -554,10 +594,123 @@ def hessian(born_file, hess_file):
                     tensor_hess[i, j] = 0
                 else:
                     tensor_hess[i, j] = float(tensor_hess[j, i])
+    
     conv_hess = conv_hessian(tensor_hess, hess_file)
     
     # Add [0] suffix to function for L matrix and [1] for symmetric matrix
     return l_matrix, conv_hess
+
+
+def hess_dat(born_file, hess_file, output_file):
+    """This function generates the Hessian array from the system
+    HESSIAN.DAT file, initially written to compare the old and
+    new displacement results
+
+    Parameters
+    ----------
+    born_file: str
+        Path to Born file to extract number of atoms in the
+        unit cell (matching dimensions)
+    hess_file: str
+        Path to HESSIAN.DAT file to extract array
+
+    Returns
+    ----------
+    conv_hess: array
+        Converted Hessian matrix to fractional a.u. in a,b,c
+        lattice parameter basis
+    """
+    with open(born_file, 'r') as file:
+        dim = len(file.readlines())
+
+    with open(hess_file, 'r') as file:
+        hess_data = file.readlines()
+
+    tensor_hess = np.zeros((dim, dim))
+    temp_list = []
+    
+    for i in range(len(hess_data)):
+        hess_split = hess_data[i].split()
+        
+        for j in range(len(hess_split)):
+            temp_list.append(float(hess_split[j]))
+
+
+    row = 0
+    for i in range(len(temp_list)):
+        if i % dim == 0 and i != 0:
+            row += 1
+        tensor_hess[row, i%dim] = temp_list[i]
+
+    for i in range(dim):
+        for j in range(dim):
+            if i >= j:
+                if abs(tensor_hess[i, j]) <= 1e-12:
+                    tensor_hess[i, j] = 0
+
+            else:
+                if abs(tensor_hess[i, j]) <= 1e-12:
+                    tensor_hess[i, j] = 0
+                
+                else:
+                    tensor_hess[i, j] = tensor_hess[j, i]
+
+    conv_hess = conv_hessian(tensor_hess, output_file)
+
+    return conv_hess
+
+
+def born_input(born_file):
+    """Checks if born input file is sourced from the crystal output
+    such as the .loto.out filetype, or from the .DAT files
+
+    Parameters
+    ----------
+    born_file: str
+        Path of born input file
+    
+    Returns
+    ----------
+    b_tensor: array
+        Appropriate function used to generated born tensor
+    """
+
+    if ".DAT" in born_file:
+        b_tensor = born_dat(born_file)
+
+    else:
+        b_tensor = born_tensor(born_file)
+    
+    return b_tensor
+
+def hess_input(born_file, hess_file, output_file):
+    """Checks if Hessian input file is sourced from the crystal output
+    such as the .loto.out filetype, or from the .DAT files. If Hessian
+    input is .DAT, then so must the Born input for this function to
+    work
+
+    Parameters
+    ----------
+    born_file: str
+        Path of born input file
+    hess_file: str
+        Path of Hessian input file
+    output_file: str
+        Path of crystal output file (e.g .loto files)
+    
+    Returns
+    ----------
+    tensor_hess: array
+        Appropriate function used to generate Hessian matrix
+    """
+
+    if ".DAT" in hess_file:
+        tensor_hess = hess_dat(born_file, hess_file, output_file)
+
+    else:
+        tensor_hess = hessian(born_file, hess_file)[1]
+
+    return tensor_hess
 
 
 def convert_coords2(out_file):
@@ -654,7 +807,8 @@ def evec(ea, eb, ec, lat_param, mdim):
     return e_vector
 
 
-def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
+def save_hess_born(born_file, hess_file, output_file, lat_param,
+                   ea, eb, ec):
     """Writes arrays to binary files for fortran processing
     Enter electric field components in kV/m
     
@@ -664,6 +818,9 @@ def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
         Path of file containing Born charge data
     hess_file: str
         Path of file containing Hessian data
+    output_file: str
+        Path of crystal output file containing unit cell
+        data
     lat_param: list
         List containing lattice parameter values [a,b,c]
     ea: float
@@ -680,8 +837,8 @@ def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
         for Fortran script input
     """
     
-    h_tensor = hessian(born_file, hess_file)[1]
-    q_tensor = born_tensor(born_file)
+    h_tensor = hess_input(born_file, hess_file, output_file)
+    q_tensor = born_input(born_file)
     e_vector = evec(ea, eb, ec, len(h_tensor))
     
     # Generating e_vector from inputs
@@ -699,7 +856,8 @@ def save_hess_born(born_file, hess_file, lat_param, ea, eb, ec):
     print("q,E,H matrices written to binary files")
 
 
-def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
+def solve_equation(born_file, hess_file, output_file, lat_param,
+                   ea, eb, ec):
     """Generates all arrays necessary for qE = -Hd equation and
     solves for d (displacement). Equation occurs in a.u. and the
     displacements are in the same units in the same lattice vector
@@ -711,6 +869,9 @@ def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
         Path of file containing Born charge data
     hess_file: str
         Path of file containing Hessian data
+    output_file: str
+        Path of crystal output file containing unit cel
+        data
     lat_param: list
         List containing lattice parameter values [a,b,c]
     ea: float
@@ -728,8 +889,8 @@ def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
         of 3D displacement coordinates in a,b,c space
     """
     
-    q_tensor = born_tensor(born_file)
-    h_tensor = hessian(born_file, hess_file)[1]
+    q_tensor = born_input(born_file)
+    h_tensor = hess_input(born_file, hess_file, output_file)
     m_dim = len(h_tensor)
     
     # Generating e_vector from inputs (uniform field)
@@ -757,7 +918,7 @@ def solve_equation(born_file, hess_file, lat_param, ea, eb, ec):
     return displacement
 
 
-def convert_disp(output_file, ea, eb, ec):
+def convert_disp(born_file, hess_file, output_file, ea, eb, ec):
     """Applies conversion matrix to displacement solutions.
     Operation takes place in Angstrom, so all displacement coordinates
     are converted to Angstrom. Output coordinates are fractional units
@@ -765,6 +926,10 @@ def convert_disp(output_file, ea, eb, ec):
     
     Parameters
     ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
     output_file: str
         Path of CRYSTAL output file containing the conversion matrix,
         the lattice parameters for the electric field input into
@@ -797,8 +962,8 @@ def convert_disp(output_file, ea, eb, ec):
     lat_param_data = conv_data[2]
     lat_param = [float(i) for i in lat_param_data.split()[:3]]
     
-    displacement = solve_equation(output_file, output_file, lat_param,
-                                  ea, eb, ec)
+    displacement = solve_equation(born_file, hess_file, output_file,
+                                  lat_param, ea, eb, ec)
     convdisp = []
     
     # Applying conversion matrix to one set of x,y,z coordinates at a time
@@ -815,8 +980,8 @@ def convert_disp(output_file, ea, eb, ec):
     return convdisp,frac
 
 
-def unit_cell(output_file, cell_file, ea, eb, ec,
-              unit_source, *args, **kwargs):
+def unit_cell(born_file, hess_file, output_file, cell_file,
+              ea, eb, ec, unit_source, *args, **kwargs):
     """Generates the unit cell data in a dictionary
     There are 3 input options:
 
@@ -840,6 +1005,10 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
 
     Parameters
     ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
     output_file: str
         Path of CRYSTAL output file containing the unit cell data
     cell_file: str
@@ -874,9 +1043,12 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
     # Generating preliminary storage lists and required data
     cell = open(cell_file).readlines()
     atom_num = num_atoms(output_file)
-    conv_data = convert_disp(output_file, ea, eb, ec)
+    
+    conv_data = convert_disp(born_file, hess_file, output_file,
+                             ea, eb, ec)
     convdisp = conv_data[0]
     frac_data = conv_data[1]
+    
     atom_nums = [i for i in range(1,atom_num+1)]
     atom_list = []
     
@@ -1068,7 +1240,7 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
                         current_dict = atom_dict["group %d"%(i+1)]
                         for k in current_dict:
                             current_dict[k]["element"] = "%s%d"%\
-                            (atom,dist_atoms[atoms])
+                            (atom, dist_atoms[atom])
         
         # Input manual charge data after correct dictionary is generated
         if unit_source == "charge" and len(args)>0:
@@ -1084,19 +1256,24 @@ def unit_cell(output_file, cell_file, ea, eb, ec,
             for group in atom_dict:
                 for atom in atom_dict[group]:
                     atom_dict[group][atom]["charge"] = None
+    
     # print("##########atom_dict###############")
     # print(atom_dict)
-    return atom_dict,convdisp
+    return atom_dict, convdisp
 
 
-def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
-        *args, **kwargs):
+def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
+                ea, eb, ec, unit_source, *args, **kwargs):
     """This function adds converted displacements to the formulated
     unit cell dictionary and writes the results to a new separate
     cell file
     
     Parameters
     ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
     output_file: str
         Path of CRYSTAL output file containing the unit cell data
     cell_file: str
@@ -1125,16 +1302,19 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
         Writes edited coordinates to new file
     """
     
-    unit_data = unit_cell(output_file, cell_file, ea, eb, ec,
-            unit_source, *args, **kwargs)
+    unit_data = unit_cell(born_file, hess_file, output_file, cell_file,
+                          ea, eb, ec, unit_source, *args, **kwargs)
+    
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
    
     # New file name including electric field parameters
     fsplit = cell_file.split('.')
+
     if "new" not in fsplit:
         fsplit.insert(-1, '%s_%s_%s'%(str(round(ea, 3)), str(round(eb, 3)),
                       str(round(ec, 3))))
+    
     else:
         fsplit = [i.replace("new",'%s_%s_%s'%(str(round(ea, 3)),
                   str(round(eb, 3)), str(round(ec, 3)))) for i in fsplit]
@@ -1144,7 +1324,6 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
     # Directory of initial cell file and output file
     cell_dir = "/".join(cell_file.split("/")[:-1])
     out_dir = "/".join(output_file.split("/")[:-1])
-    
     
     # If file input is a full/relative path directory rather than filename
     # generate output files in that directory
@@ -1158,12 +1337,10 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
         # Else use the current working directory
         cd = os.getcwd()
     
-    
     # Resultant filename given in full path
     completeName = os.path.join(cd+"/"+dirname+"/"+fnew)
     cell_new = open(completeName,'w+')
     
-
     # Add displacements to unit cell dictionary
     for group in atom_dict:
         for i in range(int(len(convdisp)/3)):
@@ -1197,7 +1374,8 @@ def modify_cell(output_file, cell_file, dirname, ea, eb, ec, unit_source,
 
 def modify_existing_cell(output_file, cell_file, ea, eb, ec):
     """This function adds displacements to cell files already 
-    displaced by another field - increases error so not used
+    displaced by another field - increases error so not used.
+    Out of date also (can be updated if needed).
     
     Parameters
     ----------
@@ -1249,14 +1427,18 @@ def modify_existing_cell(output_file, cell_file, ea, eb, ec):
     f.write(tabulate(cell_new, tablefmt='plain', colalign=("left",)))
 
 
-def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
-              unit_source, *args, **kwargs):
+def cell_grid(born_file, hess_file, output_file, cell_file,
+              ea_array, eb_array, ec_array, unit_source, *args, **kwargs):
     """This function generates a grid of displaced cell files
     in the target directory. Uses range of Ex, Ey, Ez values. As before,
     coordinates are in fractional units in the a,b,c basis.
 
     Parameters
     ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
     output_file: str
         Path of CRYSTAL output file containing the unit cell data
     cell_file: str
@@ -1330,9 +1512,9 @@ def cell_grid(output_file, cell_file, ea_array, eb_array, ec_array,
     for i in range(len(ea_array)):
         for j in range(len(eb_array)):
             for k in range(len(ec_array)):
-                modify_cell(output_file, cell_file, dirname, ea_array[i],
-                            eb_array[j], ec_array[k], unit_source,
-                            *args, **kwargs)
+                modify_cell(born_file, hess_file, output_file,
+                            cell_file, dirname, ea_array[i], eb_array[j],
+                            ec_array[k], unit_source, *args, **kwargs)
 
     print("Cell Grid written")
     return directory
@@ -1359,7 +1541,14 @@ def read_input(input_file):
     inp = open(input_file).readlines()
     for i in range(len(inp)):
         inp_split = inp[i].split()
-        if inp_split[0] == "crystal_file":
+        
+        if inp_split[0] == "born_file":
+            born_file = "".join(inp_split[2:]).strip()
+        
+        elif inp_split[0] == "hess_file":
+            hess_file = "".join(inp_split[2:]).strip()
+
+        elif inp_split[0] == "crystal_file":
             crystal_file = "".join(inp_split[2:]).strip()
         
         elif inp_split[0] == "cell_init":
@@ -1385,42 +1574,50 @@ def read_input(input_file):
     # Zero array options
     if ea_list == [0, 0, 0]:
         ea_array = np.array([0])
+    
     else:
         ea_array = np.arange(ea_list[0], ea_list[1]+ea_list[2], ea_list[2])
     
     if eb_list == [0, 0, 0]:
         eb_array = np.array([0])
+    
     else:
         eb_array = np.arange(eb_list[0], eb_list[1]+eb_list[2], eb_list[2])
-    
+
     if ec_list == [0, 0, 0]:
         ec_array = np.array([0])
+    
     else:
         ec_array = np.arange(ec_list[0], ec_list[1]+ec_list[2], ec_list[2])
-    
+
     # Charge unit_source requires separate option including charge_dict
     if unit_source == "charge":
         print("Cell grid is being generated...")
-        cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
-                  unit_source, charge_dict)
-    
+        cd = cell_grid(born_file, hess_file, crystal_file, cell_init,
+                       ea_array, eb_array, ec_array, unit_source,
+                       charge_dict)
+
     elif unit_source == "auto" or unit_source == "direct":
         print("Cell grid is being generated...")
-        cd = cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
-                  unit_source)
-    
+        cd = cell_grid(born_file, hess_file, crystal_file, cell_init,
+                       ea_array, eb_array, ec_array, unit_source)
+
     else:
         # Invalid unit_source again, cancel run
         sys.exit("unit_source is invalid, see documentation")
 
     return cd
 
-def return_atoms(output_file, cell_file, unit_source):
+def return_atoms(born_file, hess_file, output_file, cell_file, unit_source):
     """Lists atoms in the system to be used in the
     command line prompts
 
     Parameters
     ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
     output_file: str
         Path to Crystal output file containing unit cell data
     cell_file: str
@@ -1436,8 +1633,9 @@ def return_atoms(output_file, cell_file, unit_source):
     """
 
     # Generate the atom dictionary to scan for atoms
-    atom_dict = unit_cell(output_file, cell_file, 0, 0, 0, unit_source)[0]
-    # print(atom_dict)
+    atom_dict = unit_cell(born_file, hess_file, output_file,
+                          cell_file, 0, 0, 0, unit_source)[0]
+    
     atoms = []
     
     # Append the atoms to the atoms list
@@ -1465,10 +1663,14 @@ def read_prompt():
                         " (direct,charge,auto): ").lower().split()[0]
     
     # If not recognised, end process
-    if unit_source not in ["auto","charge","direct"]:
+    if unit_source not in ["auto", "charge", "direct"]:
         sys.exit("Unit cell generator parameter not recognised")
     
+    print("FILE PATHS: accepts crystal output or .DAT for Born and"+\
+          " Hessian matrices")
     # Output and cell file path prompt
+    born_file = input("Name/directory of born tensor source file: ")
+    hess_file = input("Name/directory of Hessian matrix source file: ")
     crystal_file = input("Name/directory of crystal output file: ")
     cell_init = input("Name/directory of initial cell file containing"+\
                       " the unit cell data: ")
@@ -1526,8 +1728,9 @@ def read_prompt():
         print("Cell grid is being generated...")
         
         # Generate grid
-        cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
-                  unit_source, element_charge)
+        cell_grid(born_file, hess_file, crystal_file, cell_init,
+                  ea_array, eb_array, ec_array, unit_source,
+                  element_charge)
     
     else:
         print("###########################END OF INPUT##################"+\
@@ -1535,8 +1738,8 @@ def read_prompt():
         print("Cell grid is being generated...")
         
         # Generate grid
-        cell_grid(crystal_file, cell_init, ea_array, eb_array, ec_array,
-                  unit_source)
+        cell_grid(born_file, hess_file, crystal_file, cell_init,
+                  ea_array, eb_array, ec_array, unit_source)
 
 
 def input_or_prompt(crys2sew_bool):
@@ -1554,7 +1757,8 @@ def input_or_prompt(crys2sew_bool):
     ----------
     None
     """
-    
+
+    # If input bool is True, functions are called by crys2seward.py
     if crys2sew_bool:
         pass
 
@@ -1571,11 +1775,14 @@ def input_or_prompt(crys2sew_bool):
 # Test inputs for functions and calling input_or_prompt
 
 # input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
-#              "disp_solve_examples/ht.frequence.B1PW_PtBs.loto.out"
+#              "crys2seward_examples/ht.frequence.B1PW_PtBs.loto.out"
 # cell_first = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
-#               disp_solve_examples/ymno3.new.cell"
+#               crys2seward_examples/ymno3.new.cell"
 # ex, ey, ez = np.arange(0,0.6,.1), np.arange(0,0.21,0.01),\
 #              np.arange(0,1.2,0.2)
 # {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
+# b_dat = "YMnO3/BORN_B1Pw_loto.DAT"
+# h_dat = "YMnO3/HESSIEN.DAT"
+# crys_out = "../frequence.B1PW.loto.out"
 
 input_or_prompt(True)
