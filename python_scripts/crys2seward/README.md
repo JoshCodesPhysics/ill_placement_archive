@@ -54,7 +54,10 @@ envout = ymno3_d1.env.out
 xenv_sew0 = ymno3_d1.sew0
 xenv_psd = ymno3_d1.psd
 #########disp_solve input############################
-crystal_file = ../ht.frequence.B1PW_PtBs.loto.out
+# Born and Hessian sources can either be both '.DAT' or both '.loto.out' filetype
+born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
+hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
+crystal_file = ../ex_student_ymno3_data/frequence.B1PW.loto.out
 cell_init = ../ymno3.cell
 ea = [0,.15,.03]
 eb = [0,.15,.03]

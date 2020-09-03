@@ -654,7 +654,6 @@ def hess_dat(born_file, hess_file, output_file):
                 
                 else:
                     tensor_hess[i, j] = tensor_hess[j, i]
-
     conv_hess = conv_hessian(tensor_hess, output_file)
 
     return conv_hess

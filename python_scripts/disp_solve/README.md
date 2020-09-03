@@ -55,6 +55,9 @@ If you choose 1. you will be prompted for 3-4 different things:
 If you choose 2. you need to write the correct format for the third input file. Here is an example:
 
 ```
+# Born and Hessian sources can either be both '.DAT' or both '.loto.out' filetype
+born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
+hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
 crystal_file = ht.frequence.B1PW_PtBs.loto.out
 cell_init = ymno3.cell
 ea = [0,0.5,0.1]
@@ -65,6 +68,7 @@ charge_dict = {"Y":3.0, "MN":3.0, "O1":-2.0, "O2":-2.0}
 ```
 
 - Each line element is separated by a space (the = sign is isolated)
+- Born and Hessian matrix source paths (relative, absolute or full) are assigned to born\_file and hess\_file respectively. This can be sourced from .loto.out crystal files or separate .DAT files
 - Crystal and cell file relative or full path directories are assigned to crystal\_file and cell\_init respectively
 - ea, eb, ec are the ranges for E\_a, E\_b, E\_c respectively in the format \[start,stop,step\]
 - unit_source is assigned to either direct, auto or charge
