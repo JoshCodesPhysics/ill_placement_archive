@@ -8,9 +8,9 @@ born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
 hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
 crystal_file = ../ex_student_ymno3_data/frequence.B1PW.loto.out
 cell_init = ../ymno3_loto.cell
-ea = [0,1.5,1.5]
-eb = [0,0,0]
-ec = [0,0,0]
+ex = [0,0.15,0.15]
+ey = [0,0.15,0.15]
+ez = [0,0,0]
 unit_source = direct
 charge_dict = {'Y':3.0, 'Y1':3.0, 'Y2':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0, 'O3':-2.0, 'O4':-2.0}
 ##########env2seward input###########################

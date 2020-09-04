@@ -595,10 +595,10 @@ def hessian(born_file, hess_file):
                 else:
                     tensor_hess[i, j] = float(tensor_hess[j, i])
     
-    conv_hess = conv_hessian(tensor_hess, hess_file)
+    # conv_hess = conv_hessian(tensor_hess, hess_file)
     
     # Add [0] suffix to function for L matrix and [1] for symmetric matrix
-    return l_matrix, conv_hess
+    return l_matrix, tensor_hess
 
 
 def hess_dat(born_file, hess_file, output_file):
@@ -635,7 +635,6 @@ def hess_dat(born_file, hess_file, output_file):
         for j in range(len(hess_split)):
             temp_list.append(float(hess_split[j]))
 
-
     row = 0
     for i in range(len(temp_list)):
         if i % dim == 0 and i != 0:
@@ -654,9 +653,9 @@ def hess_dat(born_file, hess_file, output_file):
                 
                 else:
                     tensor_hess[i, j] = tensor_hess[j, i]
-    conv_hess = conv_hessian(tensor_hess, output_file)
+    # conv_hess = conv_hessian(tensor_hess, output_file)
 
-    return conv_hess
+    return tensor_hess
 
 
 def born_input(born_file):
@@ -769,45 +768,48 @@ def convert_coords2(out_file):
     return lattice_vectors, unit_vectors
 
 
-def evec(ea, eb, ec, lat_param, mdim):
+def evec(ex, ey, ez, mdim):
     """Generates electric field vector from kV/m a,b,c inputs and
     the converts into a.u., dividing by corresponding 
-    lattice parameters as conversion*(Ea/a,Eb/b,Ec/c)
+    lattice parameters as conversion*(Ex,Ey,Ez)
     
     Parameters
     ----------
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
-    lat_param: list
-        List containing lattice parameter values [a,b,c]
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'z' vector axis (Ez)
     mdim: int
         Number of rows in vector / dimension of qE = -Hd equation
 
     Returns:
         E vector in fractional atomic units with mdim sets of
-        Ea, Eb, Ec coordinates (uniform field)
+        Ex, Ey, Ez coordinates (uniform field)
     """
     
-    ANG2BOHR = float(1.889725989) 
-    CONVERSION = float((1000/(5.14220674763e11))*(1/ANG2BOHR))
+    ANG2BOHR = float(1.889725989)
+    ATOMIC_FIELD = float(5.14220674763e11)
+    KV = float(1e3)
+    CONVERSION = float((KV/(ATOMIC_FIELD))*(1/ANG2BOHR))
+    
     e_vector = np.zeros((mdim))
     
     for i in range(mdim):
         if i % 3 == 0:
-            e_vector[i] = float((CONVERSION*ea)/lat_param[0])
-        elif i% 3 == 1:
-            e_vector[i] = float((CONVERSION*eb)/lat_param[1])
+            e_vector[i] = float(CONVERSION*ex)
+        
+        elif i % 3 == 1:
+            e_vector[i] = float(CONVERSION*ey)
+        
         else:
-            e_vector[i] = float((CONVERSION*ec)/lat_param[2])
+            e_vector[i] = float(CONVERSION*ez)
+    
     return e_vector
 
 
-def save_hess_born(born_file, hess_file, output_file, lat_param,
-                   ea, eb, ec):
+def save_hess_born(born_file, hess_file, output_file, ex, ey, ez):
     """Writes arrays to binary files for fortran processing
     Enter electric field components in kV/m
     
@@ -820,14 +822,12 @@ def save_hess_born(born_file, hess_file, output_file, lat_param,
     output_file: str
         Path of crystal output file containing unit cell
         data
-    lat_param: list
-        List containing lattice parameter values [a,b,c]
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'z' vector axis (Ez)
 
     Returns
     ----------
@@ -838,7 +838,7 @@ def save_hess_born(born_file, hess_file, output_file, lat_param,
     
     h_tensor = hess_input(born_file, hess_file, output_file)
     q_tensor = born_input(born_file)
-    e_vector = evec(ea, eb, ec, len(h_tensor))
+    e_vector = evec(ex, ey, ez, len(h_tensor))
     
     # Generating e_vector from inputs
     dim_array = np.array([len(h_tensor)])
@@ -855,12 +855,10 @@ def save_hess_born(born_file, hess_file, output_file, lat_param,
     print("q,E,H matrices written to binary files")
 
 
-def solve_equation(born_file, hess_file, output_file, lat_param,
-                   ea, eb, ec):
+def solve_equation(born_file, hess_file, output_file, ex, ey, ez):
     """Generates all arrays necessary for qE = -Hd equation and
     solves for d (displacement). Equation occurs in a.u. and the
-    displacements are in the same units in the same lattice vector
-    basis
+    displacements are in the same units in the same Cartesian basis
     
     Parameters
     ----------
@@ -871,14 +869,12 @@ def solve_equation(born_file, hess_file, output_file, lat_param,
     output_file: str
         Path of crystal output file containing unit cel
         data
-    lat_param: list
-        List containing lattice parameter values [a,b,c]
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'z' vector axis (Ez)
 
     Returns
     ----------
@@ -893,7 +889,7 @@ def solve_equation(born_file, hess_file, output_file, lat_param,
     m_dim = len(h_tensor)
     
     # Generating e_vector from inputs (uniform field)
-    e_vector = evec(ea, eb, ec, lat_param, m_dim)
+    e_vector = evec(ex, ey, ez, m_dim)
     
     # Generating matrices for linalg solve
     a = float(-1.0)*h_tensor
@@ -917,7 +913,7 @@ def solve_equation(born_file, hess_file, output_file, lat_param,
     return displacement
 
 
-def convert_disp(born_file, hess_file, output_file, ea, eb, ec):
+def convert_disp(born_file, hess_file, output_file, ex, ey, ez):
     """Applies conversion matrix to displacement solutions.
     Operation takes place in Angstrom, so all displacement coordinates
     are converted to Angstrom. Output coordinates are fractional units
@@ -934,12 +930,12 @@ def convert_disp(born_file, hess_file, output_file, ea, eb, ec):
         the lattice parameters for the electric field input into
         solve_equation, and the unit cell fractional coordinates
         for output into functions further down the chain.
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
     ec: float
-        Input for electric field in 'c' vector axis (Ec)
+        Input for electric field in 'z' vector axis (Ez)
     
     Returns
     -----------
@@ -962,25 +958,30 @@ def convert_disp(born_file, hess_file, output_file, ea, eb, ec):
     lat_param = [float(i) for i in lat_param_data.split()[:3]]
     
     displacement = solve_equation(born_file, hess_file, output_file,
-                                  lat_param, ea, eb, ec)
+                                  ex, ey, ez)
     convdisp = []
     
     # Applying conversion matrix to one set of x,y,z coordinates at a time
     for i in range(len(displacement)):
-        if i == len(displacement)-1:
+        if i == len(displacement) - 1:
             pass
+        
         elif i % 3 == 0:
-            abc = BOHR2ANG*np.array(displacement[i:i+3])
-            newcoords = np.linalg.solve(conv_matrix,abc)
+            xyz = BOHR2ANG*np.array(displacement[i : i+3])
+            newcoords = np.linalg.solve(conv_matrix, xyz)
+            
+            # Appending converted coordinates to array, divided by
+            # the lattice parameters for a, b, c now in the
+            # crystallographic basis
             for i in range(len(newcoords)):
-                convdisp.append(newcoords[i])
+                convdisp.append(newcoords[i] / lat_param[i])
     
     convdisp = np.array(convdisp)
-    return convdisp,frac
+    return convdisp, frac
 
 
 def unit_cell(born_file, hess_file, output_file, cell_file,
-              ea, eb, ec, unit_source, *args, **kwargs):
+              ex, ey, ez, unit_source, *args, **kwargs):
     """Generates the unit cell data in a dictionary
     There are 3 input options:
 
@@ -1013,12 +1014,12 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
     cell_file: str
         Path of initial cell file containing a form of unit cell
         data and charge data. Can be generated by CRYSTAL or user.
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'z' vector axis (Ez)
     unit_source: str
         Three key words that determine the source of the initial
         non-disturbed unit cell fractional coordinates and the
@@ -1044,11 +1045,11 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
     atom_num = num_atoms(output_file)
     
     conv_data = convert_disp(born_file, hess_file, output_file,
-                             ea, eb, ec)
+                             ex, ey, ez)
     convdisp = conv_data[0]
     frac_data = conv_data[1]
     
-    atom_nums = [i for i in range(1,atom_num+1)]
+    atom_nums = [i for i in range(1, atom_num+1)]
     atom_list = []
     
     # Atom key list based on number of atoms in unit cell
@@ -1262,7 +1263,7 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
 
 
 def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
-                ea, eb, ec, unit_source, *args, **kwargs):
+                ex, ey, ez, unit_source, *args, **kwargs):
     """This function adds converted displacements to the formulated
     unit cell dictionary and writes the results to a new separate
     cell file
@@ -1280,12 +1281,12 @@ def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
         data and charge data. Can be generated by CRYSTAL or user.
     dirname: str
         Name of folder created to store new displaced unit cell files
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'z' vector axis (Ez)
     unit_source: str
         Three key words that determine the source of the initial
         non-disturbed unit cell fractional coordinates and the
@@ -1302,7 +1303,7 @@ def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
     """
     
     unit_data = unit_cell(born_file, hess_file, output_file, cell_file,
-                          ea, eb, ec, unit_source, *args, **kwargs)
+                          ex, ey, ez, unit_source, *args, **kwargs)
     
     atom_dict = unit_data[0]
     convdisp = unit_data[1]
@@ -1311,12 +1312,12 @@ def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
     fsplit = cell_file.split('.')
 
     if "new" not in fsplit:
-        fsplit.insert(-1, '%s_%s_%s'%(str(round(ea, 3)), str(round(eb, 3)),
-                      str(round(ec, 3))))
+        fsplit.insert(-1, '%s_%s_%s'%(str(round(ex, 3)), str(round(ey, 3)),
+                      str(round(ez, 3))))
     
     else:
-        fsplit = [i.replace("new",'%s_%s_%s'%(str(round(ea, 3)),
-                  str(round(eb, 3)), str(round(ec, 3)))) for i in fsplit]
+        fsplit = [i.replace("new",'%s_%s_%s'%(str(round(ex, 3)),
+                  str(round(ey, 3)), str(round(ez, 3)))) for i in fsplit]
     
     fnew = '.'.join(fsplit).split("/")[-1]
 
@@ -1371,7 +1372,7 @@ def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
     cell_new.close()
 
 
-def modify_existing_cell(output_file, cell_file, ea, eb, ec):
+def modify_existing_cell(output_file, cell_file, ex, ey, ez):
     """This function adds displacements to cell files already 
     displaced by another field - increases error so not used.
     Out of date also (can be updated if needed).
@@ -1383,12 +1384,12 @@ def modify_existing_cell(output_file, cell_file, ea, eb, ec):
     cell_file: str
         Path of initial cell file containing a form of unit cell
         data and charge data. Can be generated by CRYSTAL or user.
-    ea: float
-        Input for electric field in 'a' vector axis (Ea)
-    eb: float
-        Input for electric field in 'b' vector axis (Eb)
-    ec: float
-        Input for electric field in 'c' vector axis (Ec)
+    ex: float
+        Input for electric field in 'x' vector axis (Ex)
+    ey: float
+        Input for electric field in 'y' vector axis (Ey)
+    ez: float
+        Input for electric field in 'c' vector axis (Ez)
     
     Returns
     ----------
@@ -1396,7 +1397,7 @@ def modify_existing_cell(output_file, cell_file, ea, eb, ec):
         Writes to file, no returned output within python
     """
     
-    displacements = convert_disp(output_file, ea, eb, ec)
+    displacements = convert_disp(output_file, ex, ey, ez)
     cell_old = open(cell_file).readlines()
     cell_new = []
     
@@ -1427,7 +1428,7 @@ def modify_existing_cell(output_file, cell_file, ea, eb, ec):
 
 
 def cell_grid(born_file, hess_file, output_file, cell_file,
-              ea_array, eb_array, ec_array, unit_source, *args, **kwargs):
+              ex_array, ey_array, ez_array, unit_source, *args, **kwargs):
     """This function generates a grid of displaced cell files
     in the target directory. Uses range of Ex, Ey, Ez values. As before,
     coordinates are in fractional units in the a,b,c basis.
@@ -1443,12 +1444,12 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
     cell_file: str
         Path of initial cell file containing a form of unit cell
         data and charge data. Can be generated by CRYSTAL or user.
-    ea_array: array
-        Range of values for electric field input in 'a' vector axis (Ea)
-    eb_array: array
-        Range of values for electric field input in 'b' vector axis (Eb)
-    ec_array: array
-        Range of values for electric field input in 'c' vector axis (Ec)
+    ex_array: array
+        Range of values for electric field input in 'x' vector axis (Ex)
+    ey_array: array
+        Range of values for electric field input in 'y' vector axis (Ey)
+    ez_array: array
+        Range of values for electric field input in 'z' vector axis (Ez)
     unit_source: str
         Three key words that determine the source of the initial
         non-disturbed unit cell fractional coordinates and the
@@ -1466,21 +1467,21 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
     """
     
     # Generating new folder for results, named after ranges of E coordinates
-    if len(ea_array) == 1 or len(eb_array) == 1 or len(ec_array) == 1:
-        dirname = "Ea_%s_%s__Eb_%s_%s__Ec_%s_%s_cell"%\
-                (str(round(ea_array[0], 3)),
-                 str(round(ea_array[-1], 3)),str(round(eb_array[0], 3)),
-                 str(round(eb_array[-1], 3)),str(round(ec_array[0], 3)),
-                 str(round(ec_array[-1], 3)))
+    if len(ex_array) == 1 or len(ey_array) == 1 or len(ez_array) == 1:
+        dirname = "Ex_%s_%s__Ey_%s_%s__Ez_%s_%s_cell"%\
+                (str(round(ex_array[0], 3)),
+                 str(round(ex_array[-1], 3)),str(round(ey_array[0], 3)),
+                 str(round(ey_array[-1], 3)),str(round(ez_array[0], 3)),
+                 str(round(ez_array[-1], 3)))
     
     else:
-        dirname = "Ea_%s_%s_%s__Eb_%s_%s_%s__Ec_%s_%s_%s_cell"\
-                %(str(round(ea_array[0], 3)),str(round(ea_array[-1], 3)),
-                  str(round(abs(ea_array[0]-ea_array[1]), 3)),
-                  str(round(eb_array[0], 3)), str(round(eb_array[-1], 3)),
-                  str(round(abs(eb_array[0]-eb_array[1]), 3)),
-                  str(round(ec_array[0], 3)), str(round(ec_array[-1], 3)),
-                  str(round(abs(ec_array[0]-ec_array[1]), 3)))
+        dirname = "Ex_%s_%s_%s__Ey_%s_%s_%s__Ez_%s_%s_%s_cell"\
+                %(str(round(ex_array[0], 3)),str(round(ex_array[-1], 3)),
+                  str(round(abs(ex_array[0]-ex_array[1]), 3)),
+                  str(round(ey_array[0], 3)), str(round(ey_array[-1], 3)),
+                  str(round(abs(ey_array[0]-ey_array[1]), 3)),
+                  str(round(ez_array[0], 3)), str(round(ez_array[-1], 3)),
+                  str(round(abs(ez_array[0]-ez_array[1]), 3)))
     
     # Make new folder in target directory from modify_cell,
     # and print location
@@ -1508,12 +1509,12 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
     Path(directory).mkdir(parents=True, exist_ok=True)
     
     # Writing cell files
-    for i in range(len(ea_array)):
-        for j in range(len(eb_array)):
-            for k in range(len(ec_array)):
+    for i in range(len(ex_array)):
+        for j in range(len(ey_array)):
+            for k in range(len(ez_array)):
                 modify_cell(born_file, hess_file, output_file,
-                            cell_file, dirname, ea_array[i], eb_array[j],
-                            ec_array[k], unit_source, *args, **kwargs)
+                            cell_file, dirname, ex_array[i], ey_array[j],
+                            ez_array[k], unit_source, *args, **kwargs)
 
     print("Cell Grid written")
     return directory
@@ -1553,14 +1554,14 @@ def read_input(input_file):
         elif inp_split[0] == "cell_init":
             cell_init = "".join(inp_split[2:]).strip()
         
-        elif inp_split[0].lower() == "ea":
-            ea_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "ex":
+            ex_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
         
-        elif inp_split[0].lower() == "eb":
-            eb_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "ey":
+            ey_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
         
-        elif inp_split[0].lower() == "ec":
-            ec_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
+        elif inp_split[0].lower() == "ez":
+            ez_list = ast.literal_eval("".join([i for i in inp_split[2:]]))
         
         elif inp_split[0].lower() == "unit_source":
             unit_source = "".join(inp_split[2:]).strip()
@@ -1571,35 +1572,35 @@ def read_input(input_file):
             charge_dict = json.loads(charge_dict)
     
     # Zero array options
-    if ea_list == [0, 0, 0]:
-        ea_array = np.array([0])
+    if ex_list == [0, 0, 0]:
+        ex_array = np.array([0])
     
     else:
-        ea_array = np.arange(ea_list[0], ea_list[1]+ea_list[2], ea_list[2])
+        ex_array = np.arange(ex_list[0], ex_list[1]+ex_list[2], ex_list[2])
     
-    if eb_list == [0, 0, 0]:
-        eb_array = np.array([0])
+    if ey_list == [0, 0, 0]:
+        ey_array = np.array([0])
     
     else:
-        eb_array = np.arange(eb_list[0], eb_list[1]+eb_list[2], eb_list[2])
+        ey_array = np.arange(ey_list[0], ey_list[1]+ey_list[2], ey_list[2])
 
-    if ec_list == [0, 0, 0]:
-        ec_array = np.array([0])
+    if ez_list == [0, 0, 0]:
+        ez_array = np.array([0])
     
     else:
-        ec_array = np.arange(ec_list[0], ec_list[1]+ec_list[2], ec_list[2])
+        ez_array = np.arange(ez_list[0], ez_list[1]+ez_list[2], ez_list[2])
 
     # Charge unit_source requires separate option including charge_dict
     if unit_source == "charge":
         print("Cell grid is being generated...")
         cd = cell_grid(born_file, hess_file, crystal_file, cell_init,
-                       ea_array, eb_array, ec_array, unit_source,
+                       ex_array, ey_array, ez_array, unit_source,
                        charge_dict)
 
     elif unit_source == "auto" or unit_source == "direct":
         print("Cell grid is being generated...")
         cd = cell_grid(born_file, hess_file, crystal_file, cell_init,
-                       ea_array, eb_array, ec_array, unit_source)
+                       ex_array, ey_array, ez_array, unit_source)
 
     else:
         # Invalid unit_source again, cancel run
@@ -1675,43 +1676,43 @@ def read_prompt():
                       " the unit cell data: ")
     
     # Electric field prompts in tuples
-    print("Parameters for Ea array: ")
-    ea_list = input("Please enter start,stop,step separated by commas"+\
-                    " for Ea: ").split(",")
+    print("Parameters for Ex array: ")
+    ex_list = input("Please enter start,stop,step separated by commas"+\
+                    " for Ex: ").split(",")
     
-    print("Parameters for Eb array: ")
-    eb_list = input("Please enter start,stop,step separated by commas"+\
-                    " for Eb: ").split(",")
+    print("Parameters for Ey array: ")
+    ey_list = input("Please enter start,stop,step separated by commas"+\
+                    " for Ey: ").split(",")
     
-    print("Parameters for Ec array: ")
-    ec_list = input("Please enter start,stop,step separated by commas"+\
-                    " for Ec: ").split(",")
+    print("Parameters for Ez array: ")
+    ez_list = input("Please enter start,stop,step separated by commas"+\
+                    " for Ez: ").split(",")
     
     # If zero list, make zero for whole grid
-    if ea_list == ["0", "0", "0"]:
-        ea_array = np.array([0])
+    if ex_list == ["0", "0", "0"]:
+        ex_array = np.array([0])
     
     # Else generate input arrays
     else:
-        ea_array = np.arange(float(ea_list[0]),
-                             float(ea_list[1])+float(ea_list[2]),
-                             float(ea_list[2]))
+        ex_array = np.arange(float(ex_list[0]),
+                             float(ex_list[1])+float(ex_list[2]),
+                             float(ex_list[2]))
     
-    if eb_list == ["0", "0", "0"]:
-        eb_array = np.array([0])
-    
-    else:
-        eb_array = np.arange(float(eb_list[0]),
-                             float(eb_list[1])+float(eb_list[2]),
-                             float(eb_list[2]))
-    
-    if ec_list == ["0", "0", "0"]:
-        ec_array = np.array([0])
+    if ey_list == ["0", "0", "0"]:
+        ey_array = np.array([0])
     
     else:
-        ec_array = np.arange(float(ec_list[0]),
-                             float(ec_list[1])+float(ec_list[2]),
-                             float(ec_list[2]))
+        ey_array = np.arange(float(ey_list[0]),
+                             float(ey_list[1])+float(ey_list[2]),
+                             float(ey_list[2]))
+    
+    if ez_list == ["0", "0", "0"]:
+        ez_array = np.array([0])
+    
+    else:
+        ez_array = np.arange(float(ez_list[0]),
+                             float(ez_list[1])+float(ez_list[2]),
+                             float(ez_list[2]))
     
     # Asking for charge data for specific atoms
     if unit_source == "charge":
@@ -1728,7 +1729,7 @@ def read_prompt():
         
         # Generate grid
         cell_grid(born_file, hess_file, crystal_file, cell_init,
-                  ea_array, eb_array, ec_array, unit_source,
+                  ex_array, ey_array, ez_array, unit_source,
                   element_charge)
     
     else:
@@ -1738,7 +1739,7 @@ def read_prompt():
         
         # Generate grid
         cell_grid(born_file, hess_file, crystal_file, cell_init,
-                  ea_array, eb_array, ec_array, unit_source)
+                  ex_array, ey_array, ez_array, unit_source)
 
 
 def input_or_prompt(crys2sew_bool):

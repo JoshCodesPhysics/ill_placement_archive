@@ -259,7 +259,7 @@ def sew_in_grid(envin, envout, disp_input_file, env2sew_input_file,
     dir_psd = new_grid_dirs[1]
 
     for i in range(len(dir_sew0)):
-        if dir_sew0[i:i+2] == "Ea":
+        if dir_sew0[i:i+2] == "Ex":
             start = i
 
         elif dir_sew0[i:i+4] == "sew0":

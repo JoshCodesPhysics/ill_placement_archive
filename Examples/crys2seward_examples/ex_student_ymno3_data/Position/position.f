@@ -63,7 +63,7 @@
       enddo
 
 !-----------Lecture du Hessien------------------------------------!
-      OPEN(8,FILE='HESSIEN.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
+      OPEN(8,FILE='YMnO3/HESSIEN.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
 
       ! Reading file to temporary array !
       DO i=1,dim2
@@ -88,24 +88,56 @@
             endif
          enddo
       enddo
+      
+      Do i = 1, dim
+         Do j = 1, dim
+            if (j.gt.i) then 
+               Hessien(i, j) = Hessien(j, i)
+               if (abs(Hessien(i, j)) .lt. 1e-12) then
+                  Hessien(i, j) = 0.0 
+               endif
+            else
+               if (abs(Hessien(i, j)) .lt. 1e-12) then
+                  Hessien(i, j) = 0.0
+               endif
+            endif
+         enddo
+      enddo
+      ! Hessian matrices match between scripts !
+   
+c      print *, Hessien(82, 40), Hessien(40, 82), Hessien(15, 2),
+c     &         Hessien(2, 15)
+
 !-----------fin-de-lecture du Hessien-------------------------------!
 
       ! Reading remaining .DAT files, no formatting required since !
       ! the files already contain the desired array shape.         !
-      OPEN(8,FILE='BORN.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
+      OPEN(8, FILE='YMnO3/BORN_B1Pw_loto.DAT',FORM='FORMATTED',
+     &     STATUS='UNKNOWN')
       DO i=1,dim
          READ(8,*) (BORN(i,j),j=1,3,1)
       ENDDO
       
-      OPEN(8,FILE='POSITION.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
+      ! Assigning zero values to elements less than 1e-12 !
+      DO i = 1, dim
+         DO j = 1,3
+            if (abs(BORN(i, j)) .lt. 1e-12) then
+               BORN(i, j) = 0.0
+            endif
+         ENDDO
+      ENDDO
+      
+      OPEN(8, FILE='YMnO3/POSITION2.DAT', FORM='FORMATTED',
+     &     STATUS='UNKNOWN')
       DO i=1,30
          READ(8,*) (Position_atom(i,j),j=1,3,1)
       ENDDO
 
-      OPEN(8,FILE='MAILLE.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
+      OPEN(8, FILE='YMnO3/MAILLE.DAT',  FORM='FORMATTED',
+     &     STATUS='UNKNOWN')
       READ(8,*) (Maille(i),i=1,3,1)
       
-      OPEN(8,FILE='ELECTRIC.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
+      OPEN(8, FILE='ELECTRIC.DAT', FORM='FORMATTED', STATUS='UNKNOWN')
       READ(8,*) (Electric_field(i,1),i=1,3,1)
 
       PRINT*, ' fin de lecture des différents fichiers'
@@ -133,18 +165,18 @@
          ENDDO
       ENDDO
 
-      Do i=1,dim
-         do j=1,dim
-            if(Verification(i,j).lt.10E-7) then
-               Verification(i,j)=0
-            else
-               if(Verification(i,j).gt.10E-7) then 
-                  print*, 'valueur non nulle', Verification(i,j), 
-     &                    'indice ', i, j
-               endif
-            endif
-         enddo
-      enddo
+c      Do i=1,dim
+c         do j=1,dim
+c            if(Verification(i,j).lt.10E-7) then
+c               Verification(i,j)=0
+c            else
+c               if(Verification(i,j).gt.10E-7) then 
+c                  print*, 'valueur non nulle', Verification(i,j), 
+c     &                    'indice ', i, j
+c               endif
+c            endif
+c         enddo
+c      enddo
 
 c      do i=1,dim
 c         write(*,*) (Verification(i,j),j=1,dim,1)
@@ -201,7 +233,7 @@ c      enddo
          enddo
       Enddo
 
-      ! Writing new positions to SORTIE.DAT file!
+      ! Writing new positions to SORTIE.DAT file !
       OPEN(8,FILE='SORTIE.DAT',FORM='FORMATTED',STATUS='UNKNOWN')
       Do i=1,dim4
             WRITE(8,*) (Position_atom2(i,j), j=1,3,1)
