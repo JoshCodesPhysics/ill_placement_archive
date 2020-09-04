@@ -59,11 +59,11 @@ born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
 hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
 crystal_file = ../ex_student_ymno3_data/frequence.B1PW.loto.out
 cell_init = ../ymno3.cell
-ea = [0,.15,.03]
-eb = [0,.15,.03]
-ec = [0,.15,.03]
+ex = [0,.15,.03]
+ey = [0,.15,.03]
+ez = [0,.15,.03]
 unit_source = auto
-charge_dict = {'Y':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0}
+charge_dict = {'Y':3.0, 'Y1':3.0, 'Y2':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0, 'O3':-2.0, 'O4':-2.0}
 ##########env2seward input###########################
 filename = ymno3_d1.0.0_0.0_0.0.sew.in
 title = <insert_title_here>
@@ -83,7 +83,7 @@ lib_pseudo = {'MN': {'key': 'MN_pseudo_basis', 'loc': 'MN_pseudo_library'}, 'O1'
 
 Each grid of files is stored in an appropriately named folder. The sew0, psd and sew.in files are generated in separate folders but in the same current working directory with the xenv15 files as discussed before.
 The disp\_solve cell files are generated in the same way, but stored in the same directory as the initial cell file or the CRYSTAL output file if their relative or full paths are specified.
-They are **not** generated in the local directory unless the disp\_solve input file paths are not specified. Every grid folder name features the start, stop, step for Ea, Eb, Ec chosen in the c2s.in file in the disp\_solve input section.
+They are **not** generated in the local directory unless the disp\_solve input file paths are not specified. Every grid folder name features the start, stop, step for Ex, Ey, Ez chosen in the c2s.in file in the disp\_solve input section.
 
 ## How does it work?
 

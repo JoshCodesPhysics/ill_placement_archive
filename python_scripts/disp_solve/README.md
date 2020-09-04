@@ -49,7 +49,7 @@ If you choose 1. you will be prompted for 3-4 different things:
    - Entering `auto` generates all of the unit cell information from the CRYSTAL output file, except the charges which come from the system.cell file (useful if this initial cell file is in a different spatial group).
    - Entering `charge` does the same as `auto` but prompts manual user input of the charge for each individual atom in the irreducible group.
 2. Relative/full path directories of the CRYSTAL output file and the initial system.cell file
-3. Start,stop,step of the ranges for E\_a, E\_b, E\_c inputs to generate the uniform electric field cell grid (given in kV/m).
+3. Start,stop,step of the ranges for E\_x, E\_y, E\_z inputs to generate the uniform electric field cell grid (given in kV/m).
 4. If the `charge` option is chosen, charges are prompted for. 
 
 If you choose 2. you need to write the correct format for the third input file. Here is an example:
@@ -60,22 +60,22 @@ born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
 hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
 crystal_file = ht.frequence.B1PW_PtBs.loto.out
 cell_init = ymno3.cell
-ea = [0,0.5,0.1]
-eb = [0,0.2,0.05]
-ec = [0,1,0.2]
+ex = [0,0.5,0.1]
+ey = [0,0.2,0.05]
+ez = [0,1,0.2]
 unit_source = charge
-charge_dict = {"Y":3.0, "MN":3.0, "O1":-2.0, "O2":-2.0}
+charge_dict = {'Y':3.0, 'Y1':3.0, 'Y2':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0, 'O3':-2.0, 'O4':-2.0}
 ```
 
 - Each line element is separated by a space (the = sign is isolated)
 - Born and Hessian matrix source paths (relative, absolute or full) are assigned to born\_file and hess\_file respectively. This can be sourced from .loto.out crystal files or separate .DAT files
 - Crystal and cell file relative or full path directories are assigned to crystal\_file and cell\_init respectively
-- ea, eb, ec are the ranges for E\_a, E\_b, E\_c respectively in the format \[start,stop,step\]
+- ex, ey, ez are the ranges for E\_x, E\_y, E\_z respectively in the format \[start,stop,step\]
 - unit_source is assigned to either direct, auto or charge
 - If charge is chosen above, give each atom's charge in the [python dictionary format](https://www.w3schools.com/python/python_dictionaries.asp)
 
 ## Output
 
-- The output file is named after the initial cell file with an added (Ea,Eb,Ec) component label.
-- If the files are call locally, output cell file grid will be stored in the local directory folder named after the array parameters for E\_a, E\_b, E\_c.
+- The output file is named after the initial cell file with an added (Ex, Ey, Ez) component label.
+- If the files are call locally, output cell file grid will be stored in the local directory folder named after the array parameters for E\_x, E\_y, E\_z.
 - If the full path is called, output grid will be generated in the same way but in the provided full path directory
