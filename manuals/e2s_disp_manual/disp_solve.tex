@@ -9,7 +9,7 @@ calculation.
 
 \subsection{How to Use Disp\_solve}
 \subsubsection{Installing python 3 and necessary modules}
-A \textbf{python 3} compiler must be installed (see section $2.1.1$ for
+A \textbf{python 3} compiler must be installed (see section $11.1.1$ for
 information on how to install python 3 or an associated IDE~\footnote{Integrated development environment}). If an error message occurs that
 mentions a missing module, execute the command
 
@@ -38,7 +38,7 @@ or by running the script and interpreting the error for missing modules.
 \subsubsection{Required Files}
 The following files are required by the python script:
 \begin{itemize}
-  \item (Compulsory) the CRYSTAL ouput file of a phonon calculation of your system. If this is your source for the Hessian and Born tensor, it must include IR intensities (Born charges) and Hessian matrix printed in fractional coordinates (lattice vector basis).
+  \item (Compulsory) the CRYSTAL ouput file of a phonon calculation of your system. If this is your source for the Hessian and Born tensor, it must include IR intensities (Born charges) and Hessian matrix printed in the Cartesian basis.
   \item (Compulsory) the system.cell input file of the env code corresponding to the undistorted system.
   \item (Optional) the .DAT files output from the crystal calculation that contain the Fortran-complicit arrays for the Born tensor and Hessian matrix. These are used to generate these matrices when the CRYSTAL output file does not contain the necessary data.
   \item (Optional) the disp\_solve command line input file. If this is absent, the script prompts will ask you for the input data.  
@@ -78,7 +78,7 @@ The prompt option allows you to enter the information directly into the terminal
 	
 	Same again, name if local, full path if non-local.
 	
-	\item start,stop,step separated by commas for $E_a$ ($E_b$, $E_c$ are done sequentially after) in units of kV/m.
+	\item start,stop,step separated by commas for $E_x$ ($E_y$, $E_z$ are done sequentially after) in units of kV/m.
 	
 	Simply input starting electric field value, final value and size of step as a tuple.
 	
@@ -90,12 +90,12 @@ The alternative is writing an input text file that contains the above informatio
 \begin{lstlisting}
 	born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
 	hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
-	crystal_file = ht.frequence.B1PW_PtBs.loto.out
-	cell_init = ymno3.cell
-	ea = [0,0.5,0.1]
-	eb = [0,0.2,0.05]
-	ec = [0,1,0.2]
-	unit_source = charge
+	crystal_file = ../ex_student_ymno3_data/frequence.B1PW_PtBs.loto.out
+	cell_init = ../ymno3_loto.cell
+	ex = [0,0.5,0.1]
+	ey = [0,0.2,0.05]
+	ez = [0,1,0.2]
+	unit_source = direct
 	charge_dict = {"Y":3.0, "MN":3.0, "O1":-2.0, "O2":-2.0}
 	
 \end{lstlisting}
@@ -109,7 +109,7 @@ We have the following rules:
 	
 	\item \texttt{cell\_init} is assigned to the relative/full path directory of the initial cell file.
 	
-	\item The \texttt{ea, eb, ec} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values given in kV/m also.
+	\item The \texttt{ex, ey, ez} lists must be in the format [start,stop,step] where start is the initial value, stop is the final value and step is the increment between values given in kV/m also.
 	
 	\item \texttt{unit\_source} is the variable assigned to the unit cell generator parameter (charge,auto,direct).
 	
@@ -122,7 +122,7 @@ Once this input file has been written, one can execute the script with this inpu
 \subsubsection{Output files}
 
 \begin{itemize}
-	\item Output cell file is named after the initial cell file with an added (Ea,Eb,Ec) component label. If the files are called locally, output cell file grid will be generated and stored in a new folder inside the script directory that is named after the array parameters for a,b,c.
+	\item Output cell file is named after the initial cell file with an added (Ex, Ey, Ez) component label. If the files are called locally, output cell file grid will be generated and stored in a new folder inside the script directory that is named after the array parameters for the x, y, z components.
 	\item If the inputs files are called from full path, the output cell files will be generated and stored in a new folder inside either the directory of the cell file or the output file (specified by the command line).
 \end{itemize}
 

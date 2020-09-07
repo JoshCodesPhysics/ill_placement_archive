@@ -26,7 +26,7 @@
 \subsection{Aims and Methods}
 The aim of this project is to create a driver to compute the magneto-electric coupling of a multiferroic system. Multiferroic materials are defined by the possession of a coupling between at least two ferroic orders. The foci of this report are the calculations for materials that exhibit couplings between electric and magnetic properties. Specifically it would demonstrate a net magnetic moment, an intrinsic polarisation and a linear magneto-electric coupling. This is a type II multiferroic system, type I being a material whose transitions from paraelectric and ferroelectric states are distinct from magnetic transitions \cite{Hur2004}\cite{goto2004ferroelectricity}.
 
-In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$) where $\vec{\mu}_j$ is the magnetic moment for the jth electron. These responses linear. The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of a system's electronic structure.
+In order to determine this linear magneto-electric coupling for the type II material experimentally, the associated tensor $\bar{\bar{\alpha}}$ must be measured. This tensor can be described as the response of the polarisation of a system as a function of the applied magnetic field. It can simultaneously be described as the response of the magnetic order parameter as a function of the applied electric field (this parameter is given by $\vec{M} = \sum_j \vec{\mu}_j$ or for an antiferromagnetic material, $\vec{M} = \sum_j (-1)^j \vec{\mu}_j$) where $\vec{\mu}_j$ is the magnetic moment for the jth electron. These responses are linear. The driver processes inputs and outputs of the various ab-initio functions (discussed later) so that it can generate the computation of this tensor $\bar{\bar{\alpha}}$ from a simulation of a system's electronic structure.
 
 This report will discuss specifically how to obtain $\bar{\bar{\alpha}}$. Quantum chemical background theory will be provided, discussing the many body Schrödinger equation, Hartree-Fock methods and density functional theory. This will hopefully generate a better picture of the context surrounding the current model for multiferroic systems. Configurational interactions (CI) and the various associated methods will be investigated, including techniques that increase the accuracy and computational speed of the CI calculations. Finally, the development, mechanisms and purpose of the driver algorithms will be explored.
 
@@ -429,77 +429,132 @@ Once we have optimised the geometry of a system in CRYSTAL in order to minimise 
 
 \subsection{Details of Script Mechanisms}
 
-\texttt{disp\_solve.py} is the second python driver script that I wrote at ILL. The script's first purpose is to parse the output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. The final output of the script is a grid of unit cell files whose ions have been displaced by a range of uniform incident electric fields in various directions. The CRYSTAL output file contains several pieces of information that are required for the next step towards this output.
+\texttt{disp\_solve.py} is the second python driver script that I wrote at ILL. The script's first purpose is to parse the \texttt{.loto.out} or the \texttt{.DAT} output file from a CRYSTAL environment after the geometry of the system has been optimised and the consequential Hessian matrix and Born tensor have been calculated. The final output of the script is a grid of unit cell atomic coordinate files whose ions have been displaced by a range of uniform incident electric fields in various directions. The CRYSTAL output file(s) contains several pieces of information that are required for the next step towards this output.
 
-Firstly, \texttt{disp\_solve.py} parses for and stores the total number of atoms in the unit cell for a system `$N$'. This gives us the first dimension ($3N$ or $a_i/a,\ b_j/b,\ c_k/c$ for N atoms in the a,b,c lattice vector basis) of the Born and Hessian matrices ($q$ and $\mathcal{H}$) so we can allocate the correct amount of space to append the parsed values to. Then the script looks for the $N$ sets of $3\times3$ Born matrices and arranges them into a diagonalised matrix. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the center for the nth Born charge matrix. Any element separated by an index of more than one from any of these centres is zero.
+Firstly, \texttt{disp\_solve.py} parses for and stores the total number of atoms in the unit cell for a system `$N$'. This gives us the first dimension of the Born and Hessian matrices ($3\times 3$ Cartesian-basis Hessian components $\mathcal{H}_{ij}$ or the diagonalised $3\times 3$ Born charge elements $q_{ij}$ for N atoms adds up to a total dimension of $3N$) so we can allocate the correct amount of space to append the parsed values to. Then the script parses for the aforementioned $N$ sets of $3\times3$ Born charge matrices and arranges them into the required diagonalised format. Lets say $a_{ij}$ is the matrix element of the ith row and the jth column, then the element with $i = j = 3n+1$, where $n \in \mathbb{Z}$ and bounded by $0 \leq n \leq N-1$, is the centre for the nth Born charge matrix. Any Born tensor element separated by an index of more than one from any of these centres is zero.
 
-Once the Born tensor has been generated, the lower triangular symmetric Hessian is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. For both of these examples there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $\mathcal{H}$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand (recall equation (5)):
+Once the Born tensor has been generated, the lower triangular symmetric Hessian from the \texttt{.loto.out} file is parsed for and mapped so that $a_{ij} = a_{ji}$ for $i > j$ and it becomes square and symmetric across the diagonal. If the Hessian data is not contained within this file, there is a contingency to scan and symmetrise the \texttt{HESSIAN.DAT} file. For both of these matrices there is a small machine error from the CRYSTAL output that needs to be removed, so for every value $\leq 10^{-12}$ it is reduced to zero to minimise uncertainty. Once we have both formatted matrices (the Hessian $\mathcal{H}$ and Born tensor $q$) we can solve the force equation for displacements $d$ caused by an incident uniform electric field $E$ on the crystal that is chosen beforehand (recall equation (5)):
 \begin{equation*}
 q.E = -\mathcal{H}.d
 \end{equation*}
-using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesv} written in Fortran. This equation will take place uniformly in Hartree atomic units as this is the most effective method.
+using numerical python linear algebra modules (\texttt{numpy.linalg.solve}) that employs the Lapack routine \texttt{\_gesvx} written in Fortran. This equation will take place uniformly in Hartree atomic units in Cartesian coordinates as this is the output format from CRYSTAL.
 
 \subsubsection{Conversion derivations}
-In order to achieve this format for equation (5), we must convert the CRYSTAL outputs to the correct Hartree units, and do the same to the user's electric field inputs. The electric field is entered into the above equation as $E_1,E_2,E_3$ in the $a,b,c$ lattice vector basis, in units of $kV/m$, to be converted to atomic units in the same basis. We must also include the division of the electric field vector element by the corresponding lattice vector given in atomic units: 
+In order to achieve this format for equation (5), we must convert the user's electric field inputs to Hartree field units.The electric field is entered into the above equation as $E_1, E_2, E_3$ in the $x, y, z$ Cartesian basis, in units of $kV/m$, to be converted to atomic units in the same basis. 
 
 \begin{equation}
-	(Ea, Eb, Ec) = conversion*(E_1/a, E_2/b, E_3/c)
+	(Ex, Ey, Ez) = conversion*(E_1, E_2, E_3)
 \end{equation}
 
- so that the coordinates are fractional in the lattice vector basis. The electric field a.u. is given as:
+The electric atomic field conversion is given as:
 
 $$\frac{E_h}{ea_0} = 5.142...\times 10^{11} (V/m)$$
 
-where $E_h$ is the Hartree energy, $e$ is the unit electric charge and $a_0$ is the Bohr radius. To convert from $kV/m$ to these atomic field units, we must multiply our input values by $1000$ to obtain the same base SI units ($V/m$) as the atomic field units so that the conversion value is dimensionless, and then divide by $E_h/ea_0$:
+where $E_h$ is the Hartree energy, $e$ is the unit electric charge and $a_0$ is the Bohr radius. To convert from $kV/m$ to these atomic field units, we must multiply our input values by $1000$ to obtain the same base SI units ($kV/m$ to $V/m$) as the atomic field units so that the conversion value is dimensionless, and then divide by $E_h/ea_0$:
 
 $$\text{Input units to a.u. conversion} = \frac{kV/m}{E_h/ea_0} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)} = 1.94...\times10^{-9}$$
 
-but when we need to divide by the lattice parameters, these are given in Angstrom from the crystal file data being used. Therefore an Angstrom to Bohr conversion must be included:
+%but when we need to divide by the lattice parameters, these are given in Angstrom from the crystal file data being used. Therefore an Angstrom to Bohr conversion must be included:
 
-$$\text{Total conversion} = \frac{kV/m}{E_h/ea_0}\times\frac{1}{\text{Angstrom to Bohr conv.}} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)}\times \frac{1}{1.889725989}$$ 
+%$$\text{Total conversion} = \frac{kV/m}{E_h/ea_0}\times\frac{1}{\text{Angstrom to Bohr conv.}} = \frac{1000(V/m)}{5.142...\times 10^{11} (V/m)}\times \frac{1}{1.889725989}$$ 
 
-where ${E_h/ea_0}$ are the atomic field units given in terms of the Hartree energy. If this conversion is included in equation (10), the correct units will be obtained for the electric field vector to be used in equation (5).
+%where ${E_h/ea_0}$ are the atomic field units given in terms of the Hartree energy. If this conversion is included in equation (10), the correct units will be obtained for the electric field vector to be used in equation (5).
+
+If this conversion is included in equation (10), the correct units will be obtained for the electric field vector to be used in equation (5).
 \\
-% I'm not sure why everything needs to be fractional though. The exact reason for this will have to be discovered through Marie. Same with why we want E_h/L^2 where L is a lattice parameter a,b or c in a.u for each Hessian index. How does this make it a.u.?
 
-Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. Since each element is a second derivative, the change between the output units as the units we need are generally derived as follows:
+% The below section is commented because the Hessian is actually given in Cartesian coordinates.
 
-Let $x$ be a length in one unit systems and $u$ a length in a different unit system. $x=C_{xu}\cdot u$ where $C_{xu}$ is the conversion factor between the two length scales. Taking derivative of a quantity $E$ with respect to $x$ we obtain:
-$$\frac{\partial E}{\partial x} = \frac{\partial E}{\partial u}\frac{\partial u}{\partial x} = \frac{1}{C_{xu}}\frac{\partial E}{\partial u}$$
+%Crystal provides the Hessian in fractional units, and so the matrix elements must be converted for the full equation to have uniform units. Since each element is a second derivative, the change between the output units as the units we need are generally derived as follows:
 
-A similar method can be use to obtain the second derivative with respect to another coordinate, to a different unit scale ($y = C_{yv}v$):
+%Let $x$ be a length in one unit systems and $u$ a length in a different unit system. $x=C_{xu}\cdot u$ where $C_{xu}$ is the conversion factor between the two length scales. Taking derivative of a quantity $E$ with respect to $x$ we obtain:
+%$$\frac{\partial E}{\partial x} = \frac{\partial E}{\partial u}\frac{\partial u}{\partial x} = \frac{1}{C_{xu}}\frac{\partial E}{\partial u}$$
 
-$$\frac{\partial^2 E}{\partial x \partial y} = \frac{1}{C_{xu}C_{yv}}\frac{\partial^2 E}{\partial u \partial v}$$
+%A similar method can be use to obtain the second derivative with respect to another coordinate, to a different unit scale ($y = C_{yv}v$):
 
-In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting ($C_{xu}$ and $C_{yv}$ in our more general example). This is because the three possible Hessian elements in a.u. are given as:
+%$$\frac{\partial^2 E}{\partial x \partial y} = \frac{1}{C_{xu}C_{yv}}\frac{\partial^2 E}{\partial u \partial v}$$
+
+%In order to convert the Hessian from fractional units (Hartree energy $[E]$) to a.u. ($[E L^-2]$) we need to determine which index in the matrix includes (a,b), (a,c) or (b,c) in the denominator so we know what to divide by when converting ($C_{xu}$ and $C_{yv}$ in our more general example). This is because the three possible Hessian elements in a.u. are given as:
 
 % Is this an ok notation for the Hessian elements?
 
-$$\frac{\partial^2E}{\partial(a_i/a)\partial(b_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(b_i/b)\partial(c_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(a_i/a)\partial(c_k/c)}$$
+%$$\frac{\partial^2E}{\partial(a_i/a)\partial(b_j/b)} \ \text{or} \ \frac{\partial^2E}{\partial(b_i/b)\partial(c_k/c)} \ \text{or} \ \frac{\partial^2E}{\partial(a_i/a)\partial(c_k/c)}$$
 
-If the Hessian matrix element of the ith row and jth column is given by $\mathcal{H}_{ij}$ then:
-$$\mathcal{H}_{11} \ \text{becomes} \ \mathcal{H}_{11}/a^2, \ \mathcal{H}_{12} \ \text{becomes} \ \mathcal{H}_{12}/ab, \ \mathcal{H}_{13} \ \text{becomes} \ \mathcal{H}_{13}/ac \ \text{e.t.c.}$$ 
+%If the Hessian matrix element of the ith row and jth column is given by $\mathcal{H}_{ij}$ then:
+%$$\mathcal{H}_{11} \ \text{becomes} \ \mathcal{H}_{11}/a^2, \ \mathcal{H}_{12} \ \text{becomes} \ \mathcal{H}_{12}/ab, \ \mathcal{H}_{13} \ \text{becomes} \ \mathcal{H}_{13}/ac \ \text{e.t.c.}$$ 
 
-The division depends upon the modulus of the i or j index with 3: $mod(i,3) \ \text{or} \ i \ \% \ 3 = 0,1,2$ corresponds to a division by $a,b,c$ respectively. Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
+%The division depends upon the modulus of the i or j index with 3: $mod(i,3) \ \text{or} \ i \ \% \ 3 = 0,1,2$ corresponds to a division by $a,b,c$ respectively. Then we need to discern what the proper conversion factor is when going from fractional units to atomic units. If we divide by the lattice vector lengths in Angstroms, we must include the square inverse of the Angstrom to a.u. conversion factor. This is not necessary if we divide by lattice vectors given in atomic units.
 
-This means the total conversion depends upon the matrix element's index but will always be divided by lattice parameters in Bohr units in the $a, b, c$ basis. The Born tensor is given in $e$ units in the a,b,c basis and so no conversion or transformation is required. Consequently, the displacements are output from the calculation as a $3N$ dimensional column vector in a.u. and converted to fractional units where $a_n/a, \ b_n/b,\ c_n/c = 3n,\ 3n+1,\ 3n+2$ for the nth atom ($0\leq n \leq N-1)$.
+%This means the total conversion depends upon the matrix element's index but will always be divided by lattice parameters in Bohr units in the $a, b, c$ basis. The Born tensor is given in $e$ units in the a,b,c basis and so no conversion or transformation is required. Consequently, the displacements are output from the calculation as a $3N$ dimensional column vector in a.u. and converted to fractional units where $a_n/a, \ b_n/b,\ c_n/c = 3n,\ 3n+1,\ 3n+2$ for the nth atom ($0\leq n \leq N-1)$.
 
+Once we have computed `$d$' for a given incident field in this format, the next step is to add the displacements to the unit cell file containing all of the relevant atomic coordinates. Before this is possible, it is necessary to convert to the displacements to fractional units in the crystallographic basis. This is the format of the cell files taken as input for Env15, and so our displacement basis and units must match. In order to make this conversion, we must parse the CRYSTAL \texttt{.loto.out} file for the basis conversion matrix ($x, y, z$ to $a, b , c$). Since this matrix is given in Angstrom units, the displacements must be converted from a.u. (Bohr) to Angstrom. Once the Bohr to Angstrom conversion has been applied, we can multiply our Cartesian displacements for each atom by this $3\times 3$ conversion matrix, and then divide the results by the corresponding lattice vector. See below for an example:
+\\
+
+Bohr to Angstrom conversion:
+
+$$
+	B2A = 0.529177210903
+$$
+
+Parsed basis conversion matrix in Angstrom:
+
+$$
+C = \begin{pmatrix}
+C_{11} & C_{12} & C_{13} \\
+C_{21} & C_{22} & C_{23} \\
+C_{31} & C_{32} & C_{33}
+\end{pmatrix}
+$$
+
+Cartesian coordinates for the nth atom:
+
+$$d = \begin{pmatrix}
+x_n \\
+y_n \\
+z_n
+\end{pmatrix}$$
+
+Combine these with the lattice vectors $a,b,c$ to obtain the displacements in the new basis and units:
+
+$$d' = \begin{pmatrix}
+a_n/a \\
+b_n/b \\
+c_n/c
+\end{pmatrix} =
+\begin{pmatrix}
+1/a \\
+1/b \\
+1/c
+\end{pmatrix}\cdot
+\begin{pmatrix}
+C_{11} & C_{12} & C_{13} \\
+C_{21} & C_{22} & C_{23} \\
+C_{31} & C_{32} & C_{33}
+\end{pmatrix} \cdot
+B2A \cdot
+\begin{pmatrix}
+x_n \\
+y_n \\
+z_n
+\end{pmatrix}$$
+
+Perform this action for all N sets of coordinates and the displacements can now be added to the unit cell.
 \subsection{The Cell File}
 
 The initial cell file is another output file of the CRYSTAL program that gives the position of the atoms in the unit cell in fractional coordinates, and the corresponding charges. If all the required information is stored in this file, the \texttt{unit\_source} parameter `direct' can be called and all unit cell information is parsed from this file. Sometimes the cell file can be generated by CRYSTAL in a different spatial group, and so the number of coordinate sets in this file can be different to $N$. However, if \texttt{unit\_source} = auto, \texttt{disp\_solve} can scan this initial cell file for the charge magnitudes of each atom and reformulate the cell file by parsing the CRYSTAL output file for the unit cell coordinates and irreducible groups.
 
-A new unit cell file is then written for the disturbed system containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $a,b,c$ directions. A grid of cell files specified by the $E_a,E_b,E_c$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges. 
+A new unit cell file is then written for the disturbed system containing double-precision floats with the associated converted displacements added. Entering \texttt{charge} instead of \texttt{auto} does the same thing but requires the user to enter the charge values for each irreducible atom group. We know which atom corresponds to the nth index and so we can merge the two sets of coordinates. This is then done on a large scale by specifying a range of electric fields in the $x,y,z$ directions. A grid of cell files specified by the $E_x,E_y,E_z$ inputs are generated and stored in a directory location reported by the command line, named after the specified ranges chosen for the incident field.
 
-Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The trialled module was the symmetric system driver DSYEV, that was ran in tandem with the python script using a batch file so that the displacement results could be compared. When the optimal displacement calculation has been chosen, we can add the calculated displacements to the atom coordinates from the CRYSTAL output files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3).
+Another option to solve $q.E = -H.d$ would be directly employing the LAPACK Fortran drivers that specify to the type of matrix you are trying to process (in this case a symmetric semi-definite Hessian) which can save lots of processing time and generate increased accuracy. The trialled module was the symmetric system driver DSYEV, that was ran in tandem with the python script using a batch file so that the displacement results could be compared. It was concluded that the numpy linear algebra framework was sufficient for the calculation purposes, and so the next step was to add calculated displacements to the atom coordinates from the CRYSTAL output files and process them with ENV, before reformatting them with env2seward for different values of the electric field. This will be automated so that we can effectively calculate $\frac{\partial d}{\partial E}$ (recall step 5 of section 3). See section 8 for more information on this process.
 
 Please see the appendix for an instruction manual that covers more detail how to use this software.
 
 \section{Processing Env output into Seward}
-Env2Seward is the first driver script that I wrote my time at ILL, created to process the output files from the ENV15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering their coordinate data into categorised sets with homogeneous atoms and their associated basis sets from either a default path or chosen library file.
+Env2Seward is the first driver script that I wrote my time at ILL; it was created to process the output files from the Env15 program, \texttt{prefix.env.sew0} and \texttt{prefix.env.psd}, that contain the fragment, TIP and Madelung potential coordinates and basis sets (see \cite{varignon2013ab} as well as \cite{gelle2008fast} and the associated local tools manual). It operates by parsing the input files for the various atom types and ordering the atom's coordinate data into sets categorised by each homogeneous atom type. It writes their associated basis sets from either a default path or chosen library file, chosen and input by the user.
 
-Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the ENV output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library, if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in a third system input file. This command line input file can be generated automatically by the program through user input, or manually by the user. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells.
+Coordinates are compared between the \texttt{sew0} and \texttt{psd} files to confirm the identity and atom-type of the coordinate set. The script is quite general, allowing for 3 different formats of atomic identification in the Env output files, including contingencies for a symmetric basis in the \texttt{psd} file and a system exit if the coordinates do not match between the two input files. The user is prompted intuitively for input of the basis set corresponding to each atom and the desired basis library, if no input file is passed on the command line. However, the script can be automated (if the user desired a conversion loop in a batch file), by calling it from command line with a separate input text file as a second argument, with the libraries and basis sets contained in in this input file. This command line input file can be generated automatically by the program through user input, or manually by the user. A third available format is the interactive Jupyter notebook that provides instructions in markdown alongside the python3 cells.
 
-Regardless of the input approach taken, the coordinate sets are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
+Regardless of the input approach taken, the coordinates are organised into quantum fragment, pseudopotential and Madelung potential categories in a way that is readable by the SEWARD input algorithm after being assigned to a certain atom type. See figure (3) for an excerpt of the fragment output.
 
 
 \begin{figure}[htbp]
@@ -543,20 +598,18 @@ Again, the appendix contains an instruction manual that goes into more depth abo
 
 \section{Linking CRYSTAL output, Disp\_Solve, Env15 and Env2Seward}
 
-As discussed before, the CRYSTAL optimised geometry output files contain the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}.
+As discussed before, the CRYSTAL optimised geometry output files contain the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}. This data can be used to calculate the displacements from an induced uniform electric field using `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input or the coordinates found in the \texttt{.loto.out} output file. This is a summary of sections 5 and 6, see those for more details.
 
-This data can be used to calculate the displacements from an induced uniform electric field using `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
-
-Another program that I wrote for this project is \texttt{crys2seward.py}. Crys2Seward edits the xenv15 \texttt{envin} or \texttt{env.in} input files so that the env15 program can take cell files of different displacements from the disp\_solve outputs and produces a grid of output files named: 
+Another program that I wrote for this project was \texttt{crys2seward.py}. Crys2Seward edits the xenv15 (the executable Fortran file for Env) \texttt{envin} or \texttt{env.in} input files so that the env15 program can take cell files of different displacements from the disp\_solve outputs and produces a grid of output files named: 
 
 \begin{itemize}
 	\item \texttt{prefix.<field\_values>.env.sew0}
 	\item \texttt{prefix.<field\_values>.env.psd}
 \end{itemize}
 
-These are the new input files of the Env2Seward program (the prefix corresponds to the simulated system). Crys2Seward modifies the Env2Seward input data to take specific inputs from each file in the grid. This allows each set of sew0 and psd file coordinates to be categorised into a prefix.sew.in format, to be input into SEWARD.
+These are the new input files passed to the Env2Seward program (the prefix corresponds to the simulated system). Crys2Seward modifies the Env2Seward input data so that the script processes every pair of \texttt{.psd} and \texttt{.sew0} files in the grid, so that each set of fragment coordinates can be categorised into a prefix.sew.in format, to be later input into SEWARD.
 
-Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype.
+Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype. The largest calculation time sink for this script is running xenv15 for each cell file; this gets exponentially more expensive as the number of atoms in the unit cell increases.
 
 \newpage
 \section*{Software Manual Appendix}

@@ -595,6 +595,8 @@ def hessian(born_file, hess_file):
                 else:
                     tensor_hess[i, j] = float(tensor_hess[j, i])
     
+    # We don't need to conver the Hessian anymore, it is already
+    # in the Cartesian basis in a.u.
     # conv_hess = conv_hessian(tensor_hess, hess_file)
     
     # Add [0] suffix to function for L matrix and [1] for symmetric matrix
@@ -967,6 +969,8 @@ def convert_disp(born_file, hess_file, output_file, ex, ey, ez):
             pass
         
         elif i % 3 == 0:
+            # Conversion to Angstrom since conversion matrix
+            # is in Angstrom units
             xyz = BOHR2ANG*np.array(displacement[i : i+3])
             newcoords = np.linalg.solve(conv_matrix, xyz)
             

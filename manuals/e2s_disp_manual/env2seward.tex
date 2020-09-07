@@ -1,62 +1,72 @@
 \section{Env2Seward}
 \subsection{Introduction}
-\begin{itemize}
-	\item This code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD.
-	\item These simulation scripts are found in the local tools manual for the `Fast calculation of the electrostatic potential in ionic crystals by direct summation method' written by MB Lepetit and A. Gell\'e.
-	
-	This local tools manual contains scripts that provide a ``set of charges that allow the calculation of the Madelung potential of an ionic crystal within a predefined accuracy" \cite{gelle2008fast}.
-	\item This is designed for the purpose of performing an ab-initio quantum calculation on a `quantum fragment' that is surrounded by a first shell of ionic pseudo-potentials, and a second layer of renormalised point charges \cite{varignon2013ab}.
-\end{itemize} 
 
-\subsubsection{How to compile and run the script}
-\begin{itemize}
-	\item A {\bf python 3} distribution such as `Anaconda' or `Active Python' can be downloaded, which provides the option of using integrated development environments (IDE) such as `Spyder' for programming in the python language
-	\item If you are using an IDE, open the file (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal
-	\item If you want to install python directly, see \url{https://realpython.com/installing-python/}
-	\item Typing `\texttt{python3 env2seward.py}' in the terminal running in the same directory as the python file should execute the script, generating the prompts in the command line. If you want to call the script from full path, just replace the \texttt{env2seward.py} with it's full path directory. The new file will appear in the same directory as the python script.
-\end{itemize} 
-\subsection{Prompt entry}
-\subsubsection{Inputs and outputs}
+This code processes and formats the output from a program called ENV so it can be used in a calculation performed by a program called SEWARD.
+
+\subsection{Inputs Files and Data}
 There are two input files:
 
 \begin{itemize}
 	\item Prefix.env.sew0 is a help file that contains the input data for SEWARD of the MOLCAS chain. It contains the data for the quantum fragment, the TIPS and the renormalised charges.
-	\item The second is called prefix.psd, and contains the information on the atoms represented by TIPs.
+	\item The second is called prefix.env.psd, and contains the information on the atoms represented by TIPs.
 \end{itemize}
- The script requires two groups of basis sets - one for the quantum fragment and one for the ionic pseudopotential. Once these have been prompted and entered through the terminal command line, an output file ready to be fed into SEWARD will be generated. This can be called prefix.sew.in.
 
-In summary the files and data required for this program are:
+The script requires the basis sets for two groups of atoms: 
 \begin{itemize}
-	\item \texttt{prefix.env.sew0}
-	\item \texttt{prefix.env.psd}
-	\item Fragment basis sets and library locations.
-	\item Pseudopotential basis sets and library locations.
-	\item Name of the prefix.
+	\item The quantum fragment
+	\item The ionic pseudopotential (TIPs)
 \end{itemize}
-Remember that for the prompt option, the input files must be in the same directory as the env2seward script. If you want the files to be called from a different relative or full path directory, it is recommended to employ the input method below.
 
-\subsubsection{Prefix, Title and Basis Set Formatting}
+Once these have been prompted and entered through the terminal command line, an output file ready to be fed into SEWARD will be generated. This will be called prefix.sew.in when using the prompt option, however, the filename is customisable if you use the input method in 11.4.2.
 
-The prefix entered can be anything you want, but it must match the prefix on the input files. For example, if the prefix was `example', this automatically generates a seward input file called `\texttt{example.sew.in}'. However, this will not work unless the env input files have the filenames `\texttt{example.env.sew0}' and `\texttt{example.env.psd}'. The input on the prompt for the title will be written to the document introduction, and this does not depend on the name of the input files or the prefix.
+For command prompt data input, the files output from Env to be parsed by Env2Seward must be in the same directory as the python script. If you want the files to be called from a different relative or full path directory, it is recommended to employ the input method below.
 
-Basis sets for the fragment potential are unique to the system being evaluated and so cannot be managed by env2seward. These must be entered individually when prompted by the command line, as well as their library location. If the corresponding library is default for the system, leave the input blank and press enter. If this is not the case, submit the name of the specified library.
-\\
-It is almost the same for the pseudopotential, but there are usually more prompts. For example, for GdMn2O5 there are three elements but eight basis sets, since there are two types of gadolinium and manganese and four types of oxygen. This results in more prompts for the corresponding basis sets and libraries. The command line will distinguish between the inputs between the fragment and the TIPs. Continue until all basis sets have been entered and the file will be written.
+\subsection{Installing Python}
+\begin{itemize}
+	\item A {\bf python 3} distribution such as `Anaconda' or `Active Python' can be downloaded, which provides the option of using integrated development environments (IDE) such as `Spyder' for programming in the python language
+	\item If you are using an IDE, open the file (typically an 'open file' option in the top left of the window, or you can drag it into the IDE text editor), hit run, and answer the prompts in the terminal
+	\item If you want to install python directly, see \url{https://realpython.com/installing-python/}
+\end{itemize}
 
-\subsection{Reading Filenames, Basis Sets and Libraries from an Input File}
+\subsection{Input Options}
 
-There is another option for entering the data required to format the ENV output files, and this is to write the filenames, title and basis set information in a text file. To do this, write the text file in the following format (each bullet point is a new line, although the order does not matter):
+\begin{enumerate}
+	\item `\texttt{python3 env2seward.py}' (no input file: command line will prompt you for direct inputs; can use full or relative path for script). If you want to call the script from full or relative path, just replace the \texttt{env2seward.py} with it's full or relative path directory. The new file will appear in the same directory as the python script.
+	\item `\texttt{python3 env2seward.py $\langle$input\_file\_path$\rangle$}' (Input file is passed as a command line argument. Can be relative or full path.)
+\end{enumerate}
+
+\subsubsection{Command Prompt Input}
+For the first option you will be prompted for:
+
+\begin{enumerate}
+	\item Name of the system prefix such as `GdMn2O5\_J1' (Coordinate input files must be local for this option). Must match the prefix of the Env output files.
+	\item Title and name of created file
+	\item Basis sets and library locations
+\end{enumerate} 
+
+Continue until all basis sets have been entered and the file will be written.
+
+\subsubsection{Reading Filenames, Basis Sets and Libraries from an Input File}
+For the second option you will need to write the manually-generated input file with the following format:
+
+\begin{lstlisting}
+	filename = chosen_filename
+	title = chosen_title
+	# Following files can be local path or full path, just replace name with full path directory
+	sew0_file = prefix.env.sew0
+	psd_file = prefix.env.psd
+	lib_frag = {"atom type":{"loc":"specified basis set library","key":"basis set for
+	atom type"},"atom type2":...}
+	lib_pseudo = {"atom type":{"loc":"specified basis set library","key":"basis set
+	for atom type"},"atom type2":...}
+\end{lstlisting}
 
 \begin{itemize}
-	\item \texttt{filename = chosen\_filename}
-	\item \texttt{title = chosen\_title}
-	\item \texttt{sew0\_file = prefix.env.sew0}
-	\item \texttt{psd\_file = prefix.env.psd}
-	\item \texttt{lib\_frag = \{"atom\_type":\{"loc":"specified basis set library","key":"basis set for atom\_type"\},"atom\_type2":...\}}
-	\item \texttt{lib\_pseudo = \{"atom\_type":\{"loc":"specified basis set library","key":"basis set for atom\_type"\},"atom\_type2":...\}}
+	\item Each line element is separated by a space
+	\item Write the filenames and paths to the input files next to the corresponding variable (must be named sew0\_file, psd\_file e.t.c)
+	\item Give the fragment library and pseudopotential library in the python dictionary format: \url{https://www.w3schools.com/python/python_dictionaries.asp}).
 \end{itemize}
 
-The format of the basis set libraries is in the python dictionary syntax. This means each dictionary key (e.g \texttt{"atom\_type},\texttt{"loc"} and \texttt{"key"}) corresponds to a piece of data. In this case the data is either a string or another dictionary. Each atom is assigned to it's own dictionary containing a key for the specified basis set library (set to \texttt{"loc":""} if default) and a key for the basis set (\texttt{"key":"basis set"}).
 Here is an example for a GdMn2O5 input file, where the fragment dictionary (\texttt{lib\_frag}) has no specified library but the TIP dictionary (\texttt{lib\_pseudo}) basis sets are found in PSEUDO:
 
 \begin{lstlisting}
@@ -75,17 +85,10 @@ Here is an example for a GdMn2O5 input file, where the fragment dictionary (\tex
 	'O3':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O3-GdMn2O5.'},
 	'O4':{'loc':'PSEUDO','key':'O.ECP.Marie.0s.0s.0e-O4-GdMn2O5.'}}
 \end{lstlisting}
-Make sure that all variables are on the {\bf same line} as the string/dictionary they are being assigned to. There also must be spacing between the variable, the $=$ sign and the data, so that the parsing algorithm can identify the data and write it to the output file.
-
-If you are giving the relative path (filename), make sure this user-generated input file is in the same directory as the python script, and if not, quote the full path in the command line when calling it instead of the filename. This is also the case for the ENV files. If the \texttt{sew0} and \texttt{psd} files are non-local, replace the file name with the full path directory.
-
-\begin{itemize}
-	\item \texttt{python3 env2seward.py chosen\_input\_filename}
-\end{itemize}
 
 If the setup has been performed correctly, the script will output `File has been created' and the sew.in file will appear in the input file directory.
 
-\subsection{Jupyter Notebook Version}
+\subsubsection{Jupyter Notebook Version}
 To install Jupyter Notebook, follow this guide: \url{https://jupyter.org/install}. For the creation of the \texttt{env2seward\_notebook.ipynb} file, the Anaconda distribution was used to install Jupyter Notebook with the \texttt{conda} command. This is the recommended method (see \url{https://www.anaconda.com/products/individual} for distribution download). 
 \\
 Once you have installed Jupyter notebook you need to download and localise the following files into the same directory/folder:
@@ -105,8 +108,9 @@ Next we need to open the Jupyter Notebook web app. We can do this by:
 	\item Now open the \texttt{env2seward\_notebook.ipynb} file from the web app dashboard menu.
 \end{itemize}
 
-You should see the menu shown in figure (1) and the notebook shown in figure (2). In the notebook you will see a page of Jupyter cells, some in markdown (a text formatting language) and some to run python3 code. If you want to learn more about how these work, see \url{https://www.dataquest.io/blog/jupyter-notebook-tutorial/}. In order to run these cells individually, click on them and hit \texttt{Ctrl+Enter} or press the run button (below the cell tab in the toolbar). 
-Please follow the instructions in between the code cells to enter the correct inputs. If you would like to see the atom-types that require basis set entry, follow the instructions under the subtitle `Basis atoms (see instructions below on how to run this cell):'. The next steps are:
+You should see the menu shown in figure (1) and the notebook shown in figure (2). In the notebook you will see a page of Jupyter cells, some in markdown (a text formatting language) and some to run python3 code. If you want to learn more about how these work, see \url{https://www.dataquest.io/blog/jupyter-notebook-tutorial/}. In order to run these cells individually, click on them and hit \texttt{Ctrl+Enter} or press the run button (below the cell tab in the toolbar).
+
+Please follow the markdown instructions in between the code cells to enter the correct inputs. If you would like to see the atom types that require basis set entry, follow the instructions under the subtitle `Basis atoms (see instructions below on how to run this cell):'. The next steps are:
 
 \begin{figure}
 	\centering
@@ -128,7 +132,7 @@ Please follow the instructions in between the code cells to enter the correct in
 	\item Make sure the inputs have all been entered according to the instructions (filename, title, sew0name, psdname, lib\_frag, lib\_pseudo)
 	\item Select the button that says `restart the kernel and re-run the whole notebook' that looks like a fast-forward icon.
 	\item If you cannot find this, click the kernel icon (in English, it may be different in other languages), next to cell and widgets, and select `Restart and Run All'.
-	\item You will see a prompt in the first code cell (\texttt{import env2seward as e2s}). Please enter `Y'.
+	\item You may see a prompt in the first code cell (\texttt{import env2seward as e2s}). Please enter `Y' if so.
 	\item After this the last code cell (\texttt{e2s.finalwrite(filename,...}) will output `File has been created' which means you now have a seward input file ready in the webapp directory. You can download this to a specific directory by going back to the dashboard menu, ticking the box next to `\texttt{chosen filename}' and clicking `Download'.
 	\item The output file will also naturally appear in the same directory as your \texttt{env2seward\_notebook.ipynb} file.
         \end{itemize}
