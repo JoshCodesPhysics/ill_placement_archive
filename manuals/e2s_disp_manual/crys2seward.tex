@@ -1,6 +1,6 @@
 \section{Crys2Seward}
 
-Crys2seward is a python program that links the output from the CRYSTAL geometry optimisation to \texttt{disp\_solve}, \texttt{env15} and \texttt{env2seward} to produce a grid of input files for the program SEWARD.
+Crys2seward is a python program that links the output from the CRYSTAL geometry optimisation to \texttt{disp\_solve}, \texttt{xenv15} and \texttt{env2seward} to produce a grid of input files for the program SEWARD.
 
 \subsection{Installing python 3}
 
@@ -21,7 +21,7 @@ The following packages must be installed with your distribution for the program 
 
 Install packages you don't have with \texttt{pip install <module\_name>} or check that you have it with \texttt{pip list | grep <module\_name\_you\_want\_to\_check>}, unless they are packages available only in this repository such as env2seward and disp\_solve.
 
-In that case you will need to download both the script and the \texttt{\_\_init\_\_.py} files, and reference their path in \texttt{crys2seward.py} when declaring used packages (unless they are located in the same relative path as the repository, then no changes are required).
+In that case you will need to download both the script and the \texttt{\_\_init\_\_.py} files from the git repository, and reference their path in \texttt{crys2seward.py} when declaring used packages (unless they are located in the same relative path as the repository, as it is by default, then no changes are required).
 
 \subsection{Input files}
 
@@ -31,7 +31,7 @@ The program requires the following inputs:
 	
 	\item CRYSTAL output file of a phonon calculation of your system including IR intensities (Born charges) and Hessian matrix printed in fractional coordinates
 	\item The initial system.cell file of the ENV code corresponding to the undistorted system
-	\item The envin file for the env15 program \texttt{xenv15} after executing the necessary \texttt{make} command in the Env15 folder (see the local tools manual written by M. B. Lepetit for how to install env15).
+	\item The envin file for the env15 program \texttt{xenv15} after executing the necessary \texttt{make} command in the Env15 folder (see the local tools manual written by M. B. Lepetit for how to install Env15).
 	\item The prefix.c2s.in input file containing all the paths pointing to the aforementioned files, as well as the inputs for \texttt{disp\_solve} and \texttt{env2seward}
 	
 	\item (Optional) The .DAT files for the Born and Hessian matrices, used if the CRYSTAL output .loto.out file does not contain the necessary data to construct one or both of these matrices.
@@ -45,7 +45,7 @@ To execute the script, type:
 \texttt{python3 <path\_to\_crys2seward.py> <path\_to\_c2s.in\_input\_file>}
 
 into the command line in the same working directory as the xenv15 program and it's input files (envin and env.out).
-Xenv15 only works in the cwd, i.e. it cannot be referenced from another path.
+\texttt{xenv15} only works in the current working directory, i.e. it cannot be referenced from another path.
 
 For example, on this git repository the relative paths are:
 
