@@ -394,7 +394,7 @@ def pseudos(new_file, sew0_file, psd_file, lib):
                     #      "sew0 elem: ", elem, " psd elem: ", psd[i].split()[0][0:2],
                     #      " separation: ", separation)
 
-                    if abs(separation) <= 1e-1 and elem \
+                    if abs(separation) <= 1e-4 and elem \
                                               == psd[i].split()[0][0:2]:
                         
                         # Contingencies for different atom codes

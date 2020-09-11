@@ -492,9 +492,18 @@ def command_line():
 
     No parameters or returns.
     """
-    if len(sys.argv) >= 2:
+    print("CONSIDER THE FOLLOWING QUESTIONS CAREFULLY:")
+    basis_bool = e2s.ask_user("Is the system's crystallographic basis"+\
+                              " and primitive basis the same?")
+    atom_order_bool = e2s.ask_user("Are the displacements in the same"+\
+                                   " order as the cell file atoms? Is"+\
+                                   " there a one to one correspondence?")
+    if len(sys.argv) >= 2 and basis_bool and atom_order_bool:
         read_input_file(sys.argv[1])
-
+    
+    else:
+        sys.exit("Do not run the code if your answers to these questions"+\
+                 " are no.")
 
 # Test inputs for bug checking functions
 

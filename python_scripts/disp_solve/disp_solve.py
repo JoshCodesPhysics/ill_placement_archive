@@ -179,6 +179,7 @@ def born_dat(born_file):
 
     return born_tensor
 
+###################################################################
 def parse_hessian(hess_file, thresh):
     """Parses Hessian to find index of pairs and diagonal elements
     
@@ -358,7 +359,7 @@ def num_diag(hess_file, nthresh, threshstart):
 
     print("Format is 'threshold':number of diagonal elements")
     print(diag_dict)
-
+################################################################
 
 def convert_coords(output_file):
     """Finds conversion matrix and transposes it. Also parses for
@@ -741,7 +742,7 @@ def hess_input(born_file, hess_file, output_file):
 
     return tensor_hess
 
-
+########################################################################
 def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
     vectors in cartesian coordinates
@@ -797,7 +798,7 @@ def convert_coords2(out_file):
     unit_vectors = np.array([float(vec/np.sqrt(vec.dot(vec))) 
         for vec in lattice_vectors])
     return lattice_vectors, unit_vectors
-
+###############################################################
 
 def evec(ex, ey, ez, mdim):
     """Generates electric field vector from kV/m a,b,c inputs and
@@ -820,7 +821,6 @@ def evec(ex, ey, ez, mdim):
         Ex, Ey, Ez coordinates (uniform field)
     """
     
-    ANG2BOHR = float(1.889725989)
     ATOMIC_FIELD = float(5.14220674763e11)
     KV = float(1e3)
     CONVERSION = float((KV/(ATOMIC_FIELD)))
@@ -950,7 +950,7 @@ def convert_disp(born_file, hess_file, output_file, ex, ey, ez):
     Operation takes place in Angstrom, so all displacement coordinates
     are converted to Angstrom. Output coordinates are fractional units
     in the lattice vector basis (a,b,c).
-    
+
     Parameters
     ----------
     born_file: str
@@ -1009,8 +1009,7 @@ def convert_disp(born_file, hess_file, output_file, ex, ey, ez):
             # crystallographic basis
             for i in range(len(newcoords)):
                 convdisp.append(newcoords[i] / lat_param[i])
-    
-    irint("frac data: \n", frac_data)
+
     convdisp = np.array(convdisp)
     return convdisp, frac
 
@@ -1457,7 +1456,7 @@ def modify_cell(born_file, hess_file, output_file, cell_file, dirname,
     cell_new.write(tabulate(line_list, tablefmt="plain", colalign=("left",)))
     cell_new.close()
 
-
+#############################################################################
 def modify_existing_cell(output_file, cell_file, ex, ey, ez):
     """This function adds displacements to cell files already 
     displaced by another field - increases error so not used.
@@ -1511,7 +1510,7 @@ def modify_existing_cell(output_file, cell_file, ex, ey, ez):
     
     f = open(new_cell_name, 'w')
     f.write(tabulate(cell_new, tablefmt='plain', colalign=("left",)))
-
+########################################################################
 
 def cell_grid(born_file, hess_file, output_file, cell_file,
               ex_array, ey_array, ez_array, unit_source, *args, **kwargs):
@@ -1858,7 +1857,7 @@ def input_or_prompt(crys2sew_bool):
     else:
         read_prompt()
 
-
+#######################################################################
 def basis_set_conv(born_file, hess_file, output, output2):
     """Generates the conversion matrix between two systems of the same
     coordinate basis but different basis sets and applies it to the
@@ -1916,7 +1915,7 @@ def basis_set_conv(born_file, hess_file, output, output2):
 
     prim2cat_matrix3 = np.matmul(np.linalg.inv(prim2cart_matrix),
                                  prim2cart_matrix2)
-
+######################################################################
 
 # Test inputs for functions and calling input_or_prompt
 
