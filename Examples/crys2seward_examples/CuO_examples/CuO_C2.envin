@@ -1,13 +1,13 @@
 &envin
-prefix="CuO_P1"
-NFI_In="CuO_P1.cell"
+prefix="CuO_C2"
+NFI_In="CuO_C2.cell"
 nch=4
 sortie="molcas"
 a=2.92501950d0, b=2.92501950, c=5.08355712
 atom0="Ctr",pos0= 0.124999777076d0, 0.124999777076d0, 0.124999777076d0
 nmag=2
 posmag(1,1)= 0.499997999730d0, 0.000001287219d0, -0.250000056232d0
-posmag(1,2)= 0.000001108577d0, 0.499997208085d0, 0.250000071760d0
+posmag(1,2)= 0.000001108577d0, 0.499997208084d0, 0.250000071760d0
 ncel=1,  dsys=2.08, dpseud=3.5d0,
 ysym=false
 &end

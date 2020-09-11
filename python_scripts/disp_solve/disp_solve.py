@@ -421,8 +421,21 @@ def convert_coords(output_file):
 
     # Conversion matrix strip
     conv_data = out[start:end]
+
     # Unit cell in fractional units strip
-    frac_data = out[start2:end2]
+    if "start2" not in locals():
+        for i in range(len(out)):
+            out_split = out[i].split()
+
+            if out_split[:5] == ['ATOMS', 'IN', 'THE', 'ASYMMETRIC', 'UNIT']:
+                start2 = i+3
+                end2 = start2 + atom_num
+                break
+
+        frac_data = out[start2 : end2]
+    else:
+        frac_data = out[start2 : end2]
+    
     # Cartesian coordinates to test conversion matrix
     # test_data = out[start3:end3]
 
@@ -1069,7 +1082,6 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
                              ex, ey, ez)
     convdisp = conv_data[0]
     frac_data = conv_data[1]
-    
     atom_nums = [i for i in range(1, atom_num+1)]
     atom_list = []
     
@@ -1140,12 +1152,12 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
         # rather than the cell file
         # Another branching will occur when deciding to automate
         # charge data or obtain it manually
-        num_groups = len(frac_data) - atom_num+1
-        
+        num_groups = len(frac_data) - atom_num + 1
+
         # Group keys
         group_nums = [i for i in range(1, num_groups+1)]
         gap_index = []
-        
+
         # Group data
         group_list = []
         
@@ -1161,16 +1173,49 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
         
         # Appending groups according to these indexes
         groups = []
-        for i in range(len(gap_index)):
-            if i == 0:
-                groups.append(frac_data[:gap_index[i]])
-            
-            elif i == len(gap_index)-1:
-                groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
-                groups.append(frac_data[gap_index[i]+1:])
-            
-            else:
-                groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+
+        if len(gap_index):
+            for i in range(len(gap_index)):
+                if i == 0:
+                    groups.append(frac_data[:gap_index[i]])
+                
+                elif i == len(gap_index)-1:
+                    groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+                    groups.append(frac_data[gap_index[i]+1:])
+                
+                else:
+                    groups.append(frac_data[gap_index[i-1]+1:gap_index[i]])
+       
+        # If there are no gaps i.e. the second of the two possible unit
+        # cell formats, take a different approach to groups
+        else:
+            group_list = []
+            no_groups = 0
+            group_start = 0
+            for i in range(len(frac_data)):
+                frac_split = frac_data[i].split()
+                atom = frac_split[-4]
+                # If current atom does not match previous atom, a new
+                # group has been started! Append the old one.
+                if i == 0:
+                    pass
+
+                elif atom != frac_data[i-1].split()[-4]:
+                    group_end = i
+                    groups.append(frac_data[group_start : group_end])
+                    group_start = group_end
+                    no_groups += 1
+
+                # We're at the end. Append the final group.
+                elif i == len(frac_data) - 1:
+                    group_end = i+1
+                    groups.append(frac_data[group_start : group_end])
+                    no_groups +=1
+
+            group_list = ["group %d" % (i+1) for i in range(no_groups)]
+
+        print("groups: \n", groups)
+        print("group_list: \n", group_list)
         
         # Automatic charge data generation from initial cell file,
         # potentially from different space group
@@ -1180,15 +1225,21 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
             element_charge = {}
             for i in range(len(cell)):
                 cell_split = cell[i].split()
-                if cell_split[0][1].isdigit():
+                
+                if len(cell_split[0]) == 1:
+                    element = cell_split[0].upper()
+
+                elif cell_split[0][1].isdigit():
                     element = cell_split[0][0].upper()
                 
                 else:
                     element = cell_split[0].upper()
-                charge = float(cell_split[-1])
+                charge = float(cell_split[-1].replace("D","e"))
                 
                 if (element,charge) not in element_charge.items():
-                    element_charge[element]=charge
+                    element_charge[element] = charge
+
+            print("element_charge: \n", element_charge)
         
         # Manual charge data input
         elif unit_source == "charge":
@@ -1203,41 +1254,54 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
         parsed_atoms = {}
         dist_atoms = {}
         
+        print("length of gap_index: ", len(gap_index))
         # Generating dictionary and then scanning dictionary, relabelling
         # Atoms of same element but different irreducible group
         # e.g O, O -> O1, O2
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
+                
+                if len(gap_index):
+                    atom = coords_split[4].upper()
+                    coord_start = 5
 
-                atom = coords_split[4].upper()
+                else:
+                    atom = coords_split[3].upper()
+                    coord_start = 4
                 # Charge data included for auto
                 if unit_source == "auto":
-                    atom_dict["group %d"%(i+1)]["atom %d"
-                            %(int(coords_split[0]))] = {"coords":
-                                    [float(coords_split[5+k])
-                                        for k in range(3)],
-                                    "element":atom,
-                                    "charge":element_charge[atom]}
-                
+                    atom_dict["group %d" % (i+1)]["atom %d"
+                              %(int(coords_split[0]))] = {"coords":
+                              [float(coords_split[coord_start + k])
+                              for k in range(3)], "element":atom,
+                              "charge":element_charge[atom]}
+
                 # Charge data not included until element data is 
                 # reformulated
                 elif unit_source == "charge":
                     atom_dict["group %d"%(i+1)]["atom %d"
-                            %(int(coords_split[0]))] = {"coords":
-                             [float(coords_split[5+k]) for k in range(3)],
+                              %(int(coords_split[0]))] = {"coords":
+                              [float(coords_split[coord_start + k])
+                              for k in range(3)],
                               "element":atom}
         
         # Relabel if repeats
         for i in range(len(groups)):
             for j in range(len(groups[i])):
                 coords_split = groups[i][j].split()
-                atom = coords_split[4].upper()
+                if len(gap_index):
+                    atom_index = 4
+                    atom = coords_split[4].upper()
+
+                else:
+                    atom_index = 3
+                    atom = coords_split[3].upper()
 
                 if atom not in parsed_atoms and j == 0:
                         parsed_atoms[atom] = i+1
                 
-                elif coords_split[4] in parsed_atoms:
+                elif coords_split[atom_index] in parsed_atoms:
                     if j > 0:
                         pass
                     
@@ -1869,12 +1933,14 @@ def basis_set_conv(born_file, hess_file, output, output2):
 #          "crys2seward_examples/CuO_examples/CuO-P1.AFM.Phonons.156273.out"
 # CuO_C2 = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
 #          "crys2seward_examples/CuO_examples/CuO-C2.AFM.Phonons.155494.out"
-
+# cell_CuO = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
+#            "crys2seward_examples/CuO_examples/CuO_P1.cell"
 # print("Cartesian displacement matrices: ")
 # solve_equation(CuO_P1, CuO_P1, CuO_P1, 1e7, 0, 0)
 
 # print("Converted displacements only: ")
 # print(convert_disp(CuO_P1, CuO_P1, CuO_P1, 1e7, 0, 0)[0])
 # basis_set_conv(CuO_P1, CuO_P1, CuO_P1, CuO_C2)
+# print(unit_cell(CuO_P1, CuO_P1, CuO_P1, cell_CuO, 0, 0, 0, "direct")[0])
 
 input_or_prompt(True)

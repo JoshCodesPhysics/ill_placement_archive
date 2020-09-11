@@ -1,0 +1,22 @@
+#########crystal2seward input########################
+envin = CuO_C2.envin
+envout = CuO_C2.env.out
+xenv_sew0 = CuO_C2.sew0
+xenv_psd = CuO_C2.psd
+#########disp_solve input############################
+born_file = CuO-C2.AFM.Phonons.155494.out
+hess_file = CuO-C2.AFM.Phonons.155494.out
+crystal_file = CuO-C2.AFM.Phonons.155494.out
+cell_init = CuO_C2.cell
+ex = [0,0.15,0.15]
+ey = [0,0.15,0.15]
+ez = [0,0.15,0.15]
+unit_source = direct
+charge_dict = {'Cu':2.0, 'O':-2.0}
+##########env2seward input###########################
+filename = CuO_C2.0.0_0.0_0.0.sew.in
+title = <insert title here>
+sew0_file = CuO_C2.0.0_0.0_0.0.env.sew0
+psd_file = CuO_C2.0.0_0.0_0.0.env.psd
+lib_frag = {"CU":{"key":"CU_fragment_basis","loc":""}, "O":{"key":"O_fragment_basis", "loc":""}}
+lib_pseudo = {"CU":{"key":"CU_pseudo_basis","loc":"PSEUDO"}, "O":{"key":"O_pseudo_basis", "loc":"PSEUDO"}}

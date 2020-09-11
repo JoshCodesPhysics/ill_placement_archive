@@ -1,40 +1,13 @@
-env
-
-CLEF
-Prefix
- ymno3_d1
-fcell
-../ymno3.loto.cell
-Dim
- 6.1270   6.1270   11.4110
-angle
- 90 90 120
-nch
- 30
-ncell
- 2
-centre
-       0.6672     0.50000    0.49688
-fragment
- 2
- Mn    0.33440    0.33440    0.49688
- Mn    1.00000    0.66560    0.49688
-dsys
- 2.1
-dpseud
- 4.2
-
-SINGLE       
- 4
-LIMITES
-1.0d-6 1.0d-3 0.0d0 1.0d-6 1.0d-9
-base
-0.6656	0.33116	0.00000
-0 1 0
-0 0 1
-# nvbase
-0 0 1
-0.000000  -0.583291  -0.223397 A
-0.000000  -0.583291  +0.223397 A
-end
-
+&envin
+Prefix="ymno3_d1",
+NFI_In="../ymno3.loto.cell",
+a=6.1270,  b=6.1270,   c=11.4110,
+alpha= 90.0, beta= 90.0 gamma= 120.0,
+nch= 30,
+atom0="Ctr",pos0=0.6672d0, 0.50000d0, 0.49688d0
+nmag = 2
+posmag(1,1) = 0.33440d0, 0.33440d0, 0.49688d0
+posmag(1,2) = 1.00000d0, 0.66560d0, 0.49688d0
+dsys=2.1
+dpseud=4.2
+&end
