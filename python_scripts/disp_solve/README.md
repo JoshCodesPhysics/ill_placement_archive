@@ -1,8 +1,9 @@
 # disp_solve
 
 disp_solve is a script that generates a number of atomic displacement cell files for a crystal compound. These
-displaced unit cell atoms result from enacting a range of uniform electric fields on a system. It takes input files
-from a CRYSTAL simulation to generate the necessary matrices for this displacement calculation.
+displaced unit cell atoms result from enacting a range of uniform electric fields on a system. It takes input files from a CRYSTAL simulation to generate the necessary matrices for this displacement calculation.
+
+__Now accepts .DAT matrix input, and multiple formats of CRYSTAL output file unit cell data (namely the ones seen in the output examples for CuO-P1, CuO-C2, ymno3_d1)__ 
 
 ## Installing python 3
 
@@ -77,5 +78,5 @@ charge_dict = {'Y':3.0, 'Y1':3.0, 'Y2':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0, 'O3'
 ## Output
 
 - The output file is named after the initial cell file with an added (Ex, Ey, Ez) component label.
-- If the files are call locally, output cell file grid will be stored in the local directory folder named after the array parameters for E\_x, E\_y, E\_z.
+- If the files are called locally, output cell file grid will be stored in the local directory folder named after the array parameters for E\_x, E\_y, E\_z.
 - If the full path is called, output grid will be generated in the same way but in the provided full path directory

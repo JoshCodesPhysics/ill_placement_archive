@@ -601,16 +601,16 @@ Again, the appendix contains an instruction manual that goes into more depth abo
 
 As discussed before, the CRYSTAL optimised geometry output files contain the associated minimum energy Hessian and Born charge tensor data, alongside the unit cell atomic coordinates and lattice parameters. CRYSTAL also produces the unit cell coordinates alongside the atom's charges in a \textbf{cell file}. This data can be used to calculate the displacements from an induced uniform electric field using `disp\_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input or the coordinates found in the \texttt{.loto.out} output file \footnote{This is a summary of sections 5 and 6, see those for more details.}. 
 
-Another program that I wrote for this project was \texttt{crys2seward.py}. Crys2Seward edits the xenv15 (the executable Fortran file for Env) \texttt{envin} or \texttt{env.in} input files so that the env15 program can take cell files of different displacements from the disp\_solve outputs and produces a grid of output files named: 
+Another program that I wrote for this project was \texttt{crys2seward.py}. Crys2Seward edits the xenv15 (the executable Fortran file for Env) \texttt{envin} or \texttt{env.in} input files so that the env15 program can take cell files of different displacements from the disp\_solve outputs. It does this by matching the number of atoms in the unit cell with the input cell file, changing the cell file taken as input from the initial cell file to each displaced cell file in the grid, and adding the displacements to the central magnetic atom coordinates. Xenv15 then produces a grid of output files named: 
 
 \begin{itemize}
 	\item \texttt{prefix.<field\_values>.env.sew0}
 	\item \texttt{prefix.<field\_values>.env.psd}
 \end{itemize}
 
-These are the new input files passed to the Env2Seward program (the prefix corresponds to the simulated system). Crys2Seward modifies the Env2Seward input data so that the script processes every pair of \texttt{.psd} and \texttt{.sew0} files in the grid, so that each set of fragment coordinates can be categorised into a prefix.sew.in format, to be later input into SEWARD.
+These are the new input files passed to the Env2Seward program (the prefix corresponds to the simulated system). Crys2Seward modifies the Env2Seward input data so that the script processes every pair of \texttt{.psd} and \texttt{.sew0} files in the grid, so that each set of fragment coordinates can be categorised into a prefix.sew.in format, to be later input into SEWARD. Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype.
 
-Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype. The largest calculation time sink for this script is running xenv15 for each cell file; this gets exponentially more expensive as the number of atoms in the unit cell increases.
+The largest calculation time sink for this script is running xenv15 for each cell file; this gets exponentially more expensive as the number of atoms in the unit cell increases. Program performance was tested by running the program chain for several systems including YMnO3 and CuO, with Env2Seward and Disp\_Solve being tested on systems such as GdMn2O5 and TbMn2O5.
 
 \newpage
 \section*{Software Manual Appendix}

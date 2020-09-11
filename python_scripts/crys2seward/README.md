@@ -27,7 +27,7 @@ The program requires the following inputs:
 
 - CRYSTAL output file of a phonon calculation of your system including IR intensities (Born charges) and Hessian matrix printed in fractional coordinates
 - The initial system.cell file of the ENV code corresponding to the undistorted system
-- The envin file for the env15 program `xenv15` after executing the necessary `make` command in the Env15 folder (see the local tools manual written by M. B. Lepetit for how to install env15).
+- The envin file for the env15 program `xenv15` after executing the necessary `make` command in the Env15 folder (see the local tools manual written by M. B. Lepetit for how to install env15). DISCLAIMER: If you wish for the magnetic atom coordinates in the envin file to be displaced, you must use the `variable=value` format.
 - The prefix.c2s.in input file containing all the paths pointing to the aforementioned files, as well as the inputs for `disp_solve` and `env2seward`
 
 ## Executing the script
@@ -92,11 +92,9 @@ CRYSTAL also produces the unit cell coordinates alongside the atom's charges in 
 
 This data is used to calculate the displacements from an induced uniform electric field by `disp_solve`, and a grid of new cell files are generated with electrically disturbed positions, based on the initial cell file passed as an input.
 
-Crys2seward edits the xenv15 'envin' or 'env.in' input files so that the env15 program can take cell files of different displacements and produces a grid of output files named `prefix.env.sew0` and `prefix.env.psd`.
+Crys2seward edits the xenv15 'envin' or 'env.in' input files so that the env15 program can take cell files of different displacements, as well as edits the magnetic atom coordinates to be displaced, and produces a grid of output files named `prefix.env.sew0` and `prefix.env.psd`.
 These are the input files of the env2seward program, where the prefix corresponds to the simulated system.
 
 Crys2seward modifies the env2seward input data so that each set of sew0 and psd file coordinates are categorised into a prefix.sew.in format.
 
 Each file grid (cell files, env15 output files, sew.in files) is contained in a directory named after the electric field ranges and filetype. The names of each grid file include the associated incident electric field.
-
-
