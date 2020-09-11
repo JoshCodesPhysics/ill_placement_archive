@@ -1,7 +1,7 @@
 import os
 import sys
 import shutil
-
+import numpy as np
 # env2seward full or relative path goes in sys.path.insert
 sys.path.insert(1, '../../../python_scripts/env2seward')
 import env2seward as e2s
@@ -39,29 +39,71 @@ def run_xenv(envin, envout):
     os.system(cmd)
 
 
-def change_cell(envin, cell_file):
-    """Changes cell file path within envin or env.in files
+def change_cell(envin, cell_file, cell_init):
+    """Changes NFI_In or fcell (cell file path) value within
+    envin or env.in files as well as nch (number of atoms in
+    the unit cell), posmag (magnetic atom coordinates) and
+    potentially atom0 if Marie or Elisa add to this function.
 
     Parameters
     ----------
     envin: str
         Path to envin or env.in file that will be edited
     cell_file: str
-        Path to cell_file to be written into the envin file
+        Path to new (assumedly displaced) cell_file to be
+        written into the envin file
+    cell_init: str
+        Path to initial cell_file to track original magnetic
+        atom positions
 
     Returns
     ----------
-    None
-        Edits existing file
+    new_envin: str
+        Name of newly formed envin file with edited variables
     """
 
-    # Open the envin file for reading
+    # Open the envin, initial cell file and
+    # new cell file for reading
     with open(envin, 'r') as file:
         env = file.readlines()
 
-    with open(cell_file, 'r') as file:
-        no_atoms = len(file.readlines())
+    with open(cell_init, 'r') as file:
+        cell = file.readlines()
+        no_atoms = len(cell)
 
+    with open(cell_file, 'r') as file:
+        new_cell = file.readlines()
+
+    cell_coords = {}
+    cell_new_coords = {}
+
+    for i in range(len(cell)):
+        cell_split = cell[i].split()
+        temp_coords = []
+
+        cell_coords["%d" % i] = {}
+
+        for j in range(1, len(cell_split) - 1):
+            temp_coords.append(float(cell_split[j].replace("D", "e")))
+
+        cell_coords["%d" % i]['coords'] = temp_coords
+
+    for i in range(len(new_cell)):
+        cell_split = new_cell[i].split()
+        temp_coords = []
+
+        cell_new_coords["%d" % i] = {}
+
+        for j in range(1, len(cell_split) - 1):
+            temp_coords.append(float(cell_split[j].replace("D", "e")))
+
+        cell_new_coords["%d" % i]['coords'] = temp_coords
+
+    # Generating relative path to try to avoid hitting
+    # the Env15 character read limit with a long full path
+    rel_cell = os.path.relpath(cell_file, os.getcwd())
+
+    posmag_index = 0
     # Editing the cell file absolute path
     for i in range(len(env)):
 
@@ -69,22 +111,93 @@ def change_cell(envin, cell_file):
         if not len(env[i].split()):
             pass
 
-        # Covering both formats
+        # Covering both cell file entry formats
         elif env[i].split('=')[0] == "NFI_In":
             env_split = env[i].split('"')
-            env_split[1] = cell_file
-            env[i] = '"'.join(env_split) + '\n'
+            env_split[1] = rel_cell
+            env[i] = '"'.join(env_split)
             ch_index = i
 
+        # Second format
         elif env[i].split()[0] == "fcell":
             env[i+1] = cell_file + '\n'
             ch_index = i+1
 
+        # Number of unit cell atoms (format 1)
         elif env[i].split()[0] == "nch":
             env[i+1] = " %d\n" % no_atoms
 
-    with open(envin, 'w') as file:
+        # Number of unit cell atoms (format 2)
+        elif env[i][:4] == "nch=":
+            env[i] = "nch=%d\n" % no_atoms
+
+        # Here you could include a pos0 coordinate-editing if
+        # condition, but I did not have enough time for this
+
+        # Editing magnetic atom position displacements, matching them
+        # to coordinates in the initial unedited cell file
+        if env[i][:6] == "posmag":
+            posmag_index += 1
+
+            # Generating coordinates read from envin posmag line
+            temp_coords = []
+            coords_split = env[i].split("=")[1:][0].split()[0:3]
+            for j in range(len(coords_split)):
+                temp_coords.append(float("".join([k.replace("d", "e")
+                                   for k in coords_split[j] if k != ","])))
+
+            # print("Posmag %d coords:" % posmag_index)
+            # print(temp_coords)
+
+            # Reading the cell file coordinates and comparing their
+            # separation. Add associated displacement if sep < 1e-1
+            for index in cell_coords:
+                dict_coords = cell_coords[index]['coords']
+                separation_squared = 0
+
+                # print("Initial cell file coordinates")
+                # print(dict_coords)
+
+                for j in range(len(dict_coords)):
+                    separation_squared += (dict_coords[j]
+                                           - temp_coords[j])**2
+
+                separation = np.sqrt(separation_squared)
+                # print("Separation: ", separation)
+
+                if separation <= 1e-1:
+                    # print("Coordinate match found for posmag %d"
+                    #       % (posmag_index + 1))
+                    match_index = int(index)
+                    replace_coords = cell_new_coords[index]['coords']
+                    break
+
+            # Generating new coordinates for the new envin file
+            replace_formatted = ", ".join(['{0:.12f}'.format(i)+"d0"
+                                           for i in replace_coords])
+
+            replace_line = "=".join([env[i].split("=")[0],
+                                    replace_formatted])+"\n"
+
+            for j in range(len(replace_line)):
+                if replace_line[j] == "=":
+                    replace_line = replace_line[:j+1] + " "\
+                                   + replace_line[j+1:]
+                    break
+
+            env[i] = replace_line
+            # print("new posmag line: ")
+            # print(env[i])
+
+    # Generating new envin file name and writing the new envin file
+    envin_split = envin.split(".")
+    envin_split.insert(-1, "new")
+    new_envin = ".".join(envin_split)
+
+    with open(new_envin, 'w') as file:
         file.writelines(env)
+
+    return new_envin
 
 
 def cell_list(disp_input_file):
@@ -177,12 +290,13 @@ def sim_cells(envin, envout, disp_input_file, sew0_file,
     Path(directory_sew0).mkdir(parents=True, exist_ok=True)
     Path(directory_psd).mkdir(parents=True, exist_ok=True)
 
-    # Running xenv15
+    # Running xenv15 after changing the envin file according to
+    # the new displaced unit cell
     for i in range(len(list_cell)):
         fname = list_cell[i]
         cell_dir = grid_dir + "/" + fname
-        change_cell(envin, cell_dir)
-        run_xenv(envin, envout)
+        new_envin = change_cell(envin, cell_dir, cell_init)
+        run_xenv(new_envin, envout)
 
         field = ".".join(fname.split(".")[1:-1])
 
@@ -348,7 +462,7 @@ def read_input_file(c2s_input):
     with open(c2s_input, 'r') as file:
         c2s = file.readlines()
 
-# Parse c2s input file for variables
+    # Parse c2s input file for variables
     for i in range(len(c2s)):
         c2s_split = c2s[i].split()
 
@@ -392,9 +506,13 @@ def command_line():
 # psd_file = "ymno3_d1.psd"
 # e2s_input = "ymno3_d1.new.in"
 # c2s_input = "../ymno3_d1.c2s.in"
+# envin2 = "CuO_P1.envin"
+# cell_file2 = "CuO_P1.loto.cell"
+# cell_new = "Ex_0.0_0.15_0.15__Ey_0.0_0.15_0.15__Ez_0.0_0.15_0.15_cell"+\
+#            "/CuO.loto.0.15_0.15_0.15.cell"
 
 # run_xenv(envin, envout)
-# change_cell(envin, cell_file)
+# change_cell(envin2, cell_new, cell_file2)
 # cell_list(disp_input)
 # sim_cells(envin, envout, disp_input, sew0_file, psd_file, cell_file)
 # sew_in_grid(envin, envout, c2s_input, c2s_input,
