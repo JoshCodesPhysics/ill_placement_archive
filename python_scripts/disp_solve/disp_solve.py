@@ -1010,6 +1010,7 @@ def convert_disp(born_file, hess_file, output_file, ex, ey, ez):
             for i in range(len(newcoords)):
                 convdisp.append(newcoords[i] / lat_param[i])
     
+    irint("frac data: \n", frac_data)
     convdisp = np.array(convdisp)
     return convdisp, frac
 
@@ -1214,8 +1215,8 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
 
             group_list = ["group %d" % (i+1) for i in range(no_groups)]
 
-        print("groups: \n", groups)
-        print("group_list: \n", group_list)
+        # print("groups: \n", groups)
+        # print("group_list: \n", group_list)
         
         # Automatic charge data generation from initial cell file,
         # potentially from different space group
@@ -1239,7 +1240,7 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
                 if (element,charge) not in element_charge.items():
                     element_charge[element] = charge
 
-            print("element_charge: \n", element_charge)
+            # print("element_charge: \n", element_charge)
         
         # Manual charge data input
         elif unit_source == "charge":
@@ -1254,7 +1255,7 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
         parsed_atoms = {}
         dist_atoms = {}
         
-        print("length of gap_index: ", len(gap_index))
+        # print("length of gap_index: ", len(gap_index))
         # Generating dictionary and then scanning dictionary, relabelling
         # Atoms of same element but different irreducible group
         # e.g O, O -> O1, O2
@@ -1311,7 +1312,7 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
                                               %parsed_atoms[atom]]
                         
                         for k in prev_dict:
-                            #print("prev_dict being written for %s"%k)
+                            # print("prev_dict being written for %s"%k)
                             prev_dict[k]["element"] = "%s1"%atom
                         
                         current_dict = atom_dict["group %d"%(i+1)]
@@ -1328,7 +1329,7 @@ def unit_cell(born_file, hess_file, output_file, cell_file,
                             (atom, dist_atoms[atom])
         
         # Input manual charge data after correct dictionary is generated
-        if unit_source == "charge" and len(args)>0:
+        if unit_source == "charge" and len(args) > 0:
             for group in atom_dict:
                 for atom in atom_dict[group]:
                     atom_dict[group][atom]["charge"] =\
