@@ -35,16 +35,19 @@ def num_atoms(born_file):
     """
     
     born = open(born_file).readlines()
+    
     for i in range(len(born)):
         born_split = born[i].split()
+        
         if born_split[:5] == ['ATOMS', 'IN', 'THE', 'ASYMMETRIC', 'UNIT']:
             atom_num = int(born_split[-1])
             break
+    
     return atom_num
 
 
 def matrix_data(born_file):
-    """Stores matrix data for each atom as 3x3 matrix corresponding
+    """Stores Born charge matrix data for each atom as 3x3 matrix corresponding
     to the atom key
     
     Parameters
@@ -72,6 +75,12 @@ def matrix_data(born_file):
             start = i+1
             end = (i+1) + (7*atom_num)
             break
+        
+        elif born_split[:4] == ['ATOMIC', 'BORN', 'CHARGE', 'TENSOR']:
+            start = i + 2
+            end = (i + 2) + (7*atom_num)
+            break
+
     tensor_data = born[start:end]
     
     # Appending data to dictionary as 3x3 matrices
@@ -119,12 +128,14 @@ def born_tensor(born_file):
     # Looping through tensor columns and adding
     # stepped matrices along the diagonal
     for i in range(m_dim):
-        if i != 0 and i%3 == 0:
+        if i != 0 and i % 3 == 0:
             start_column += 3
             atom_num += 1
+        
         for j in range(3):
             tensor[i, j+start_column] = float(
                    m_dict['atom%d'%atom_num][i%3, j])
+    
     return tensor
 
 
@@ -190,6 +201,7 @@ def parse_hessian(hess_file, thresh):
     
     hess_data = []
     hess = open(hess_file).readlines()
+    
     for i in range(len(hess)):
         hess_split = hess[i].split()
         # Appending all values to hess_data from input file, unless the value
@@ -369,61 +381,64 @@ def convert_coords(output_file):
         Line containing all lattice parameter data
 
     """
-    
+
     # Allocating number of unit cell atoms and conversion matrices
     atom_num = num_atoms(output_file)
     out = open(output_file).readlines()
     conv_matrix = np.zeros((3, 3))
-    conv_inverse= np.zeros((3, 3))
-    
+    conv_inverse = np.zeros((3, 3))
+
     # Angstrom to Bohr conversion factor (if needed)
     # ANG2AT = float(1.889725989) 
-    
+
     # Parsing for data strips
     for i in range(len(out)):
         out_split = out[i].split()
-        
+
         if out_split == ['DIRECT', 'LATTICE', 'VECTORS', 'CARTESIAN',
                          'COMPONENTS', '(ANGSTROM)']:
             start = i+2
             end = start+3
-        
+
         elif out_split == ['COORDINATES', 'OF', 'THE', 'EQUIVALENT',
-                           'ATOMS', '(FRACTIONARY', 'UNITS)']:
+                           'ATOMS', '(FRACTIONARY', 'UNITS)']\
+             or out_split == ['COORDINATES', 'OF', 'THE', 'EQUIVALENT',
+                              'ATOMS', '(FRACTIONAL', 'UNITS)']:
             start2 =i+4
-        
+
         elif out_split[:5] == ['NUMBER', 'OF', 'SYMMETRY', 'OPERATORS', ':']:
             end2 = i-1
-        
+
         elif out_split == ['LATTICE', 'PARAMETERS', '(ANGSTROMS', 'AND',
                            'DEGREES)', '-', 'PRIMITIVE', 'CELL']:
             start3 = i+2
+
         # elif out_split == ['*', 'ATOM', 'X(ANGSTROM)', 'Y(ANGSTROM)',
         #                     'Z(ANGSTROM)']:
         #    start3 = i+2
         #    end3 = start3+atom_num
         #    break
-    
+
     # Conversion matrix strip
     conv_data = out[start:end]
     # Unit cell in fractional units strip
     frac_data = out[start2:end2]
     # Cartesian coordinates to test conversion matrix
     # test_data = out[start3:end3]
-    
+
     # Finding lattice parameter data
     lat_param_data = out[start3]
-    
+
     # Appending conversion matrix
     for i in range(len(conv_data)):
         conv_split = conv_data[i].split()
         for j in range(len(conv_split)):
             conv_matrix[i,j] = float(conv_split[j])
-    
+
     # Transposing it so we can solve for u,v,w
     conv_matrix = np.transpose(conv_matrix)
-    conv_inverse = np.linalg.inv(conv_matrix)
-    
+    # conv_inverse = np.linalg.inv(conv_matrix)
+
     return [conv_matrix, frac_data, lat_param_data]
 
 
@@ -450,6 +465,7 @@ def conv_hessian(hess_matrix, output_file):
     ANG2BOHR = float(1.889725989) 
     conv_data = convert_coords(output_file)
     conv_matrix = conv_data[0]
+    
     # Convert lattice parameters into atomic units for
     # matrix element division
     lat_param = [float(ANG2BOHR*float(i))
@@ -501,17 +517,17 @@ def hessian(born_file, hess_file):
     hess = open(hess_file).readlines()
     final_block = False
     start_found = False
-    
+
     # Finding relevant data range
     for i in range(len(hess)):
         hess_split = hess[i].split()
-        
+
         # Start condition for Pm.rePhonons file
         if hess_split == ['LOW', 'HALF', 'OF', 'HRED', 'AFTER',
                 'SYMMETRISATION']:
-            start = i+4
+            start = i + 4
             start_found = True
-        
+
         # Start condition for Pm.reOptGeom file
         elif hess_split == [str(i) for i in range(1, len(hess_split)+1)]\
                            and len(hess_split) > 0\
@@ -528,7 +544,7 @@ def hessian(born_file, hess_file):
                 or (hess_split == [str(m_dim)])):
             if start_found:
                 final_block = True
-        
+
         # End detected, break the loop
         if len(hess_split) > 0:
             if hess_split[0] == str(m_dim)\
@@ -536,7 +552,7 @@ def hessian(born_file, hess_file):
                     and start_found:
                 end = i+1
                 break
-    
+
     # Defining new range
     hess_data = hess[start:end]
     # Generalised column numbers for multiple format possibilities
@@ -551,19 +567,19 @@ def hessian(born_file, hess_file):
     for i in range(len(hess_data)):
         # Splitting lines into individual elements with no spacing
         rowsplit = hess_data[i].split()
-        
+
         # If we hit an empty line, increase the column number by ncolumns
         if len(rowsplit) == 0:
             first_column += ncolumns
             # print("empty space")
-        
+
         # If we hit a row of column labels,
         # do nothing except for if it is the last block
         elif rowsplit[:2] == [str(first_column+1), str(first_column+2)]:
             # print("Column label row")
             if str(int(m_dim+1)) in rowsplit:
                 last_block = True
-        
+
         # Data lines
         else:
             # Row number is first element given
@@ -579,10 +595,10 @@ def hessian(born_file, hess_file):
             else:
                 for j in range(1, len(rowsplit)):
                     tensor_hess[row, j+first_column-1] = float(rowsplit[j])
-    
+
     # Copy of L matrix if it is needed
     l_matrix = copy.deepcopy(tensor_hess)
-    
+
     # Symmetrising
     for i in range(m_dim):
         for j in range(m_dim):
@@ -594,11 +610,11 @@ def hessian(born_file, hess_file):
                     tensor_hess[i, j] = 0
                 else:
                     tensor_hess[i, j] = float(tensor_hess[j, i])
-    
+
     # We don't need to conver the Hessian anymore, it is already
     # in the Cartesian basis in a.u.
     # conv_hess = conv_hessian(tensor_hess, hess_file)
-    
+
     # Add [0] suffix to function for L matrix and [1] for symmetric matrix
     return l_matrix, tensor_hess
 
@@ -697,7 +713,7 @@ def hess_input(born_file, hess_file, output_file):
         Path of Hessian input file
     output_file: str
         Path of crystal output file (e.g .loto files)
-    
+
     Returns
     ----------
     tensor_hess: array
@@ -716,7 +732,7 @@ def hess_input(born_file, hess_file, output_file):
 def convert_coords2(out_file):
     """Parses for lattice parameters and converts them into unit cell edge
     vectors in cartesian coordinates
-    
+
     Parameters
     ----------
     out_file: str
@@ -794,7 +810,7 @@ def evec(ex, ey, ez, mdim):
     ANG2BOHR = float(1.889725989)
     ATOMIC_FIELD = float(5.14220674763e11)
     KV = float(1e3)
-    CONVERSION = float((KV/(ATOMIC_FIELD))*(1/ANG2BOHR))
+    CONVERSION = float((KV/(ATOMIC_FIELD)))
     
     e_vector = np.zeros((mdim))
     
@@ -837,21 +853,21 @@ def save_hess_born(born_file, hess_file, output_file, ex, ey, ez):
         Writes Hessian, Born and E vector binary files 
         for Fortran script input
     """
-    
+ 
     h_tensor = hess_input(born_file, hess_file, output_file)
     q_tensor = born_input(born_file)
     e_vector = evec(ex, ey, ez, len(h_tensor))
-    
+
     # Generating e_vector from inputs
     dim_array = np.array([len(h_tensor)])
-    
+
     # Saves all matrices and dimension to binary files
     # to be read by lapack_solve.f03
     h_tensor.tofile('hess_matrix')
     q_tensor.tofile('born_matrix')
     e_vector.tofile('e_vector')
     dim_array.tofile('n_array')
-    
+
     # np.save('hess_matrix',h_tensor,allow_pickle=True,fix_imports=False)
     # np.save('born_matrix',q_tensor,allow_pickle=True,fix_imports=False)
     print("q,E,H matrices written to binary files")
@@ -861,7 +877,7 @@ def solve_equation(born_file, hess_file, output_file, ex, ey, ez):
     """Generates all arrays necessary for qE = -Hd equation and
     solves for d (displacement). Equation occurs in a.u. and the
     displacements are in the same units in the same Cartesian basis
-    
+
     Parameters
     ----------
     born_file: str
@@ -885,24 +901,25 @@ def solve_equation(born_file, hess_file, output_file, ex, ey, ez):
         Each group of three numbers e.g index 0,1,2 is a set
         of 3D displacement coordinates in a,b,c space
     """
-    
+
     q_tensor = born_input(born_file)
     h_tensor = hess_input(born_file, hess_file, output_file)
     m_dim = len(h_tensor)
-    
+
     # Generating e_vector from inputs (uniform field)
     e_vector = evec(ex, ey, ez, m_dim)
-    
+
     # Generating matrices for linalg solve
-    a = float(-1.0)*h_tensor
+    a = h_tensor
     b = np.matmul(q_tensor, e_vector)
     displacement = np.linalg.solve(a, b)
-    
+
     # save_hess_born(born_file,hess_file,lat_param,ex,ey,ez)
+    
     # Printing components of linear equation including the solution
-    # print("Negative Hessian: ")
+    # print("Hessian")
     # print(a)
-    # print("B matrix: ")
+    # print("qE product matrix: ")
     # print(b)
     # print("Born tensor: ")
     # print(q_tensor)
@@ -1469,7 +1486,7 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
         Writes grid to target directory, output is the grid directory
         for crys2seward
     """
-    
+
     # Generating new folder for results, named after ranges of E coordinates
     if len(ex_array) == 1 or len(ey_array) == 1 or len(ez_array) == 1:
         dirname = "Ex_%s_%s__Ey_%s_%s__Ez_%s_%s_cell"%\
@@ -1477,7 +1494,7 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
                  str(round(ex_array[-1], 3)),str(round(ey_array[0], 3)),
                  str(round(ey_array[-1], 3)),str(round(ez_array[0], 3)),
                  str(round(ez_array[-1], 3)))
-    
+
     else:
         dirname = "Ex_%s_%s_%s__Ey_%s_%s_%s__Ez_%s_%s_%s_cell"\
                 %(str(round(ex_array[0], 3)),str(round(ex_array[-1], 3)),
@@ -1486,32 +1503,32 @@ def cell_grid(born_file, hess_file, output_file, cell_file,
                   str(round(abs(ey_array[0]-ey_array[1]), 3)),
                   str(round(ez_array[0], 3)), str(round(ez_array[-1], 3)),
                   str(round(abs(ez_array[0]-ez_array[1]), 3)))
-    
+
     # Make new folder in target directory from modify_cell,
     # and print location
     out_dir = "/".join(output_file.split("/")[:-1])
     cell_dir = "/".join(cell_file.split("/")[:-1])
-    
+
     # Determining where to write the files to
     # If inputs are paths, use them as the file destination in
     # priority order specified below
     if os.path.isdir(cell_dir):
         cd = cell_dir
         print("New cell files output to initial cell file directory")
-    
+
     elif os.path.isdir(out_dir):
         cd = out_dir
         print("New cell files output to crystal output file directory")
-    
+
     else:
         cd = os.getcwd()
         print("New cell files output to current working directory")
-    
+
     directory = cd+"/"+dirname
-    
+
     # Creating the target directory folder
     Path(directory).mkdir(parents=True, exist_ok=True)
-    
+ 
     # Writing cell files
     for i in range(len(ex_array)):
         for j in range(len(ey_array)):
@@ -1611,6 +1628,7 @@ def read_input(input_file):
         sys.exit("unit_source is invalid, see documentation")
 
     return cd
+
 
 def return_atoms(born_file, hess_file, output_file, cell_file, unit_source):
     """Lists atoms in the system to be used in the
@@ -1776,6 +1794,65 @@ def input_or_prompt(crys2sew_bool):
         read_prompt()
 
 
+def basis_set_conv(born_file, hess_file, output, output2):
+    """Generates the conversion matrix between two systems of the same
+    coordinate basis but different basis sets and applies it to the
+    corresponding Hessian.
+
+    Parameters
+    ----------
+    born_file: str
+        Path of born file
+    hess_file: str
+        Path of Hessian file
+    output_file: str
+        Path to Crystal output file containing unit cell data
+
+    Returns
+    ----------
+    tensor_hess
+    """
+
+    prim2cart_matrix = np.zeros((3, 3))
+    prim2cart_matrix2 = np.zeros((3, 3))
+    hess_input(born_file, hess_file, output)
+
+    with open(output, 'r') as file:
+        crystal = file.readlines()
+ 
+    with open(output2, 'r') as file:
+        crystal2 = file.readlines()
+
+    for i in range(len(crystal)):
+        if crystal[i].split() == ['DIRECT', 'LATTICE', 'VECTORS',
+                                  'CARTESIAN', 'COMPONENTS', '(ANGSTROM)']:
+            start = i + 2
+            break
+
+    conv_basis_data = crystal[start : start+3]
+
+    for i in range(len(crystal2)):
+        if crystal2[i].split() == ['DIRECT', 'LATTICE', 'VECTORS',
+                                  'CARTESIAN', 'COMPONENTS', '(ANGSTROM)']:
+            start2 = i + 2
+            break
+
+    conv_basis_data2 = crystal2[start2 : start2+3]
+
+    for i in range(len(conv_basis_data)):
+        cbd_split = conv_basis_data[i].split()
+        for j in range(len(cbd_split)):
+            prim2cart_matrix[i, j] = float(cbd_split[j])
+
+    for i in range(len(conv_basis_data2)):
+        cbd_split2 = conv_basis_data2[i].split()
+        for j in range(len(cbd_split2)):
+            prim2cart_matrix2[i, j] = float(cbd_split2[j])
+
+    prim2cat_matrix3 = np.matmul(np.linalg.inv(prim2cart_matrix),
+                                 prim2cart_matrix2)
+
+
 # Test inputs for functions and calling input_or_prompt
 
 # input_file = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
@@ -1788,5 +1865,16 @@ def input_or_prompt(crys2sew_bool):
 # b_dat = "YMnO3/BORN_B1Pw_loto.DAT"
 # h_dat = "YMnO3/HESSIEN.DAT"
 # crys_out = "../frequence.B1PW.loto.out"
+# CuO_P1 = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
+#          "crys2seward_examples/CuO_examples/CuO-P1.AFM.Phonons.156273.out"
+# CuO_C2 = "/home/joshhorswill10/Documents/git_new/joshua_3/Examples/"+\
+#          "crys2seward_examples/CuO_examples/CuO-C2.AFM.Phonons.155494.out"
+
+# print("Cartesian displacement matrices: ")
+# solve_equation(CuO_P1, CuO_P1, CuO_P1, 1e7, 0, 0)
+
+# print("Converted displacements only: ")
+# print(convert_disp(CuO_P1, CuO_P1, CuO_P1, 1e7, 0, 0)[0])
+# basis_set_conv(CuO_P1, CuO_P1, CuO_P1, CuO_C2)
 
 input_or_prompt(True)

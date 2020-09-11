@@ -4,13 +4,13 @@ CLEF
 Prefix
  ymno3_d1
 fcell
-../Ea_0.0_0.15_0.03__Eb_0.0_0.15_0.03__Ec_0.0_0.15_0.03_cell/ymno3.0.15_0.15_0.15.cell
+../ymno3.loto.cell
 Dim
  6.1270   6.1270   11.4110
 angle
  90 90 120
 nch
- 10
+ 30
 ncell
  2
 centre

@@ -41,7 +41,7 @@ def opening_lines(new_file, title_input):
 def atom_find(sew0_file, psd_file):
     """ Parses sew0 and psd files for atom types, arranges them according
     to if they are contained within the fragment or total ion's 
-    pseudopotential sections.
+    pseudopotential sections. Stores them in lists.
 
     Parameters
     ----------
@@ -132,8 +132,8 @@ def atom_find(sew0_file, psd_file):
 
 
 def frag_basis(new_file, sew0_file, psd_file, lib):
-    """This formats the fragment basis into groups, readable
-    by the next piece of software
+    """This formats the fragment basis into groups categorised
+    by their atom type. Written after opening line information.
 
     Parameters
     ----------
@@ -254,7 +254,8 @@ def pseudos(new_file, sew0_file, psd_file, lib):
     to match the atom to the corresponding three letter code.
     E.g. Mn17 in the sew0 matches coordinates with atom type 
     Mn2 in the psd for the system GdMn2O5_J1. Once this has been
-    completed, we write the categorised coordinates to the file.
+    completed, we write the categorised coordinates to the file, after
+    the fragment has been processed.
 
     Parameters
     ----------
@@ -496,7 +497,8 @@ def pseudos(new_file, sew0_file, psd_file, lib):
 
 def xfield(new_file, sew0_file):
     """A direct copy and paste of the Madelung potential
-    from the .env.sew0 file after parsing.
+    from the .env.sew0 file after parsing. Written after
+    categorised pseudopotential.
 
     Parameters
     ----------
@@ -531,9 +533,9 @@ def xfield(new_file, sew0_file):
         sew_in.writelines(xfield)
 
 
-def finalwrite(new_file,title_input,sew0_file,psd_file,lib_frag,lib_pseud):
+def finalwrite(new_file, title_input, sew0_file, psd_file, lib_frag, lib_pseud):
     """This function calls all writing functions sequentially to
-    generate the full sew.in file
+    generate the full sew.in file.
 
     Parameters
     ----------
@@ -600,7 +602,7 @@ def ask_user(question):
 
 
 def atom_print(atoms):
-    """Prints atom sets for prompt UI
+    """Prints atom sets for prompt UI.
 
     Parameters
     ----------
@@ -761,5 +763,6 @@ def input_jupyter_or_prompt(crys2sew_bool):
        if ask_user("Are you running this on the Jupyter notebook?") == False:
           finalprompt()
 
-
+# Currently bool (True) allows for crys2seward to recruit this script's
+# functions without automatic prompt
 input_jupyter_or_prompt(True)
