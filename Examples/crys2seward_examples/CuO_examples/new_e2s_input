@@ -1,0 +1,22 @@
+#########crystal2seward input########################
+envin = CuO_P1.envin
+envout = CuO_P1.env.out
+xenv_sew0 = CuO_P1.sew0
+xenv_psd = CuO_P1.psd
+#########disp_solve input############################
+born_file = CuO-P1.AFM.Phonons.156273.out
+hess_file = CuO-P1.AFM.Phonons.156273.out
+crystal_file = CuO-P1.AFM.Phonons.156273.out
+cell_init = CuO_P1.cell
+ex = [0,0.15,0.15]
+ey = [0,0.15,0.15]
+ez = [0,0.15,0.15]
+unit_source = direct
+charge_dict = {'Cu':2.0, 'O':-2.0}
+##########env2seward input###########################
+filename = CuO_P1.sew.in
+title = <insert title here>
+sew0_file = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/crys2seward_examples/CuO_examples/Ex_0.0_0.15_0.15__Ey_0.0_0.15_0.15__Ez_0.0_0.15_0.15_sew0/CuO_P1.0.15_0.15_0.15.env.sew0
+psd_file = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/crys2seward_examples/CuO_examples/Ex_0.0_0.15_0.15__Ey_0.0_0.15_0.15__Ez_0.0_0.15_0.15_psd/CuO_P1.0.15_0.15_0.15.env.psd
+lib_frag = {"CU":{"key":"CU_fragment_basis","loc":""}, "O":{"key":"O_fragment_basis", "loc":""}}
+lib_pseudo = {"CU":{"key":"CU_pseudo_basis","loc":"PSEUDO"}, "O":{"key":"O_pseudo_basis", "loc":"PSEUDO"}}

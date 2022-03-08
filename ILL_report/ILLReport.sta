@@ -1,0 +1,5 @@
+\standalonepreambles
+\subpreamble{/home/joshhorswill10/Documents/git_new/joshua_3/manuals/e2s_disp_manual/driver_manual.tex}
+\usepackage {a4}\usepackage [utf8]{inputenc}\usepackage {amsmath}\usepackage {amsfonts}\usepackage {amssymb}\usepackage {hyperref}\usepackage {courier}\usepackage {graphicx}\usepackage {listings}\usepackage {color}\setlength {\parskip }{2ex}\textwidth = 17cm\oddsidemargin = 0pt\definecolor {dkgreen}{rgb}{0,0.6,0}\definecolor {gray}{rgb}{0.5,0.5,0.5}\definecolor {mauve}{rgb}{0.58,0,0.82}\lstset {frame=tb,language=Python,aboveskip=3mm,belowskip=3mm,showstringspaces=false,columns=flexible,basicstyle={\small \ttfamily },numbers=none,numberstyle=\tiny \color {gray},keywordstyle=\color {blue},commentstyle=\color {dkgreen},stringstyle=\color {mauve},breaklines=true,breakatwhitespace=true,tabsize=3}\author {Joshua Horswill}\title {Software Driver Technical Manual}
+\endsubpreamble
+\endstandalonepreambles

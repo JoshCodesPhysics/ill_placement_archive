@@ -1,0 +1,44 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Aims and Methods}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Possible Applications and Reasons for Investigation}{3}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Relation of the $\bar {\bar {\alpha }}$ tensor to the exchange integral $J$}{4}{section.2}%
+\contentsline {section}{\numberline {3}Computing the magnetic exchange term from nuclei displacement}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}The Simulation Environment}{6}{subsection.3.1}%
+\contentsline {section}{\numberline {4}Prerequisite Theories}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Many-Body Schrödinger equation}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Hartree-Fock Theory}{7}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Hartree Fock Equations}{9}{subsubsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.3}Why and when to use DFT}{10}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Accurately Employing Wavefunction Correlated Methods (WCMs)}{11}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Modifications of the Standard WCMs and Effective Hamiltonian Criteria}{13}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Calculation of the Displacement with CRYSTAL}{13}{section.5}%
+\contentsline {section}{\numberline {6}Solving the displacement equation}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Generating the atomic displacements}{14}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Details of Script Mechanisms}{14}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}Conversion derivations}{15}{subsubsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.3}The Cell File}{16}{subsection.6.3}%
+\contentsline {section}{\numberline {7}Processing Env output into Seward}{16}{section.7}%
+\contentsline {section}{\numberline {8}Linking CRYSTAL output, Disp\_Solve, Env15 and Env2Seward}{17}{section.8}%
+\contentsline {section}{\numberline {9}Author and Permissions}{19}{section.9}%
+\contentsline {section}{\numberline {10}Disp\_solve}{19}{section.10}%
+\contentsline {subsection}{\numberline {10.1}What is Disp\_solve?}{19}{subsection.10.1}%
+\contentsline {subsection}{\numberline {10.2}How to Use Disp\_solve}{20}{subsection.10.2}%
+\contentsline {subsubsection}{\numberline {10.2.1}Installing python 3 and necessary modules}{20}{subsubsection.10.2.1}%
+\contentsline {subsubsection}{\numberline {10.2.2}Required Files}{20}{subsubsection.10.2.2}%
+\contentsline {subsubsection}{\numberline {10.2.3}Executing the Script and Input File Format}{21}{subsubsection.10.2.3}%
+\contentsline {subsubsection}{\numberline {10.2.4}Output files}{22}{subsubsection.10.2.4}%
+\contentsline {section}{\numberline {11}Env2Seward}{22}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Introduction}{22}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Inputs Files and Data}{23}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Installing Python}{23}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}Input Options}{23}{subsection.11.4}%
+\contentsline {subsubsection}{\numberline {11.4.1}Command Prompt Input}{24}{subsubsection.11.4.1}%
+\contentsline {subsubsection}{\numberline {11.4.2}Reading Filenames, Basis Sets and Libraries from an Input File}{24}{subsubsection.11.4.2}%
+\contentsline {subsubsection}{\numberline {11.4.3}Jupyter Notebook Version}{25}{subsubsection.11.4.3}%
+\contentsline {section}{\numberline {12}Crys2Seward}{27}{section.12}%
+\contentsline {subsection}{\numberline {12.1}Installing python 3}{27}{subsection.12.1}%
+\contentsline {subsection}{\numberline {12.2}Correct packages}{27}{subsection.12.2}%
+\contentsline {subsection}{\numberline {12.3}Input files}{28}{subsection.12.3}%
+\contentsline {subsection}{\numberline {12.4}Executing the script}{28}{subsection.12.4}%
+\contentsline {subsubsection}{\numberline {12.4.1}Rules for c2s.in:}{28}{subsubsection.12.4.1}%
+\contentsline {subsection}{\numberline {12.5}Output}{30}{subsection.12.5}%

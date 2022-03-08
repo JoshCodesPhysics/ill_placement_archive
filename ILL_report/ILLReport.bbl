@@ -1,0 +1,117 @@
+\begin{thebibliography}{10}
+
+\bibitem{anderson1951limits}
+PW~Anderson.
+\newblock Limits on the energy of the antiferromagnetic ground state.
+\newblock {\em Physical Review}, 83(6):1260, 1951.
+
+\bibitem{de1999local}
+Ib{\'e}rio de~PR~Moreira, Francesc Illas, Carmen~J Calzado, Javier~F Sanz,
+  Jean-Paul Malrieu, Nadia~Ben Amor, and Daniel Maynau.
+\newblock Local character of magnetic coupling in ionic solids.
+\newblock {\em Physical Review B}, 59(10):R6593, 1999.
+
+\bibitem{dovesi2017crystal17}
+Roberto Dovesi, VR~Saunders, C~Roetti, R~Orlando, CM~Zicovich-Wilson,
+  F~Pascale, B~Civalleri, K~Doll, NM~Harrison, IJ~Bush, et~al.
+\newblock Crystal17.
+\newblock 2017.
+
+\bibitem{garcia1997application}
+VM~Garc{\'\i}a, M~Reguero, and R~Caballol.
+\newblock Application of the iterative difference-dedicated configuration
+  interaction method to the determination of excitation energies in some
+  benchmark systems: Be, ch+, bh and ch2.
+\newblock {\em Theoretical Chemistry Accounts}, 98(1):50--56, 1997.
+
+\bibitem{gelle2008fast}
+Alain Gell{\'e} and Marie-Bernadette Lepetit.
+\newblock Fast calculation of the electrostatic potential in ionic crystals by
+  direct summation method.
+\newblock {\em The Journal of chemical physics}, 128(24):244716, 2008.
+
+\bibitem{gelle2009accurate}
+Alain Gell{\'e}, Julien Varignon, and M-B Lepetit.
+\newblock Accurate evaluation of magnetic coupling between atoms with numerous
+  open shells: An ab initio method.
+\newblock {\em EPL (Europhysics Letters)}, 88(3):37003, 2009.
+
+\bibitem{goto2004ferroelectricity}
+T~Goto, T~Kimura, G~Lawes, AP~Ramirez, and Y~Tokura.
+\newblock Ferroelectricity and giant magnetocapacitance in perovskite
+  rare-earth manganites.
+\newblock {\em Physical review letters}, 92(25):257201, 2004.
+
+\bibitem{Hur2004}
+N.~Hur, S.~Park, P.~A. Sharma, J.~S. Ahn, S.~Guha, and S.-W. Cheong.
+\newblock Electric polarization reversal and memory in a multiferroic material
+  induced by magnetic fields.
+\newblock {\em Nature}, 429(6990):392--395, May 2004.
+\newblock \href {https://doi.org/10.1038/nature02572}
+  {\path{doi:10.1038/nature02572}}.
+
+\bibitem{kohn1965self}
+Walter Kohn and Lu~Jeu Sham.
+\newblock Self-consistent equations including exchange and correlation effects.
+\newblock {\em Physical review}, 140(4A):A1133, 1965.
+
+\bibitem{kubo1952spin}
+Ryogo Kubo.
+\newblock The spin-wave theory of antiferromagnetics.
+\newblock {\em Physical Review}, 87(4):568, 1952.
+
+\bibitem{landau1936theory}
+Lev Landau.
+\newblock The theory of phase transitions.
+\newblock {\em Nature}, 138(3498):840--841, 1936.
+
+\bibitem{lepetit2016compute}
+Marie-Bernadette Lepetit.
+\newblock How to compute the magneto-electric tensor from ab-initio
+  calculations?
+\newblock {\em Theoretical Chemistry Accounts}, 135(4):91, 2016.
+
+\bibitem{oguchi1960theory}
+Takehiko Oguchi.
+\newblock Theory of spin-wave interactions in ferro-and antiferromagnetism.
+\newblock {\em Physical Review}, 117(1):117, 1960.
+
+\bibitem{pickett1989electronic}
+Warren~E Pickett.
+\newblock Electronic structure of the high-temperature oxide superconductors.
+\newblock {\em Reviews of Modern Physics}, 61(2):433, 1989.
+
+\bibitem{rebolini2014range}
+Elisa Rebolini.
+\newblock {\em Range-separated density-functional theory for molecular
+  excitation energies}.
+\newblock PhD thesis, 2014.
+
+\bibitem{refson2006variational}
+Keith Refson, Paul~R Tulip, and Stewart~J Clark.
+\newblock Variational density-functional perturbation theory for dielectrics
+  and lattice dynamics.
+\newblock {\em Physical Review B}, 73(15):155114, 2006.
+
+\bibitem{sakurai1994modern}
+JJ~Sakurai.
+\newblock Modern quantum mechanics (revised edition), tuan san fu.
+\newblock {\em Reading: Addison-Wesley}, 1994.
+
+\bibitem{sherrill2000introduction}
+C~David Sherrill.
+\newblock An introduction to hartree-fock molecular orbital theory.
+\newblock {\em School of Chemistry and Biochemistry Georgia Institute of
+  Technology}, 2000.
+
+\bibitem{varignon2013ab}
+J~Varignon, S~Petit, A~Gell{\'e}, and MB~Lepetit.
+\newblock An ab initio study of magneto-electric coupling of ymno3.
+\newblock {\em Journal of Physics: Condensed Matter}, 25(49):496004, 2013.
+
+\bibitem{winter1987theoretical}
+NW~Winter, RM~Pitzer, and DK~Temple.
+\newblock Theoretical study of a cu+ ion impurity in a naf host.
+\newblock {\em The Journal of Chemical Physics}, 86(6):3549--3556, 1987.
+
+\end{thebibliography}

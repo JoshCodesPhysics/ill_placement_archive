@@ -1,0 +1,6 @@
+filename = ymno3_d1.0.0_0.0_0.0.sew.in
+title = Initial ymno3_d1 input file
+sew0_file = ymno3_d1.0.0_0.0_0.0.env.sew0
+psd_file = ymno3_d1.0.0_0.0_0.0.env.psd
+lib_frag = {'O': {'key': 'O_frag_basis', 'loc': ''}, 'Y': {'key': 'Y_frag_basis', 'loc': ''}}
+lib_pseudo = {'MN': {'key': 'MN_pseudo_basis', 'loc': 'MN_pseudo_library'}, 'O1': {'key': 'O1_pseudo_basis', 'loc': 'O1_pseudo_library'}, 'O2': {'key': 'O2_pseudo_basis', 'loc': 'O2_pseudo_library'}, 'Y': {'key': 'Y_pseudo_basis', 'loc': 'Y_pseudo_library'}}

@@ -1,0 +1,22 @@
+#########crystal2seward input########################
+envin = ymno3_d1.envin
+envout = ymno3_d1.env.out
+xenv_sew0 = ymno3_d1.sew0
+xenv_psd = ymno3_d1.psd
+#########disp_solve input############################
+born_file = ../ex_student_ymno3_data/Position/YMnO3/BORN_B1Pw_loto.DAT
+hess_file = ../ex_student_ymno3_data/Position/YMnO3/HESSIEN.DAT
+crystal_file = ../ex_student_ymno3_data/frequence.B1PW.loto.out
+cell_init = ../ymno3_loto.cell
+ex = [0,0.15,0.15]
+ey = [0,0.15,0.15]
+ez = [0,0,0]
+unit_source = direct
+charge_dict = {'Y':3.0, 'Y1':3.0, 'Y2':3.0, 'MN':3.0, 'O1':-2.0, 'O2':-2.0, 'O3':-2.0, 'O4':-2.0}
+##########env2seward input###########################
+filename = ymno3_d1.sew.in
+title = <insert title here>
+sew0_file = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/crys2seward_examples/ymno3_d1_files/Ex_0.0_0.15__Ey_0.0_0.15__Ez_0_0_sew0/ymno3_d1.0.15_0.15_0.env.sew0
+psd_file = /home/joshhorswill10/Documents/git_new/joshua_3/Examples/crys2seward_examples/ymno3_d1_files/Ex_0.0_0.15__Ey_0.0_0.15__Ez_0_0_psd/ymno3_d1.0.15_0.15_0.env.psd
+lib_frag = {'O': {'key': 'O_frag_basis', 'loc': ''}, 'Y': {'key': 'Y_frag_basis', 'loc': ''}, 'MN': {'key': 'MN_frag_basis', 'loc': ''}}
+lib_pseudo = {'MN': {'key': 'MN_pseudo_basis', 'loc': 'MN_pseudo_library'}, 'O1': {'key': 'O1_pseudo_basis', 'loc': 'O1_pseudo_library'}, 'O2': {'key': 'O2_pseudo_basis', 'loc': 'O2_pseudo_library'}, 'O3': {'key': 'O3_pseudo_basis', 'loc': 'O3_pseudo_library'}, 'O4': {'key': 'O4_pseudo_basis', 'loc': 'O4_pseudo_library'}, 'Y': {'key': 'Y_pseudo_basis', 'loc': 'Y_pseudo_library'}, 'Y1': {'key': 'Y1_pseudo_basis', 'loc': 'Y1_pseudo_library'}, 'Y2': {'key': 'Y2_pseudo_basis', 'loc': 'Y2_pseudo_library'}}

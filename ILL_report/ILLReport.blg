@@ -1,0 +1,54 @@
+This is BibTeX, Version 0.99d (TeX Live 2019/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: ILLReport.aux
+The style file: plainurl.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: reportbib.bib
+Warning--empty journal in dovesi2017crystal17
+Warning--empty school in rebolini2014range
+You've used 20 entries,
+            2882 wiz_defined-function locations,
+            762 strings with 8448 characters,
+and the built_in function-call counts, 8687 in all, are:
+= -- 852
+> -- 380
+< -- 0
++ -- 140
+- -- 116
+* -- 534
+:= -- 1315
+add.period$ -- 61
+call.type$ -- 20
+change.case$ -- 116
+chr.to.int$ -- 0
+cite$ -- 22
+duplicate$ -- 215
+empty$ -- 784
+format.name$ -- 116
+if$ -- 2193
+int.to.chr$ -- 0
+int.to.str$ -- 20
+missing$ -- 19
+newline$ -- 104
+num.names$ -- 40
+pop$ -- 185
+preamble$ -- 1
+purify$ -- 97
+quote$ -- 0
+skip$ -- 592
+stack$ -- 0
+substring$ -- 362
+swap$ -- 21
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 80
+warning$ -- 2
+while$ -- 59
+width$ -- 22
+write$ -- 219
+(There were 2 warnings)

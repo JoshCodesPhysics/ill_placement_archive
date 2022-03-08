@@ -1,0 +1,16 @@
+\contentsline {section}{\numberline {1}Author and Permissions}{2}{section.1}%
+\contentsline {section}{\numberline {2}Env2Seward}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Introduction}{3}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}How to compile and run the script}{3}{subsubsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.2}Prompt entry}{3}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Inputs and outputs}{3}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Prefix, Title and Basis Set Formatting}{4}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Reading Filenames, Basis Sets and Libraries from an Input File}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Jupyter Notebook Version}{5}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Disp\_solve}{8}{section.3}%
+\contentsline {subsection}{\numberline {3.1}What is Disp\_solve?}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}How to Use Disp\_solve}{8}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Installing python 3 and necessary modules}{8}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}Required Files}{8}{subsubsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.3}Executing the Script and Input File Format}{9}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}Output files}{10}{subsubsection.3.2.4}%
